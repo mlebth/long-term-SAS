@@ -1,19 +1,16 @@
-
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
-/*when processes get too slow, run this and RERUN ALL OF HIST to free up memory
 
-proc datasets library=work kill; run; 
-
-*/
-
-proc import datafile="G:\Research\Excel Files\data 2013\plothistory.csv"
+*--------------------------------------- PLOT HISTORY -----------------------------------------------------;
+* This comes from my own document, not FFI;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data\plothistory.csv"
 out=hist 
 dbms=csv replace;
 getnames=yes;
 run;
-/*proc contents data=hist; title 'hist'; run;
-proc print data=hist; run;  * N = 44; */
+
+/*proc contents data=hist; title 'plot history'; run;
+proc print data=hist; run;  * N = 61; */
 * plot history data in this file;
 * variables: 
    burnsev (s, l, m, h) = wildfire severity
@@ -21,6 +18,8 @@ proc print data=hist; run;  * N = 44; */
    lastrx = year of last prescribed burn
    yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
    plot = fmh plot #;
+
+*plot history cleanup;
 data hist2; set hist;
    if lastrx = 9999 then lastrx = .;
    if yrrx1 = 9999 then yrrx1 = .;
@@ -47,8 +46,8 @@ run;
 
 proc sort data=hist2; by plot burn; run;
 
-*--------------------------------------- 2014 -----------------------------------------------------;
-/*FUELS data were only collected in 1999.
+*--------------------------------------- FUELS AND SPECIES COMP -----------------------------------------------------;
+/* All these fuels data were only collected in 1999. Not including in mass import.
 
 proc import datafile="g:\Excel Files\FFI long-term data\duff-1999.csv"
 out=duff 
@@ -68,27 +67,60 @@ dbms=csv replace;
 getnames=yes;
 run;
 
-From FMH handbook--'Ocular estimates of cover for plant species on a macroplot'
+For species comp, from FMH handbook--'Ocular estimates of cover for plant species on a macroplot'
 Collected on about 13 plots, 2010-2013. no more than 5-6 spp recorded per plot, and no cover recorded. 
-Also entered for 2002, 2003, 2005, 2006, but completely blank. 
+Also entered for 2002, 2003, 2005, 2006, but completely blank. Not including in mass import.
+
 proc import datafile="g:\Excel Files\FFI long-term data\cover-speciescomp-allyrs.csv"
 out=spcomp 
 dbms=csv replace;
 getnames=yes;
 run;
 
-Done in 2011, one plot in 2008. Data for 2012 included but blank--maybe a mistake?
-proc import datafile="g:\Excel Files\FFI long-term data\postburnsev-allyrs.csv"
+*/
+
+*--------------------------------------- POST-BURN SEVERITY -----------------------------------------------------;
+*Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data\postburnsev.csv"
 out=postsev 
 dbms=csv replace;
 getnames=yes;
 run;
+
+/* proc print data = postsev; run;
+proc contents data = postsev; run;
+proc freq data = postsev; tables PlotType; run;
+
+Variables:
+	Date, MacroPlot_Name, 
+	PlotType = Forest or Shrub
+	Transect = Transect id number, out of 3
+	Point = Gives each measurement a number (ex. Point 1 is at 1m, 2 is at 5m, 3 is at 10m etc.)
+	TapeDist = Point on tape where measurement was taken (1m, 5m, 10m, etc.)
+	Veg = Scale of 0-5. For more details on categorizations, see backside of FMH-21
+		{0=N/A, 1=heavily burned, 2=moderately burned, 3=lightly burned, 4=scorched, 5=unburned}
+	Sub = See Veg
 */
 
-*NOTE FOR ALL: Count subspecies as separate species or lump together? Also: there are species in the database that are taxonomically something different now, should be corrected for consistency;
+* cleanup;
+data postsev1 (rename=(MacroPlot_Name=plot) rename=(PlotType=type) rename=(TapeDist=dist) rename=(Veg=vege) rename=(Sub=subs));
+	set postsev;
+data postsev2 (keep=plot type dist vege subs);
+	set postsev1;
+run;
 
-*---------------------------------------trees-----------------------------------------;
-*seedlings/resprouts;
+proc sort data = postsev2; by plot dist; run;
+data postsev3;
+	set postsev2;
+	for each plot
+	if type = '' then  type = type;
+
+/* proc print data=postsev2; run; *N = 1227;
+proc contents data=postsev2; run;
+proc freq data=postsev2; tables type; run; */
+
+*----------------------------------------- TREES --------------------------------------------------;
+*******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS');
 proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data\seedlings-allyrs.csv"
 out=seedlings 
 dbms=csv replace;
@@ -106,8 +138,9 @@ data seedlings2 (rename=(MacroPlot_Name=plot) rename=(Species_Symbol=sspp) renam
 data seedlings3 (keep=plot sspp shgt snum stat Date);
 	set seedlings2;
 run;
-proc contents data=seedlings3; title 'seedlings3'; run;  * N = 1033;
-*variables
+
+/*proc contents data=seedlings3; title 'seedlings3'; run;  * N = 1033;
+variables:
    plot = fmh plot #
    sspp = species code
    shgt = height class
@@ -115,101 +148,78 @@ proc contents data=seedlings3; title 'seedlings3'; run;  * N = 1033;
    stat = L/D (live or dead)
    Date = date of plot visit;
 
-/*proc print data=seedlings3; run;*/
-proc freq data=seedlings3; tables sspp; run; 
+proc print data=seedlings3; run;
+proc freq data=seedlings3; tables sspp; run; */
+
 *What to do about species with numbers in the species code? Names are longer than 4 char;
-	/* CAAM is entered 2x (shrub, not a seedling)
-	ILVO is entered 9x (shrub, not a seedling)
-	UNTR1 = unknown tree
-    XXXX = 10, meaning 10 plots with no seedlings*/
+
+*CAAM is entered 2x (shrub, not a tree)
+ILVO is entered 9x (shrub, not a tree)
+VAAR is entered 169x
+UNTR1 = unknown tree
+XXXX = 10, meaning 10 observations of plots with no seedlings;
 *two sets, one with consistent trees, the other with inconsistent spp; 
 data seedlings4; set seedlings3;
 	if (sspp NE "CAAM2" & sspp NE "ILVO" & sspp NE "VAAR") ;
 data seedlingprobspp; set seedlings3;
 	if (sspp  = "CAAM2" | sspp  = "ILVO" | sspp  = "VAAR");
 run;
-proc freq data=seedlings4; tables sspp; title 'seedlings4'; run; * N = 648;
-proc freq data=seedlingprobspp; tables sspp; title 'seedlings4'; run; * N = 150;
 
-*splitting out just important species--pines and quma, quma3;
-data pineoak; set seedlings4;
-	if (sspp = "PITA" |sspp = "QUMA" | sspp = "QUMA3");
+/* proc freq data=seedlings4; tables sspp; title 'seedlings4'; run; * N = 853;
+proc freq data=seedlingprobspp; tables sspp; title 'seedlingprobspp'; run; * N = 180; */
+
+
+******POLE TREES (SAPLINGS);
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data\Saplings-allyrs.csv"
+out=saplings 
+dbms=csv replace;
+getnames=yes;
 run;
 
-proc freq data=pineoak; tables sspp; title 'pineoak'; run; * N = 473;
-proc sort data=pineoak; by plot;
-data pineoak2; merge hist2 pineoak; by plot; year = year(date); run;
-data pineoak3; set pineoak2;
-   if year < 2011 then prpo = 'pref';
-   if year >= 2011 then prpo = 'post';
-run;
-proc print data=pineoak3; run;
-proc contents data = pineoak3; run;
-proc freq data=pineoak3; tables sspp*burn; title 'pineoak'; run; * N = 491;
+/*proc print data=saplings; title 'saplings'; run; *N=2560;
+proc contents data=saplings; run;
 
-proc sort data=pineoak3; by plot year sspp burn prpo;
-proc means data=pineoak3 noprint sum; by plot year sspp burn prpo; var snum; 
-  output out=numplantdatapo sum=npersppo;
-  *npersppo = number per species for pines and oaks;
-proc print data=numplantdatapo; title 'pine oak numplantdata'; 
-  var plot year burn prpo sspp npersppo;
-run;   * N = 240 plot-year combinations;
+Variables:
+	Date, MacroPlot, Species_Symbol
+	SizeClDia = DBH size class
+	Status = L/D
+	AvgHt = Height class
+*/
 
-proc freq data=numplantdatapo; tables sspp*burn / fisher expected;
-run;
-*this has different values than pineoak3 table...not sure why yet;
-
-proc sort data=numplantdatapo; by plot burn prpo;
-proc means data=numplantdatapo noprint sum; by plot burn prpo; var npersppo; 
-  output out=numperplot sum=nperplot;
-proc print data=numperplot; title 'totals per plot'; 
-  var plot burn prpo nperplot;
-run;   * N = 249 plot-year combinations;
-proc sort data = numperplot; by plot;
-data numperplot2; merge numplantdatapo numperplot; by plot; run;
-proc print data = numperplot2; run;
-data numperplot3; set numperplot2;
-	relabun = npersppo / nperplot;
-proc print data = numperplot3; title 'numperplot3'; run;
-
-
-proc freq data=numperplot3; tables sspp*burn / fisher expected;
-run;
-proc freq data=numperplot3; tables sspp*prpo / fisher expected;
+* cleanup;
+data saplings1;
+	set saplings;
+	if Species_Symbol='' then delete;
+data saplings2 (rename=(MacroPlot_Name=plot) rename=(Species_Symbol=sspp) rename=(SizeClDia=diam) rename=(Status=stat) rename=(AvgHt=heig));
+	set saplings1;
+data saplings3 (keep=plot sspp diam stat heig Date);
+	set saplings2;
 run;
 
-*merging orig dataset (with all species) with plot history;
-proc sort data=seedlings4; by plot;
-data seedlings5; merge hist2 seedlings4; by plot; year = year(date); run;
-proc print data=seedlings5; title 'seedlings merged with plot history'; run; * N = 659 no seedlings observed in plot 1237; 
+/*proc contents data=saplings3; title 'saplings3'; run;  * N = 2308;
+proc print data=saplings3; run;
+proc freq data=saplings3; tables sspp; run; */
 
-
-* ---- plot-level information -----;
-* to compare spp among plots, we need a comparable variable for each plot;
-* an obvious comparable variable is number of plants of that spp;
-proc sort data=seedlings5; by plot year sspp;
-proc means data=seedlings5 noprint sum; by plot year sspp; var snum; 
-  output out=numplantdata sum=npersp;
-proc print data=numplantdata; title 'numplantdata'; 
-  var plot year sspp npersp;
-run;   * N = 352;
-
-proc means data=numplantdata noprint sum; by plot year; 
-  var npersp;
-  output out=seedlings6 sum = sumseedlings;
-* sumseedlings = # of all sdlngs in the plot;
-proc print data=seedlings6; title 'seedling6';
-  run; * n=168 plot-year combinations;
-
-proc univariate data=numplantdatapo plot;
-	var npersppo;
+*ILVO is entered 3x (shrub, not a tree)
+VAAR is entered 45x
+XXXX = 91, meaning 91 observations of plots with no saplings;
+*two sets, one with consistent trees, the other with inconsistent spp; 
+data saplings4; set saplings3;
+	if (sspp NE "ILVO" & sspp NE "VAAR") ;
+data saplingprobspp; set saplings3;
+	if (sspp  = "ILVO" | sspp  = "VAAR");
 run;
-* long right tail;
 
-* which are the most common spp?;
-proc sort data=numplantdata; by sspp;
-proc means data=numplantdata sum noprint; by sspp; var npersp;
-  output out=spptotals sum=spptot;
-proc print data=spptotals; title 'plants/spp all plots, all year';
-run;
-*QUMA3: 1027, PITA: 937, QUMA: 725, SANI: 157;
+/* proc freq data=saplings4; tables sspp; title 'saplings4'; run; * N = 2260;
+proc freq data=saplingprobspp; tables sspp; title 'saplingprobspp'; run; * N = 48; */
+
+/* PINUS (3x) = unspecified species of Pinus
+
+proc sql;
+	select *
+	from saplings4
+	where sspp eq 'PINUS';
+quit; 
+
+All 3 instances were in 11/1999. 2 in 1200; 1 in 1206. Can reasonably change them to PITA.
+*/
