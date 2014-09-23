@@ -106,7 +106,7 @@ data postsev1 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most)
 			   rename=(PlotType=type) rename=(TapeDist=dist) rename=(Veg=vege) 
 			   rename=(Sub=subs));
 	set postsev;
-data postsev2 (keep=plot most type dist vege subs);
+data postsev2 (keep=plot most type dist vege subs date);
 	set postsev1;
 run;
 
@@ -137,7 +137,7 @@ data seedlings2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most)
 				 rename=(Species_Symbol=sspp) rename=(SizeClHt=heig) rename=(Status=stat) 
 				 rename=(Count=snum));
 	set seedlings1;
-data seedlings3 (keep=plot most sspp heig snum stat Date);
+data seedlings3 (keep=plot most sspp heig snum stat date);
 	set seedlings2;
 run;
 proc sort data = seedlings3; by plot; run;
@@ -196,7 +196,7 @@ data saplings2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most)
 				rename=(Species_Symbol=sspp) rename=(SizeClDia=diam) rename=(Status=stat) 
 				rename=(AvgHt=heig));
 	set saplings1;
-data saplings3 (keep=plot most sspp diam stat heig Date);
+data saplings3 (keep=plot most sspp diam stat heig date);
 	set saplings2;
 run;
 proc sort data=saplings3; by plot; run;
@@ -258,7 +258,7 @@ data overstory2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most)
 				 rename=(Species_Symbol=sspp) rename=(QTR=quar) rename=(TagNo=tagn) 
 			 	 rename=(Status=stat) rename=(DBH=diam) rename=(CrwnRto=crwn));
 	set overstory1;
-data overstory3 (keep=plot most sspp quar tagn stat diam crwn Date);
+data overstory3 (keep=plot most sspp quar tagn stat diam crwn date);
 	set overstory2;
 run;
 proc sort data=overstory3; by plot; run;
@@ -314,7 +314,7 @@ data shrubs2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most)
 			  rename=(Species_Symbol=sspp) rename=(AgeCl=agec) rename=(Count=coun) 
 			  rename=(Status=stat));
 	set shrubs1;
-data shrubs3 (keep=plot most sspp agec coun stat Date);
+data shrubs3 (keep=plot most sspp agec coun stat date);
 	set shrubs2;
 run;
 proc sort data=shrubs3; by plot; run;
@@ -382,7 +382,7 @@ proc contents data=herbaceous; title 'herbaceous'; run;
 data herb1 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) rename=(Status=stat)
 			rename=(Species_Symbol=sspp) rename=(Quadrat=quad) rename=(Count=coun));
 	set herbaceous;
-data herb2 (keep=plot most sspp quad coun stat Date);
+data herb2 (keep=plot most sspp quad coun stat date);
 	set herb1;
 run;
 proc sort data = herb2; by plot; run;
@@ -441,7 +441,7 @@ proc contents data=transect; title 'transect'; run;
 data trans1 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) rename=(Point=poin)
 			rename=(Species_Symbol=sspp) rename=(Height=heig));
 	set transect;
-data trans2 (keep=plot most Tape sspp poin heig Date);
+data trans2 (keep=plot most Tape sspp poin heig date);
 	set trans1;
 run;
 data trans3; set trans2;
@@ -454,12 +454,38 @@ proc freq data=trans3; tables sspp; run;
 */
 
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\CanopyCoverallyrs.csv"
+out=canopy 
+dbms=csv replace;
+getnames=yes;
+run;  * N = 196;
+/* proc contents data = canopy; title 'canopy'; run;
+proc print data = canopy; run;  */
+
+data canopy1 (rename=(Burn_Severity=bsev) rename=(Origin=orig) rename=(Q1=qua1)
+			rename=(Q2=qua2) rename=(Q3=qua3) rename=(Q4=qua4));
+	drop Total_Canopy_Cover;
+	set canopy;
+data canopy2;
+	set canopy1;
+	cavg = (qua1 + qua2 + qua3 + qua4 + orig)/5;
+run;
+proc sort data = canopy2; by plot; run;
+/* proc contents data = canopy2; title 'canopy2'; run; 
+proc print data = canopy2; run;	*/
 
 
+*****************merging canopy cover and plot history with all else;
+data seedlings5; merge hist2 canopy2 seedlings4; by plot; run; 
+proc print data = seedlings5; title 'seedlings5'; run; *N = 1039;
+proc contents data = seedlings5; run;
 
+proc sql;
+	select burnsev, bsev, plot
+	from seedlings5;
+quit;
 
-
-
+*check burnsevs on 1182, 1183, 1184, 1185, 1196, 1211, 1212, 1218, 1225, 1226, 1223, 1229, 1233, 1234, 1238, 1239, 1240;
 /* CODE FROM LAST YEAR. NOT INCLUDING IN AUTOMATIC RUN.
 
 *splitting out just important species--pines and quma, quma3;

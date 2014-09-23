@@ -82,6 +82,28 @@ Datasets:
 			poin = numbered point on tape (0.3m = point 1,  0.6m = point 2, etc.)
 			Tape = distance on tape measure
 			heig = height of tallest plant at any given point
-			Date = date of plot visit;			
+			Date = date of plot visit;	
+	
+	9. canopy2
+		Variables:
+			plot = fmh plot #
+			year = year of data collection
+			bsev = burn severity [U = unburned, S = scorched, L = lightly burned, M = moderately burned, H = heavily burned]	
+			orig, qua1, qua2, qua3, qua4 = canopy cover measurements at 4 corners and origin
+			cavg = (qua1 + qua2 + qua3 + qua4 + orig)/5)
+		
+*/
+
+
+/*Begin data analyses
+
+For each dataset, I need effects of independent variables on:
+	species diversity, richness 
+	plant cover
+Effects of canopy cover on all of the above.
+
+Merge plot history and canopy cover with all others.
 
 */
+
+
