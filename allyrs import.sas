@@ -44,6 +44,7 @@ data hist2; set hist;
 run;
 
 proc sort data=hist2; by plot burn; run;
+/*proc freq data=hist2; tables burnsev; run; */
 
 *--------------------------------------- FUELS AND SPECIES COMP -----------------------------------------------------;
 /* All these fuels data were only collected in 1999. Not including in mass import.
