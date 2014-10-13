@@ -91,7 +91,13 @@ Datasets:
 			bsev = burn severity [U = unburned, S = scorched, L = lightly burned, M = moderately burned, H = heavily burned]	
 			orig, qua1, qua2, qua3, qua4 = canopy cover measurements at 4 corners and origin
 			cavg = (qua1 + qua2 + qua3 + qua4 + orig)/5)
-		
+
+	10. piquil
+		Variables: hist2 + seedlings4 + shrubs5
+		Notes: This is a dataset including pines and oaks as seedlings (measured in 10mx5m subplot), and ilex as a shrub (measured in 1mx50m subplot)
+
+seedlings5 (seedlings4 + hist2 + canopy2)
+piquil (seedlings5 + shrubs5)
 */
 
 

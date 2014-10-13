@@ -1,23 +1,5 @@
-/* All the following were cut from the import document. This is data manipulation, not importing;
-
-*splitting out just important species--pines and quma, quma3;
-data pineoak; set seedlings4;
-	if (sspp = "PITA" |sspp = "QUMA" | sspp = "QUMA3");
-run;
-
-/* proc freq data=pineoak; tables sspp; title 'pineoak'; run; * N = 626; */
-proc sort data=pineoak; by plot;
-data pineoak2; merge hist2 pineoak; by plot; year = year(date); run;
-data pineoak3; set pineoak2;
-   if year < 2011 then prpo = 'pref';
-   if year >= 2011 then prpo = 'post';
-run;
-proc print data=pineoak3; run;
-proc contents data = pineoak3; run;
-proc freq data=pineoak3; tables sspp*burn; title 'pineoak'; run; * N = 491;
-
-proc sort data=pineoak3; by plot year sspp burn prpo;
-proc means data=pineoak3 noprint sum; by plot year sspp burn prpo; var snum; 
+proc sort data=piquil3; by plot year sspp burn prpo;
+proc means data=piquil3 noprint sum; by plot year sspp burn prpo; var snum; 
   output out=numplantdatapo sum=npersppo;
   *npersppo = number per species for pines and oaks;
 proc print data=numplantdatapo; title 'pine oak numplantdata'; 
@@ -41,17 +23,10 @@ data numperplot3; set numperplot2;
 	relabun = npersppo / nperplot;
 proc print data = numperplot3; title 'numperplot3'; run;
 
-
 proc freq data=numperplot3; tables sspp*burn / fisher expected;
 run;
 proc freq data=numperplot3; tables sspp*prpo / fisher expected;
 run;
-
-*merging orig dataset (with all species) with plot history;
-proc sort data=seedlings4; by plot;
-data seedlings5; merge hist2 seedlings4; by plot; year = year(date); run;
-proc print data=seedlings5; title 'seedlings merged with plot history'; run; * N = 659 no seedlings observed in plot 1237; 
-
 
 * ---- plot-level information -----;
 * to compare spp among plots, we need a comparable variable for each plot;

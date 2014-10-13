@@ -136,9 +136,9 @@ data seedlings1; set seedlings;
 	if Species_Symbol='' then delete;
 data seedlings2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) 
 				 rename=(Species_Symbol=sspp) rename=(SizeClHt=heig) rename=(Status=stat) 
-				 rename=(Count=snum));
+				 rename=(Count=coun));
 	set seedlings1;
-data seedlings3 (keep=plot most sspp heig snum stat date);
+data seedlings3 (keep=plot most sspp heig coun stat date);
 	set seedlings2;
 run;
 proc sort data = seedlings3; by plot; run;
@@ -148,7 +148,7 @@ variables:
    plot = fmh plot #
    sspp = species code
    heig = height class
-   snum = number of seedlings or resprouts per height class. sdlngs here on out for simplicity.
+   coun = number of seedlings or resprouts per height class. sdlngs here on out for simplicity.
    stat = L/D (live or dead)
    Date = date of plot visit;
 
@@ -169,7 +169,34 @@ data seedlingprobspp; set seedlings3;
 	if (sspp  = "CAAM2" | sspp  = "ILVO");
 run;
 
-/* proc freq data=seedlings4; tables sspp; title 'seedlings4'; run; * N = 1022;
+/*
+proc freq data=seedlings4; 
+	tables plot*sspp;
+run;
+
+proc contents data=seedlings4; run;
+proc sql; 
+   create table freqs as 
+   SELECT heig
+        , COUNT(*) as freq
+   FROM (
+      SELECT           name_1 AS name FROM seedlings4
+      UNION ALL SELECT name_2 AS name FROM seedlings4
+      UNION ALL SELECT name_3 AS name FROM seedlings4
+      UNION ALL SELECT name_4 AS name FROM seedlings4
+      UNION ALL SELECT name_5 AS name FROM seedlings4
+      ) AS myunion  ;
+quit; 
+proc sql;
+	select sspp, coun, plot	, date
+	from seedlings4
+	where sspp in ('PITA', 'QUMA', 'QUMA3', 'XXXX') and
+	 most eq '2014';
+quit; 
+
+
+*/
+/* proc freq data=seedlings4; tables sspp*plot; title 'seedlings4'; run; * N = 1022;
 proc freq data=seedlingprobspp; tables sspp; title 'seedlingprobspp'; run; * N = 11; */
 
 
@@ -322,7 +349,7 @@ proc sort data=shrubs3; by plot; run;
 
 /*proc contents data=shrubs3; title 'shrubs3'; run;  * N = 890;
 proc print data=shrubs3; run;
-proc freq data=shrubs4; tables sspp; run; 
+proc freq data=shrubs3; tables sspp*coun; run; 
 
 Problem species:
 CATE9 (Carya texana) 1x in 2005, plot 1218
@@ -357,9 +384,8 @@ run;
 
 /* proc freq data=shrubs5; tables sspp; title 'shrubs5'; run; * N = 874;
 proc freq data=shrubsprobspp; tables sspp; title 'shrubsprobspp'; run; * N = 16; 
-
 NOTE that all of the N's reported in this document refer to RECORDS, not COUNTS
-
+proc print data=shrubs5; run;
 */
 
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
@@ -477,8 +503,8 @@ proc print data = canopy2; run;	*/
 
 
 *****************merging canopy cover and plot history with all else;
-data seedlings5; merge hist2 canopy2 seedlings4; by plot; run; 
-proc print data = seedlings5; title 'seedlings5'; run; *N = 1039;
+data seedlings5; merge hist2 canopy2 seedlings4; by plot; year = year(date); run; 
+/*proc print data = seedlings5; title 'seedlings5'; run; *N = 1039;
 proc contents data = seedlings5; run;
 
 proc sql;
@@ -487,22 +513,26 @@ proc sql;
 quit;
 
 *check burnsevs on 1182, 1183, 1184, 1185, 1196, 1211, 1212, 1218, 1225, 1226, 1223, 1229, 1233, 1234, 1238, 1239, 1240;
-/* CODE FROM LAST YEAR. NOT INCLUDING IN AUTOMATIC RUN.
+*/
 
-*splitting out just important species--pines and quma, quma3;
-data pineoak; set seedlings4;
-	if (sspp = "PITA" |sspp = "QUMA" | sspp = "QUMA3");
+
+*putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
+data seedlingsshrubs; merge shrubs5 seedlings5 ; by plot; run;
+
+*splitting out just important species--pines, ilvo, and quma, quma3;
+data piquil; set seedlingsshrubs;
+	if (sspp = "PITA" |sspp = "QUMA" | sspp = "QUMA3" | sspp = "ILVO");
 run;
-
+/*
 proc freq data=pineoak; tables sspp; title 'pineoak'; run; * N = 473;
-proc sort data=pineoak; by plot;
-data pineoak2; merge hist2 pineoak; by plot; year = year(date); run;
-data pineoak3; set pineoak2;
+*/
+proc sort data=piquil; by plot;  
+data piquil2; merge hist2 piquil; by plot; year = year(date); run;
+data piquil3; set piquil2;
    if year < 2011 then prpo = 'pref';
    if year >= 2011 then prpo = 'post';
 run;
-/*proc print data=pineoak3; run;
-proc contents data = pineoak3; run;
-proc freq data=pineoak3; tables sspp*burn; title 'pineoak'; run; * N = 491;*/
-
+/*proc print data=piquil3; run;
+proc contents data = piquil3; run;
+proc freq data=piquil3; tables sspp*coun; title 'pineoak'; run; * N = 491;*/
 */
