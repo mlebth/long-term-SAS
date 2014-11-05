@@ -4,11 +4,8 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 * This comes from my own document, not FFI;
 /*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\plothistory.csv"*/
 
-proc import datafile="D:\FFI CSV files\plothistory.csv"
-out=hist 
-dbms=csv replace;
-getnames=yes;
-run;
+proc import datafile="g:\FFI CSV files\plothistory.csv"
+out=hist dbms=csv replace; getnames=yes; run;  * N = 61;
 
 /*proc contents data=hist; title 'plot history'; run;
 proc print data=hist; run;  * N = 61; */
@@ -21,7 +18,7 @@ proc print data=hist; run;  * N = 61; */
    yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
    plot = fmh plot #;
 
-*plot history cleanup;
+* plot history cleanup;
 data hist2; set hist;
    if lastrx = 9999 then lastrx = .;
    if yrrx1 = 9999 then yrrx1 = .;
@@ -44,53 +41,38 @@ data hist2; set hist;
    if (burnsev = 'h') then bcat2 = 'C';
    if (burnsev = 'm') then bcat2 = 'B';
    if (burnsev = 's' | burnsev = 'l') then bcat2 = 'A';
-run;
+run;  * N = 61;
 
 proc sort data=hist2; by plot burn; run;
 /*proc freq data=hist2; tables burnsev; run; */
-
+/* 
 *--------------------------------------- FUELS AND SPECIES COMP -----------------------------------------------------;
-/* All these fuels data were only collected in 1999. Not including in mass import.
+* All these fuels data were only collected in 1999. Not including in mass import.;
 
 proc import datafile="g:\Excel Files\FFI long-term data\duff-1999.csv"
-out=duff 
-dbms=csv replace;
-getnames=yes;
-run;
+out=duff dbms=csv replace; getnames=yes; run;
 
 proc import datafile="g:\Excel Files\FFI long-term data\1000hrfuels-1999.csv"
-out=cwd 
-dbms=csv replace;
-getnames=yes;
-run;
+out=cwd dbms=csv replace; getnames=yes;run;
 
 proc import datafile="g:\Excel Files\FFI long-term data\finefuels-1999.csv"
-out=finefuels 
-dbms=csv replace;
-getnames=yes;
-run;
+out=finefuels dbms=csv replace; getnames=yes; run;
 
-For species comp, from FMH handbook--'Ocular estimates of cover for plant species on a macroplot'
+* For species comp, from FMH handbook--'Ocular estimates of cover for plant species on a macroplot'
 Collected on about 13 plots, 2010-2013. no more than 5-6 spp recorded per plot, and no cover recorded. 
-Also entered for 2002, 2003, 2005, 2006, but completely blank. Not including in mass import.
+Also entered for 2002, 2003, 2005, 2006, but completely blank. Not including in mass import.;
 
 proc import datafile="g:\Excel Files\FFI long-term data\cover-speciescomp-allyrs.csv"
-out=spcomp 
-dbms=csv replace;
-getnames=yes;
-run;
-
+out=spcomp dbms=csv replace; getnames=yes;run;
 */
 
 *--------------------------------------- POST-BURN SEVERITY ASSESSMENT DATA -----------------------------------------------------;
-*Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
+* Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
 /*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\postburnsev.csv"*/
 
-proc import datafile="D:\FFI CSV files\postburnsev.csv"
-out=postsev 
-dbms=csv replace;
-getnames=yes;
-run;
+* import for nlf computer;
+proc import datafile="g:\FFI CSV files\postburnsev.csv"
+out=postsev dbms=csv replace; getnames=yes; run;  * N = 1227;
 
 /* proc print data = postsev; run;
 proc contents data = postsev; run;
@@ -107,31 +89,72 @@ proc freq data = postsev; tables PlotType; run;	*/
 	Sub = See Veg;
 
 * cleanup;
-data postsev1 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) 
-			   rename=(PlotType=type) rename=(TapeDist=dist) rename=(Veg=vege) 
-			   rename=(Sub=subs));
-	set postsev;
-data postsev2 (keep=plot most type dist vege subs date);
-	set postsev1;
+data postsev1; set postsev;
+   plot = MacroPlot_Name; most = Monitoring_Status; 
+   type = PlotType; dist = TapeDist; vege = Veg; subs=Sub; 
+    * keep plot most type dist vege subs date;
+   keep plot most type dist vege subs;
+run;                                                          * N = 1227;
+data dummydat; input plot most type $ dist vege subs;
+datalines;
+9999 9999 xxxxx 9999 9 9
+9999 9999 xxxxx 9999 9 9
+9999 9999 xxxxx 9999 9 9
+;                                                             * N = 3;
+data dummydatx; set dummydat;
+  if type = 'xxxxx' then type = '     ';
+data postsev2x; set postsev1 dummydat;
+proc print data=postsev2x; title 'postsev2x';
+run;                                                          * N = 1230;
+
+data postsev2x1; set postsev2x; dummy=1; keep plot type dummy;
+proc sort data=postsev2x1; by type plot;
+proc print data=postsev2x1; title 'postsev2x1';
 run;
+
+/* * how many plots?;    * 41 plots in this data set, all have labeled type;
+proc sort data=postsev2x1; by plot;
+proc means data=postsev2x1 n; by plot; output out=moutx n=n;
+proc print data=moutx; run; */
+
+* only plots with labeled types;
+data postsev2x2; set postsev2x1; if (type ^= '      ' | type ^= '     ');  * N = 59 labeled plots;
+proc print data=postsev2x2; title 'postsev2x2';
+run;
+proc means data=postsev2x2 mean; var dummy; by type plot;
+  output out=mout1 mean=meandummy;
+proc print data=mout1; title 'mout1';
+run;                                                                       * N = 41 plots with a labeled type;
+data mout2; set mout1; 
+  if type = 'Forest' then typecat = 'f';
+  if type = 'Shrub' then typecat = 's';
+proc print data=mout2; title 'mout2';                                      * N = 41;
+run;
+proc sort data=mout2; by plot;
+proc sort data=postsev2x; by plot;
+* merge back in the typecat information of the labeled plot;
+data postsev2x3; merge postsev2x mout2; by plot;
+  if typecat = ' ' then typecat='m';
+run;
+proc print data=postsev2x3; title 'postsev2x3';                            * N = 1227;
+run;
+* final cleanup;
+data postsev2; set postsev2x3;
+  if ( (plot ^= 9999) & (dist^=.| vege^=.|subs^=.) );
+  keep plot most dist vege subs typecat;
+run;
+proc print data=postsev2; title 'postsev2';
+run;                                                                       * N = 1168;
 
 proc sort data = postsev2; by plot dist; run;
 
-/* proc print data=postsev2; run; *N = 1227;
-
-*plot type (forest, brush) is only recorded once per plot. Ignore variable or assign plot type to all records.;
-
-proc contents data=postsev2; run;
-proc freq data=postsev2; tables type; run; */
 
 *----------------------------------------- TREES --------------------------------------------------;
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
 /*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\seedlings-allyrs.csv"*/
 
 proc import datafile="D:\FFI CSV files\seedlings-allyrs.csv"
-out=seedlings 
-dbms=csv replace;
-getnames=yes;
+out=seedlings dbms=csv replace; getnames=yes;
 run;  * N = 998;
 
 /*proc print data=seedlings; title 'seedlings'; run;*/
