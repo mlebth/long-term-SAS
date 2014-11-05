@@ -1,7 +1,19 @@
+/*Begin data analyses
+
+For each dataset, I need effects of independent variables on:
+	species diversity, richness 
+	plant cover
+Effects of canopy cover on all of the above.
+
+Merge plot history and canopy cover with all others.
+
+*/
+
 proc sort data=piquil3; by plot year sspp burn prpo;
 proc means data=piquil3 noprint sum; by plot year sspp burn prpo; var snum; 
   output out=numplantdatapo sum=npersppo;
   *npersppo = number per species for pines and oaks;
+
 proc print data=numplantdatapo; title 'pine oak numplantdata'; 
   var plot year burn prpo sspp npersppo;
 run;   * N = 240 plot-year combinations;

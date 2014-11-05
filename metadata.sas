@@ -1,5 +1,4 @@
-/*
-Datasets:
+/* Datasets:
 	1. hist2
 		Variables: 
    			burnsev (s, l, m, h) = wildfire severity
@@ -94,22 +93,7 @@ Datasets:
 
 	10. piquil
 		Variables: hist2 + seedlings4 + shrubs5
-		Notes: This is a dataset including pines and oaks as seedlings (measured in 10mx5m subplot), and ilex as a shrub (measured in 1mx50m subplot)
+		Notes: This is a dataset including pines and oaks as seedlings (measured in 10mx5m subplot), and ilex as a shrub (measured in 1mx50m subplot). 
+			May or may not be useful. piquil2 merges with plot history and piquil3 separates dates to pre- and post-fire.
 
-seedlings5 (seedlings4 + hist2 + canopy2)
-piquil (seedlings5 + shrubs5)
-*/
-
-
-/*Begin data analyses
-
-For each dataset, I need effects of independent variables on:
-	species diversity, richness 
-	plant cover
-Effects of canopy cover on all of the above.
-
-Merge plot history and canopy cover with all others.
-
-*/
-
-
+seedlings5 (seedlings4 + hist2 + canopy2) */
