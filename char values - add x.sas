@@ -19,6 +19,27 @@ char3 = char2;
 proc print data=dat3;
 run;
 
+******************************* seedling cleanup example:;
+data seedlings1; set seedlings;
+	if Species_Symbol='' then delete;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+data dat2; set seedlings1;
+	length char3 $ 5;         * char3 has x's only in place of blanks;
+	char3 = char2; run;
+/*proc print data=dat3; run;*/
+
+data seedlings2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) 
+				 rename=(char3=sspp) rename=(SizeClHt=heig) rename=(Status=stat) 
+				 rename=(Count=coun));
+	set dat2;
+data seedlings3 (keep=plot most sspp heig coun stat date);
+	set seedlings2;
+run;
+proc sort data = seedlings3; by plot; run;
+
+********************************
+
+
 * to reverse it;
 data dat4; set dat3;
 length char4a $ 4;  

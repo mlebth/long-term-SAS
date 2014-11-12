@@ -2,13 +2,10 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
 *--------------------------------------- PLOT HISTORY -----------------------------------------------------;
 * This comes from my own document, not FFI;
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\plothistory.csv"*/
+/*proc import datafile="g:\FFI CSV files\plothistory.csv"*/
 
-proc import datafile="D:\FFI CSV files\plothistory.csv"
-out=hist 
-dbms=csv replace;
-getnames=yes;
-run;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\plothistory.csv"  
+out=hist dbms=csv replace; getnames=yes; run;  * N = 61;
 
 /*proc contents data=hist; title 'plot history'; run;
 proc print data=hist; run;  * N = 61; */
@@ -48,49 +45,33 @@ run;
 
 proc sort data=hist2; by plot burn; run;
 /*proc freq data=hist2; tables burnsev; run; */
-
+/*
 *--------------------------------------- FUELS AND SPECIES COMP -----------------------------------------------------;
-/* All these fuels data were only collected in 1999. Not including in mass import.
+* All these fuels data were only collected in 1999. Not including in mass import. ;
 
 proc import datafile="g:\Excel Files\FFI long-term data\duff-1999.csv"
-out=duff 
-dbms=csv replace;
-getnames=yes;
-run;
+out=duff dbms=csv replace; getnames=yes; run;
 
 proc import datafile="g:\Excel Files\FFI long-term data\1000hrfuels-1999.csv"
-out=cwd 
-dbms=csv replace;
-getnames=yes;
-run;
+out=cwd dbms=csv replace; getnames=yes;run;
 
 proc import datafile="g:\Excel Files\FFI long-term data\finefuels-1999.csv"
-out=finefuels 
-dbms=csv replace;
-getnames=yes;
-run;
+out=finefuels dbms=csv replace; getnames=yes; run;
 
-For species comp, from FMH handbook--'Ocular estimates of cover for plant species on a macroplot'
+* For species comp, from FMH handbook--'Ocular estimates of cover for plant species on a macroplot'
 Collected on about 13 plots, 2010-2013. no more than 5-6 spp recorded per plot, and no cover recorded. 
-Also entered for 2002, 2003, 2005, 2006, but completely blank. Not including in mass import.
+Also entered for 2002, 2003, 2005, 2006, but completely blank. Not including in mass import. ;
 
 proc import datafile="g:\Excel Files\FFI long-term data\cover-speciescomp-allyrs.csv"
-out=spcomp 
-dbms=csv replace;
-getnames=yes;
-run;
-
+out=spcomp dbms=csv replace; getnames=yes;run;
 */
 
 *--------------------------------------- POST-BURN SEVERITY ASSESSMENT DATA -----------------------------------------------------;
 *Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\postburnsev.csv"*/
+/*proc import datafile="g:\FFI CSV files\postburnsev.csv"*/
 
-proc import datafile="D:\FFI CSV files\postburnsev.csv"
-out=postsev 
-dbms=csv replace;
-getnames=yes;
-run;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\postburnsev.csv"
+out=postsev dbms=csv replace; getnames=yes; run;  * N = 1227;
 
 /* proc print data = postsev; run;
 proc contents data = postsev; run;
@@ -107,31 +88,72 @@ proc freq data = postsev; tables PlotType; run;	*/
 	Sub = See Veg;
 
 * cleanup;
-data postsev1 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) 
-			   rename=(PlotType=type) rename=(TapeDist=dist) rename=(Veg=vege) 
-			   rename=(Sub=subs));
-	set postsev;
-data postsev2 (keep=plot most type dist vege subs date);
-	set postsev1;
+data postsev1; set postsev;
+   plot = MacroPlot_Name; most = Monitoring_Status; 
+   type = PlotType; dist = TapeDist; vege = Veg; subs=Sub; 
+    * keep plot most type dist vege subs date;
+   keep plot most type dist vege subs;
+run;   
+data dummydat; input plot most type $ dist vege subs;
+datalines;
+9999 9999 xxxxx 9999 9 9
+9999 9999 xxxxx 9999 9 9
+9999 9999 xxxxx 9999 9 9
+;                                                             * N = 3;
+data dummydatx; set dummydat;
+  if type = 'xxxxx' then type = '     '; run;
+data postsev2x; set postsev1 dummydat;
+*proc print data=postsev2x; *title 'postsev2x';
+run;                                                          * N = 1230;
+
+data postsev2x1; set postsev2x; dummy=1; keep plot type dummy;
+proc sort data=postsev2x1; by type plot; run;
+/*proc print data=postsev2x1; title 'postsev2x1';
+run; */
+
+/* * how many plots?;    * 41 plots in this data set, all have labeled type;
+proc sort data=postsev2x1; by plot;
+proc means data=postsev2x1 n; by plot; output out=moutx n=n;
+proc print data=moutx; run; */
+
+* only plots with labeled types;
+data postsev2x2; set postsev2x1; if (type ^= '      ' | type ^= '     ');  * N = 59 labeled plots;
+/*proc print data=postsev2x2; title 'postsev2x2';
+run; */
+proc means data=postsev2x2 mean noprint; var dummy; by type plot;
+  output out=mout1 mean=meandummy;
+*proc print data=mout1; *title 'mout1';
+run;                                                                       * N = 41 plots with a labeled type;
+data mout2; set mout1; 
+  if type = 'Forest' then typecat = 'f';
+  if type = 'Shrub' then typecat = 's';
+/*proc print data=mout2; title 'mout2';                                      * N = 41;
+run;*/
+proc sort data=mout2; by plot;
+proc sort data=postsev2x; by plot;
+* merge back in the typecat information of the labeled plot;
+data postsev2x3; merge postsev2x mout2; by plot;
+  if typecat = ' ' then typecat='m';
 run;
+/*proc print data=postsev2x3; title 'postsev2x3';                            * N = 1227;
+run; */
+* final cleanup;
+data postsev2; set postsev2x3;
+  if ( (plot ^= 9999) & (dist^=.| vege^=.|subs^=.) );
+  keep plot most dist vege subs typecat;
+run;
+/*proc print data=postsev2; title 'postsev2';
+run;*/                                                                       * N = 1168;
 
 proc sort data = postsev2; by plot dist; run;
 
-/* proc print data=postsev2; run; *N = 1227;
-
-*plot type (forest, brush) is only recorded once per plot. Ignore variable or assign plot type to all records.;
-
-proc contents data=postsev2; run;
-proc freq data=postsev2; tables type; run; */
 
 *----------------------------------------- TREES --------------------------------------------------;
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\seedlings-allyrs.csv"*/
+/*proc import datafile="D:\FFI CSV files\seedlings-allyrs.csv" */
 
-proc import datafile="D:\FFI CSV files\seedlings-allyrs.csv"
-out=seedlings 
-dbms=csv replace;
-getnames=yes;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\seedlings-allyrs.csv"
+out=seedlings dbms=csv replace; getnames=yes;
 run;  * N = 998;
 
 /*proc print data=seedlings; title 'seedlings'; run;*/
@@ -139,10 +161,16 @@ run;  * N = 998;
 * cleanup;
 data seedlings1; set seedlings;
 	if Species_Symbol='' then delete;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+data dat2; set seedlings1;
+	length char3 $ 5;         * char3 has x's only in place of blanks;
+	char3 = char2; run;
+/*proc print data=dat3; run;*/
+
 data seedlings2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) 
-				 rename=(Species_Symbol=sspp) rename=(SizeClHt=heig) rename=(Status=stat) 
+				 rename=(char3=sspp) rename=(SizeClHt=heig) rename=(Status=stat) 
 				 rename=(Count=coun));
-	set seedlings1;
+	set dat2;
 data seedlings3 (keep=plot most sspp heig coun stat date);
 	set seedlings2;
 run;
@@ -160,8 +188,6 @@ proc freq data=seedlings3; tables sspp; run; */
    stat = L/D (live or dead)
    Date = date of plot visit;
 
-*What to do about species with numbers in the species code? Names are longer than 4 char;
-
 *CAAM is entered 2x (shrub, not a tree)
 ILVO is entered 9x (shrub, not a tree)
 UNTR1 = unknown tree, happened once in 1999, plot 1198.
@@ -169,9 +195,9 @@ XXXX = 10, meaning 10 observations of plots with no seedlings;
 
 *two sets, one with consistent trees, the other with inconsistent spp; 
 data seedlings4; set seedlings3;
-	if (sspp NE "CAAM2" & sspp NE "ILVO") ;
+	if (sspp NE "CAAM2" & sspp NE "ILVOx") ;
 data seedlingprobspp; set seedlings3;
-	if (sspp  = "CAAM2" | sspp  = "ILVO");
+	if (sspp  = "CAAM2" | sspp  = "ILVOx");
 run;
 
 /*proc contents data=seedlings4; run;
@@ -188,12 +214,10 @@ proc freq data=seedlingprobspp; tables sspp; title 'seedlingprobspp'; run; * N =
 
 
 ******POLE TREES (SAPLINGS, DBH >=2.5 and < 15.1);
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Saplings-allyrs.csv"*/
+/*proc import datafile="D:\FFI CSV files\Saplings-allyrs.csv"*/
 
-proc import datafile="D:\FFI CSV files\Saplings-allyrs.csv"
-out=saplings 
-dbms=csv replace;
-getnames=yes;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Saplings-allyrs.csv"
+out=saplings dbms=csv replace; getnames=yes;
 run;
 
 /*proc print data=saplings; title 'saplings'; run; *N=2560;
@@ -208,10 +232,14 @@ proc contents data=saplings; run; */
 * cleanup;
 data saplings1;	set saplings;
 	if Species_Symbol='' then delete;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+data dat2; set saplings1;
+	length char3 $ 5;         * char3 has x's only in place of blanks;
+	char3 = char2; run;
 data saplings2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) 
-				rename=(Species_Symbol=sspp) rename=(SizeClDia=diam) rename=(Status=stat) 
+				rename=(char3=sspp) rename=(SizeClDia=diam) rename=(Status=stat) 
 				rename=(AvgHt=heig));
-	set saplings1;
+	set dat2;
 data saplings3 (keep=plot most sspp diam stat heig date);
 	set saplings2;
 run;
@@ -235,11 +263,11 @@ XXXX = 91, meaning 91 observations of plots with no saplings;
 
 *two sets, one with consistent trees, the other with inconsistent spp; 
 data saplings4;	set saplings3;
-	if sspp = "PINUS" then sspp = "PITA";
+	if sspp = "PINUS" then sspp = "PITAx";
 data saplings5; set saplings4;
-	if (sspp NE "ILVO") ;
+	if (sspp NE "ILVOx") ;
 data saplingprobspp; set saplings4;
-	if (sspp  = "ILVO");
+	if (sspp  = "ILVOx");
 run;
 
 /* proc freq data=saplings5; tables sspp; title 'saplings5'; run; * N = 2305;
@@ -247,12 +275,10 @@ proc freq data=saplingprobspp; tables sspp; title 'saplingprobspp'; run; * N = 3
 
 
 ******OVERSTORY (MATURE TREES, DBH >= 15.1);
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\overstory-allyrs.csv"*/
+/*proc import datafile="D:\FFI CSV files\overstory-allyrs.csv"*/
 
-proc import datafile="D:\FFI CSV files\overstory-allyrs.csv"
-out=overstory 
-dbms=csv replace;
-getnames=yes;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\overstory-allyrs.csv"
+out=overstory dbms=csv replace; getnames=yes;
 run;  
 
 /* proc print data=overstory; run; * N = 6817;
@@ -269,10 +295,14 @@ proc contents data=overstory; run; */
 * cleanup;
 data overstory1; set overstory;
 	if Species_Symbol='' then delete;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+data dat2; set overstory1;
+	length char3 $ 5;         * char3 has x's only in place of blanks;
+	char3 = char2; run;
 data overstory2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) 
-				 rename=(Species_Symbol=sspp) rename=(QTR=quar) rename=(TagNo=tagn) 
+				 rename=(char3=sspp) rename=(QTR=quar) rename=(TagNo=tagn) 
 			 	 rename=(Status=stat) rename=(DBH=diam) rename=(CrwnRto=crwn));
-	set overstory1;
+	set dat2;
 data overstory3 (keep=plot most sspp quar tagn stat diam crwn date);
 	set overstory2;
 run;
@@ -299,17 +329,15 @@ UNKN1 was recorded 3x, all in 11/1999, plot 1206. Tags 11, 12, and 13, all dead.
 quit; */
 
 data overstory4; set overstory3;
-	if sspp = "PINUS" then sspp = "PITA";
+	if sspp = "PINUS" then sspp = "PITAx";
 run;
 /* proc freq data = overstory4; tables sspp; run; */
 
 *--------------------------------------- SHRUBS -----------------------------------------------------;
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\shrubs-allyrs.csv"*/
+/*proc import datafile="D:\FFI CSV files\shrubs-allyrs.csv"*/
 
-proc import datafile="D:\FFI CSV files\shrubs-allyrs.csv"
-out=shrubs 
-dbms=csv replace;
-getnames=yes;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\shrubs-allyrs.csv"
+out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
 /* proc print data=shrubs; run; * N = 1130;
@@ -324,10 +352,14 @@ proc contents data=shrubs; run;	*/
 * cleanup;
 data shrubs1; set shrubs;
 	if Species_Symbol='' then delete;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+data dat2; set shrubs1;
+	length char3 $ 5;         * char3 has x's only in place of blanks;
+	char3 = char2; run;
 data shrubs2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) 
-			  rename=(Species_Symbol=sspp) rename=(AgeCl=agec) rename=(Count=coun) 
+			  rename=(char3=sspp) rename=(AgeCl=agec) rename=(Count=coun) 
 			  rename=(Status=stat));
-	set shrubs1;
+	set dat2;
 data shrubs3 (keep=plot most sspp agec coun stat date);
 	set shrubs2;
 run;
@@ -358,13 +390,13 @@ XXXX = 13, meaning 13 observations of no shrubs in a plot ;
 quit; */
 
 data shrubs4; set shrubs3;
-	if sspp = "RHCO17" then sspp = "RHCO";
+	if sspp = "RHCO1" then sspp = "RHCOx";
 data shrubs5; set shrubs4;
-	if (sspp NE "CATE9" & sspp NE "JUVI" & sspp NE "PITA" & sspp NE "PRGL2" & sspp NE "PTTR" &
-		sspp NE "QUIN" & sspp NE "QUMA3" & sspp NE "QUNI" & sspp NE "QUST" & sspp NE "SILA20");
+	if (sspp NE "CATE9" & sspp NE "JUVIx" & sspp NE "PITAx" & sspp NE "PRGL2" & sspp NE "PTTRx" &
+		sspp NE "QUINx" & sspp NE "QUMA3" & sspp NE "QUNIx" & sspp NE "QUSTx" & sspp NE "SILA2");
 data shrubsprobspp; set shrubs4;
-	if (sspp = "CATE9" | sspp = "JUVI" | sspp = "PITA" | sspp = "PRGL2" |sspp = "PTTR" | 
-		sspp = "QUIN" | sspp = "QUMA3" | sspp = "QUNI" | sspp = "QUST" | sspp = "SILA20");
+	if (sspp = "CATE9" | sspp = "JUVIx" | sspp = "PITAx" | sspp = "PRGL2" |sspp = "PTTRx" | 
+		sspp = "QUINx" | sspp = "QUMA3" | sspp = "QUNI" | sspp = "QUSTx" | sspp = "SILA2");
 run;
 
 /* proc freq data=shrubs5; tables sspp; title 'shrubs5'; run; * N = 874;
@@ -375,12 +407,10 @@ proc freq data=shrubsprobspp; tables sspp; title 'shrubsprobspp'; run; * N = 16;
 /*proc print data=shrubs5; run; */
 
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\herbaceous-allyrs.csv"*/
+/*proc import datafile="D:\FFI CSV files\herbaceous-allyrs.csv"*/
 
-proc import datafile="D:\FFI CSV files\herbaceous-allyrs.csv"
-out=herbaceous 
-dbms=csv replace;
-getnames=yes;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\herbaceous-allyrs.csv"
+out=herbaceous dbms=csv replace; getnames=yes;
 run;  * N = 8674;
 
 /* proc print data=herbaceous; title 'herbaceous'; run;
@@ -393,13 +423,18 @@ proc contents data=herbaceous; title 'herbaceous'; run;	*/
 	Count;
 
 * cleanup;
-data herb1 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) rename=(Status=stat)
+data herb1; set herbaceous;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+data dat2; set herb1;
+	length char3 $ 5;         * char3 has x's only in place of blanks;
+	char3 = char2; run;
+data herb2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) rename=(Status=stat)
 			rename=(Species_Symbol=sspp) rename=(Quadrat=quad) rename=(Count=coun));
-	set herbaceous;
-data herb2 (keep=plot most sspp quad coun stat date);
-	set herb1;
+	set dat2;
+data herb3 (keep=plot most sspp quad coun stat date);
+	set herb2;
 run;
-proc sort data = herb2; by plot; run;
+proc sort data = herb3; by plot; run;
 
 /*proc contents data=herb2; title 'herb2'; run;  * N = 8674;
 proc print data=herb2; run;
@@ -426,7 +461,7 @@ quit;
 *Removing UNSE1 observations--seedlings shouldn't be in this dataset anyway;
 data herb3; set herb2;
 	if sspp = 'UNSE1' or sspp = 'RUBUS' or sspp = 'SMILA2' or sspp = '' then delete;
-	if sspp = 'ACGR' then sspp = 'ACGR2'; 
+	if sspp = 'ACGRx' then sspp = 'ACGR2'; 
 run;
 /* proc contents data=herb3; title 'herb3'; run;  * N = 8414;
 proc print data=herb3; run;
@@ -434,12 +469,10 @@ proc freq data=herb3; tables sspp; run;  */
 	
 
 *--------------------------------------- POINT INTERCEPT -----------------------------------------------------;
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\PointIntercept-allyrs.csv"*/
+/*proc import datafile="D:\FFI CSV files\PointIntercept-allyrs.csv"	*/
 
-proc import datafile="D:\FFI CSV files\PointIntercept-allyrs.csv"
-out=transect 
-dbms=csv replace;
-getnames=yes;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\PointIntercept-allyrs.csv"
+out=transect dbms=csv replace; getnames=yes;
 run;  
 
 /* proc print data=transect; title 'transect'; run;	* N = 41,961. File size ~ 3MB;
@@ -452,14 +485,19 @@ proc contents data=transect; title 'transect'; run;	*/
 	Height = height of tallest plant at any given point;
 
 * cleanup;
-data trans1 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) rename=(Point=poin)
-			rename=(Species_Symbol=sspp) rename=(Height=heig));
-	set transect;
-data trans2 (keep=plot most Tape sspp poin heig date);
-	set trans1;
+
+data trans1; set transect;
+	if  Species_Symbol = '' then delete;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+data dat2; set trans1;
+	length char3 $ 5;         * char3 has x's only in place of blanks;
+	char3 = char2; run;
+data trans2 (rename=(MacroPlot_Name=plot) rename=(Monitoring_Status=most) rename=(Point=poin)
+			rename=(char3=sspp) rename=(Height=heig));
+	set dat2;
+data trans3 (keep=plot most Tape sspp poin heig date);
+	set trans2;
 run;
-data trans3; set trans2;
-	if  sspp = '' then delete;
 proc sort data = trans3; by plot; run;
 
 /*proc contents data=trans3; title 'trans3'; run;  * N = 41,703;
@@ -467,12 +505,10 @@ proc print data=trans3; run;
 proc freq data=trans3; tables sspp; run; */
 
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
-/*proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\CanopyCoverallyrs.csv"*/
+/*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
 
-proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"
-out=canopy 
-dbms=csv replace;
-getnames=yes;
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\CanopyCoverallyrs.csv"
+out=canopy dbms=csv replace; getnames=yes;
 run;  
 /* proc contents data = canopy; title 'canopy'; run; * N = 196;
 proc print data = canopy; run;  */
@@ -508,7 +544,7 @@ data seedlingsshrubs; merge shrubs5 seedlings5 ; by plot; run;
 
 *pulling just the important species--pines, ilvo, and quma, quma3;
 data piquil; set seedlingsshrubs;
-	if (sspp = "PITA" |sspp = "QUMA" | sspp = "QUMA3" | sspp = "ILVO");
+	if (sspp = "PITAx" |sspp = "QUMAx" | sspp = "QUMA3" | sspp = "ILVOx");
 run;
 /* proc freq data=pineoak; tables sspp; title 'pineoak'; run; * N = 473; */
 
