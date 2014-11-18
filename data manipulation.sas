@@ -1,71 +1,130 @@
-/*Begin data analyses
+/*
+--Merge plot history and canopy cover with all others, or as needed.
 
-For each dataset, I need effects of independent variables on:
-	species diversity, richness 
-	plant cover
-Effects of canopy cover on all of the above.
+IV's:
+	Fixed: Canopy cover, burn severity, soil type, hydromulch, elevation, aspect, year, prpo
+	Random: plot
+DV's:
+	Species (richness, abundance/other measures of diversity and composition),	plant cover, height, DBH, 
+	canopy cover
 
-Merge plot history and canopy cover with all others.
+Nesting:
+	--site (Bastrop/Buescher)
+		--soil type	/ --burn severity
+			--plot (FMH, invasive, or demog)
+				--veg
+*/
+
+*--------------------------piquil: relative abundances;
+*getting number of individuals per species, per year and plot.
+ nperspp = number per species for pines and oaks;
+proc sort data=piquil3; by plot year sspp burn prpo;
+proc means data=piquil3 noprint sum; by plot year sspp burn prpo; var coun; 
+  output out=numplantdatapo sum=nperspp;
+proc print data=numplantdatapo; title 'pine oak numplantdata'; var plot year burn prpo sspp nperspp; run;   
+* N = 342 plot-year-spp combinations;
+* numplantdatapo contains: obs, plot, year, burn, prpo, sspp, nperspp
+  nperspp = # of sdlngs per plot per species;
+
+proc sort data=numplantdatapo; by plot burn prpo;
+proc means data=numplantdatapo noprint sum; by plot burn prpo; var nperspp; 
+	output out=numperplot sum=nperplot;
+proc print data=numperplot; title 'totals per plot'; var plot burn prpo nperplot; run;   
+* N = 89 plot-prpo combinations;
+* numperplot contains: obs, plot, burn, prpo, nperplot
+  nperplot = # of all sdlngs in the plot;
+
+*merging to get both nperspp and nperplot in same dataset;
+proc sort data = numperplot; by plot;
+data numperplot2; merge numplantdatapo numperplot; by plot; run;
+proc print data = numperplot2; title 'numperplot2'; run; 
+*back to N=342;
+*numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot
+
+*calculting relative abundance of each species in each plot/yr combo;
+data relabund; set numperplot2;
+	relabun = nperspp / nperplot;
+proc print data = relabund; title 'relative abundance'; run;
+*numperplot3 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot, relabun;
+
+* which are the most common spp?;
+proc sort data=relabund; by sspp;
+proc means data=relabund sum noprint; by sspp; var nperspp;
+  output out=spptotals sum=spptot; title 'species counts'; 
+proc print data=spptotals; run;
+* SPECIES: count (in # of plot-year-burn combos):
+ILVO: 2629 (40), QUMA3: 1330 (92), PITA: 1122 (103), QUMA: 955 (95), 
+12 plot combos with none
+---more ILVO total, but in fewer plot combos;
+
+*freq of spp in burnsev cats, prpo cats. fisher: p-value calc takes too long, freezes system;
+proc freq data=relabund; tables sspp*burn; run;
+proc freq data=relabund; tables sspp*prpo; run;
+
+*------------------------------piquil models;
+proc univariate data=relabund plot normal; run;
+*Shapiro-Wilk: 0.1875, P < 0.0001. 
+Lognormally distributed, create new variable with transformed data;
+
+data logpiquil; set relabund;
+	logabund = log(relabun);
+run;
+proc print data = logpiquil; run;
+proc univariate data=logpiquil plot normal; run;
+*log-transformed: Shapiro-Wilk: 0.9639, p < 0.0001;
+
+
+
+/* *adapted from last 2013-2014 analyses, use as reference;
+
+proc genmod data=logpiquil; title 'genmod'; class burn prpo sspp;
+	model logabund = burn prpo sspp sspp*burn sspp*prpo prpo*burn sspp*burn*prpo / type1 type3;
+    lsmeans sspp*burn*prpo;
+  	output reslik=ehat out=glmout1;
+run;
+proc univariate data=glmout1 plot normal; var ehat; run;
+
+proc glm data=logpiquil; title 'glm'; class burn prpo sspp;
+  model logabund = burn prpo sspp sspp*burn sspp*prpo prpo*burn sspp*burn*prpo;
+  lsmeans sspp*burn*prpo / stderr;
+  output out=glmout2 r=ehat;
+run;
+proc univariate data=glmout2 plot normal; var ehat; run;
+
+proc glimmix data=logpiquil; title 'glimmix'; class burn prpo sspp;
+	model npersppo = burn prpo sspp burn*sspp sspp*prpo burn*sspp*prpo/ dist = poisson;
+	random residual / type = cs subject = plot(burn*sspp*prpo);
+	lsmeans burn*sspp*prpo / ilink;
+run;
 
 */
 
-proc sort data=piquil3; by plot year sspp burn prpo;
-proc means data=piquil3 noprint sum; by plot year sspp burn prpo; var snum; 
-  output out=numplantdatapo sum=npersppo;
-  *npersppo = number per species for pines and oaks;
+*---------------------old hydro analyses....
+	allburn doesn't exist anymore--came from data step like this:
+	data allburn set shrub
+  	if (burnsev='l'|burnsev='m'|burnsev='h')
+can recreate by repeating with a current dataset of interest merged with hist2;
 
-proc print data=numplantdatapo; title 'pine oak numplantdata'; 
-  var plot year burn prpo sspp npersppo;
-run;   * N = 240 plot-year combinations;
-
-proc freq data=numplantdatapo; tables sspp*burn / fisher expected;
-run;
-*this has different values than pineoak3 table...not sure why yet;
-
-proc sort data=numplantdatapo; by plot burn prpo;
-proc means data=numplantdatapo noprint sum; by plot burn prpo; var npersppo; 
-  output out=numperplot sum=nperplot;
-proc print data=numperplot; title 'totals per plot'; 
-  var plot burn prpo nperplot;
-run;   * N = 249 plot-year combinations;
-proc sort data = numperplot; by plot;
-data numperplot2; merge numplantdatapo numperplot; by plot; run;
-proc print data = numperplot2; run;
-data numperplot3; set numperplot2;
-	relabun = npersppo / nperplot;
-proc print data = numperplot3; title 'numperplot3'; run;
-
-proc freq data=numperplot3; tables sspp*burn / fisher expected;
-run;
-proc freq data=numperplot3; tables sspp*prpo / fisher expected;
+proc genmod data=allburn; class burnsev hydromulch;
+  model totpita =  hydromulch burnsev / dist = negbin link=log type1 type3;
 run;
 
-* ---- plot-level information -----;
-* to compare spp among plots, we need a comparable variable for each plot;
-* an obvious comparable variable is number of plants of that spp;
-proc sort data=seedlings5; by plot year sspp;
-proc means data=seedlings5 noprint sum; by plot year sspp; var snum; 
-  output out=numplantdata sum=npersp;
-proc print data=numplantdata; title 'numplantdata'; 
-  var plot year sspp npersp;
-run;   * N = 352;
-
-proc means data=numplantdata noprint sum; by plot year; 
-  var npersp;
-  output out=seedlings6 sum = sumseedlings;
-* sumseedlings = # of all sdlngs in the plot;
-proc print data=seedlings6; title 'seedling6';
-  run; * n=168 plot-year combinations;
-
-proc univariate data=numplantdatapo plot;
-	var npersppo;
+proc genmod data=allburn; class burnsev hydromulch;
+	model totpita =  hydromulch burnsev hydromulch*burnsev/
+	dist = negbin link=log type1 type3;
+* interaction NS;
 run;
-* long right tail;
-
-* which are the most common spp?;
-proc sort data=numplantdata; by sspp;
-proc means data=numplantdata sum noprint; by sspp; var npersp;
-  output out=spptotals sum=spptot;
-proc print data=spptotals; title 'plants/spp all plots, all year';
+* oak; 
+proc genmod data=allburn; class burnsev hydromulch;
+	model totquma = burnsev hydromulch / dist = poisson link=log type1 type3;
 run;
-*QUMA3: 1027, PITA: 937, QUMA: 725, SANI: 157;
+* type 3 burnsev df=2 X2=3.71 P = 0.1567
+         hydromulch  df=2  X2=10.91 P=0.0043;
+
+proc genmod data=allburn; class burnsev hydromulch;
+	model totquma = burnsev hydromulch  burnsev*hydromulch/ dist = poisson link=log type1 type3;
+run;
+* use this - note type 1 not type 3 - no type3 reported.
+* type 1 burnsev df=2 X2=3.66 P = 0.1603
+         hydromulch  df=2  X2=10.91 P=0.0043
+         int df=3 X2=17.59 P = 0.0005;
