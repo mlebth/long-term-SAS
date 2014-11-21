@@ -73,7 +73,11 @@ proc print data = logpiquil; run;
 proc univariate data=logpiquil plot normal; run;
 *log-transformed: Shapiro-Wilk: 0.9639, p < 0.0001;
 
-
+proc glimmix data=logpiquil; title 'glimmix'; class burn prpo;
+	model npersppo = burn prpo burn*prpo/ dist = poisson;
+	random residual / type = cs subject = plot(burn*prpo);
+	lsmeans burn*prpo / ilink;
+run;
 
 /* *adapted from last 2013-2014 analyses, use as reference;
 
