@@ -1,12 +1,27 @@
 /*
 --Merge plot history and canopy cover with all others, or as needed.
+10 herbaceous subplots (no woody plants) - species, # stems (pooled)
+transect - species (all plants), ht
+seedling subplot - species, ht class
+mature trees - plot. dbh, species
+pole trees subplot - species, dbh, ht class
+shrubs subplot - species, stem count (pooled) 
 
-IV's:
-	Fixed: Canopy cover, burn severity, soil type, hydromulch, elevation, aspect, year, prpo
+
+independent variables:
+	Fixed: Canopy cover, burn severity, soil type, hydromulch (0,1,2), 
+           elevation, aspect, year, prpo (pre, post fire)
 	Random: plot
-DV's:
-	Species (richness, abundance/other measures of diversity and composition),	plant cover, height, DBH, 
-	canopy cover
+dependent variables:
+	Species (all samples)
+		presence/absence by species
+		richness
+		other measures of diversity and composition
+	plant cover (transect)- hits on transect - check values
+	stem count - wherever an individual has >1 stem, they are treated as separate. in lieu of N.
+	height of each stem. transect: cm,  seedlings& poles: class, shrubs & trees: not measured
+	DBH - pole & mature trees 
+	canopy cover - densiometer in 5 places/plot x 4 readings/place = 20 readings/plot. convert to 1 #/plot?
 
 Nesting:
 	--site (Bastrop/Buescher)
@@ -23,12 +38,17 @@ Strategy:
 */
 
 *--------------------------piquil: relative abundances;
-*getting number of individuals per species, per year and plot.
- nperspp = number per species for pines and oaks;
-proc sort data=piquil3; by plot year sspp burn prpo;
-proc means data=piquil3 noprint sum; by plot year sspp burn prpo; var coun; 
+* getting number of individuals per species, per year and plot.
+  ilvo from shrubs. qu, pi from seedlings. no transect data. 
+  add ilvo from seedlings.  NOTE: check: if measured twice, interpretation of density must be adjusted.
+  nperspp = number stems per species for pines, oaks, ilvo;
+* plots with none of these 3 spp have NONEx as their species;
+* NOTE TEMPORARILY POOLING YEARS - FIX THIS;
+proc sort data=piquil3; by plot sspp burn prpo;
+proc means data=piquil3 noprint sum; by plot sspp burn prpo; var coun; 
   output out=numplantdatapo sum=nperspp;
-proc print data=numplantdatapo; title 'pine oak numplantdata'; var plot year burn prpo sspp nperspp; run;   
+proc print data=numplantdatapo; title 'pi-qu-il numplantdata'; 
+  var plot burn prpo sspp nperspp; run;   
 * N = 342 plot-year-spp combinations;
 * numplantdatapo contains: obs, plot, year, burn, prpo, sspp, nperspp
   nperspp = # of sdlngs per plot per species;
@@ -42,8 +62,8 @@ proc print data=numperplot; title 'totals per plot'; var plot burn prpo nperplot
   nperplot = # of all sdlngs in the plot;
 
 *merging to get both nperspp and nperplot in same dataset;
-proc sort data = numperplot; by plot;
-data numperplot2; merge numplantdatapo numperplot; by plot; run;
+proc sort data = numperplot; by plot burn prpo;
+data numperplot2; merge numplantdatapo numperplot; by plot burn prpo; run;
 proc print data = numperplot2; title 'numperplot2'; run; 
 *back to N=342;
 *numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot
