@@ -13,6 +13,13 @@ Nesting:
 		--soil type	/ --burn severity
 			--plot (FMH, invasive, or demog)
 				--veg
+
+Strategy:
+	--for main FMH datasets (herbaceous, shrubs, 'seedlings', pole and mature trees): merge plot history 
+	  and canopy cover with each dataset
+	--point transect: treat as other datasets for extra info (messy method)
+	--invasives: logistic regressions with p/a?
+	--demography: depends on data quality/quantity
 */
 
 *--------------------------piquil: relative abundances;
@@ -70,14 +77,17 @@ data logpiquil; set relabund;
 	logabund = log(relabun);
 run;
 proc print data = logpiquil; run;
-proc univariate data=logpiquil plot normal; run;
-*log-transformed: Shapiro-Wilk: 0.9639, p < 0.0001;
 
-proc glimmix data=logpiquil; title 'glimmix'; class burn prpo;
-	model npersppo = burn prpo burn*prpo/ dist = poisson;
-	random residual / type = cs subject = plot(burn*prpo);
-	lsmeans burn*prpo / ilink;
+proc glimmix data=logpiquil; title 'glimmix'; class burn prpo sspp;
+	model nperplot = burn prpo sspp burn*sspp sspp*prpo burn*sspp*prpo/ dist = poisson;
+	random residual / type = cs subject = plot(burn*sspp*prpo);
+	lsmeans burn*sspp*prpo / ilink;
+	output out=glimout pred=p resid=ehat;
 run;
+proc univariate data = glimout plot normal; var ehat; run;
+* Shapiro-Wilk  W = 0.858531  p<0.0001;
+* long left tail -- different transformation?;
+
 
 /* *adapted from last 2013-2014 analyses, use as reference;
 
