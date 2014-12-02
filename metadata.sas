@@ -1,59 +1,58 @@
 /* Datasets:
-	1. hist2
-		Variables: 
-   			burnsev (s, l, m, h) = wildfire severity
-				burn (1-4 in order of increasing severity)
-				bcat1 [A = s, l, m; B = h]
-				bcat2 [A = s, l; B = m ; C = h]
-   			hydr (x, n, l, h) = hydromulch [x = unknown, n = none, l = light, h = heavy]
-			lastrx = year of last prescribed burn
-   			yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
-   			plot = fmh plot #
-
-	2. postsev2
+	* postsev2
 		Variables:
 			plot = fmh plot #
-			most = monitoring status (FMH system to keep track of how long before/after a burn plot was surveyed)
+			year = year of plot visit
 			type = plot type (Forest, Brush)
 			dist = tape distance where measurement was recorded
 			vege = vegetation severity, on a scale of 0-5. 
 			subs = substrate severity	   
 				* for both vege and subs: [0=N/A, 1=heavily burned, 2=moderately burned, 3=lightly burned, 4=scorched, 5=unburned]
 					see backside of FMH-21 for more details on categories.
-	
-	3. seedlings4
+	   		burnsev (u, s, l, m, h) = wildfire severity
+			burn (0-4 in order of increasing severity)
+			bcat1 [AA = u, A = s, l, m; B = h]
+			bcat2 [AA = u, A = s, l; B = m ; C = h]
+   			hydr (x, n, l, h) = hydromulch [x = unknown, n = none, l = light, h = heavy]
+			lastrx = year of last prescribed burn
+   			yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
+
+	* seedlings4
 		Variables:
 			plot = fmh plot #
-			most = monitoring status (FMH system to keep track of how long before/after a burn plot was surveyed)
 			sspp = species code
 			heig = height class
 			snum = number of seedlings or resprouts per height class. sdlngs here on out for simplicity.
 			stat = L/D (live or dead)
-			Date = date of plot visit;
+			year = year of plot visit;
 	
-	4. saplings5
+	*seedlingprobspp
+		same as seedlings4, with only CAAM (2x in 1999) and ILVO (9x in 1999)
+
+	* saplings5
 		Variables:
 			plot = fmh plot #
-			most = monitoring status (FMH system to keep track of how long before/after a burn plot was surveyed)
 			sspp = species code
 			diam = dbh
 			heig = height class
 			stat = L/D (live or dead)
-			Date = date of plot visit;
+			year = year of plot visit;
 	
-	5. overstory4
+	*saplingprobspp
+		same as saplings5 only with only ILVO (3 from 1999)
+
+	* overstory4
 		Variables:	
 			plot = fmh plot #
-			most = monitoring status (FMH system to keep track of how long before/after a burn plot was surveyed)
 			sspp = species code
 			quar = plot quarter	(1-4)
 			tagn = individual tree tag number
 			diam = dbh
 			crwn = relative dominance of crown
 			stat = L/D (live or dead)
-			Date = date of plot visit;
+			year = year of plot visit;
 
-	6. shrubs5
+	* shrubs5
 		Variables:
 			plot = fmh plot #
 			most = monitoring status (FMH system to keep track of how long before/after a burn plot was surveyed)
@@ -63,17 +62,22 @@
 			stat = L/D (live or dead)
 			Date = date of plot visit;
 
-	7. herbs3
+	* shrubsprobspp
+		same as shrubs 5 but with overstory trees marked as shrubs (2002, 2005, 2006)
+
+	* herb5
 		Variables:
 			plot = fmh plot #
-			most = monitoring status (FMH system to keep track of how long before/after a burn plot was surveyed)
 			sspp = species code
 			quad = quadrat (1-10)
 			coun = count
 			stat = L/D (live or dead)
-			Date = date of plot visit;
+			year = year of plot visit;
 
-	8. trans3
+	*herbprobspp
+		same as herb5, only SMILA (3, 1999) and RUBUS (1, 1999)
+
+	* trans3
 		Variables:
 			plot = fmh plot #
 			most = monitoring status (FMH system to keep track of how long before/after a burn plot was surveyed)
@@ -83,17 +87,25 @@
 			heig = height of tallest plant at any given point
 			Date = date of plot visit;	
 	
-	9. canopy2
+	* canopy3
 		Variables:
 			plot = fmh plot #
 			year = year of data collection
-			bsev = burn severity [U = unburned, S = scorched, L = lightly burned, M = moderately burned, H = heavily burned]	
-			orig, qua1, qua2, qua3, qua4 = canopy cover measurements at 4 corners and origin
-			cavg = (qua1 + qua2 + qua3 + qua4 + orig)/5)
+			*conversion factor;
+			fact = (100/96);
+			*converting to canopy cover from canopy openness;
+			cov1 = -((qua1 * fact) - 100);
+			cov2 = -((qua2 * fact) - 100);
+			cov3 = -((qua3 * fact) - 100);
+			cov4 = -((qua4 * fact) - 100);
+			orig = -((orim * fact) - 100);
+			*getting mean canopy cover per plot;
+			covm = ((cov1 + cov2 + cov3 + cov4 + orig)/5); 
 
-	10. piquil
+	* piquil
 		Variables: hist2 + seedlings4 + shrubs5
 		Notes: This is a dataset including pines and oaks as seedlings (measured in 10mx5m subplot), and ilex as a shrub (measured in 1mx50m subplot). 
 			May or may not be useful. piquil2 merges with plot history and piquil3 separates dates to pre- and post-fire.
 
-seedlings5 (seedlings4 + hist2 + canopy2) */
+	*all
+		just what it sounds like.

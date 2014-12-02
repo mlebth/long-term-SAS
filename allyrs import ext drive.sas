@@ -557,4 +557,4 @@ proc print data=piquil3; title 'piquil3'; var plot sspp year prpo; run;  * N = 6
 
 /*proc print data=piquil3; run;
 proc contents data = piquil3; run;
-proc freq data=piquil3; tables sspp*coun; title 'pineoak'; run; * N = 491;*/
+proc freq data=piquil3; tables sspp*coun; title 'pineoak'; run;*/
