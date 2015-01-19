@@ -38,7 +38,7 @@ proc contents data = postsev; run;
 proc freq data = postsev; tables PlotType; run;	*/
 
 data postsev1; set postsev;
-   plot = MacroPlot_Name; year = year visited; 
+   plot = MacroPlot_Name; year = year(date); 
    type = PlotType; vege = Veg; subs=Sub; 
    keep plot year type vege subs;
 run;   	*N = 1227;
@@ -84,11 +84,13 @@ data hist2; set hist;
    if (lastrx = 9 | lastrx = 11) then yrcat = 'old';   */
 run;
 proc sort data=hist2; by plot; run;
-/* proc print data=hist2; run;
+/* proc print data=hist2; title 'hist2'; run; *N = 61;
 proc freq data=hist2; tables burnsev; run; */
 
 *merging post-fire assessment and plot history files;
-data plothist; merge hist2 postsev1; by plot; run;
+data plothist; merge hist2 postsev1; by plot; 
+	if type = '' then type = 'Forest';
+run;
 /* proc print data=plothist; title 'plothist'; run; * N= 1247; */
 
 * cleanup;
@@ -100,27 +102,27 @@ datalines;
 ;                                                             * N = 3;
 data dummydatx; set dummydat;
   if type = 'xxxxx' then type = '     '; run;
-data postsev2x; set plothist dummydat;
-*proc print data=postsev2x; *title 'postsev2x';
-run;                                                          * N = 1250;
-proc sort data=postsev2x; by plot;
+data postsev2x; set plothist dummydatx; run; * N = 1250;
+proc sort data=postsev2x; by plot type; run;
+/*proc print data=postsev2x; title 'postsev2x'; run; */
 
 data postsev2x1; set postsev2x; dummy=1; keep plot year type vege subs dummy burnsev hydr lastrx yrrx1 yrrx2 yrrx3;
-proc sort data=postsev2x1; by type plot; run;
+proc sort data=postsev2x1; by plot type; run;
 /*proc print data=postsev2x1; title 'postsev2x1'; run; *N = 1250; */
 
 * only plots with labeled types;
-data postsev2x2; set postsev2x1; if (type ^= '      ' | type ^= '     '); run;  * N = 62;
+data postsev2x2; set postsev2x1; if (type ^= '      ' | type ^= '     '); run;  * N = 1247;
+proc sort data=postsev2x2; ; by plot type; run;
 /*proc print data=postsev2x2; title 'postsev2x2'; run; */
 
-proc means data=postsev2x2 mean noprint; var dummy; by type plot;
+proc means data=postsev2x2 mean noprint; var dummy; by plot type;
   output out=mout1 mean=meandummy;
 *proc print data=mout1; *title 'mout1';
-run;                                                                       * N = 42;
+run;                                                                       * N = 65;
 data mout2; set mout1; 
   if type = 'Forest' then typecat = 'f';
   if type = 'Shrub' then typecat = 's';	run;
-/*proc print data=mout2; title 'mout2'; run; * N = 42;
+/*proc print data=mout2; title 'mout2'; run; * N = 65;
 proc contents data=mout2;run; plot, meandummy, type, typecat*/
 proc sort data=mout2; by plot;
 * merge back in the typecat information of the labeled plot;
@@ -135,7 +137,7 @@ proc contents data=postsev2x3;run; */
 proc means data=postsev2x3 mean noprint; var vege subs; by plot year typecat burnsev lastrx yrrx1 yrrx2 yrrx3;
 	output out=postsev2x4 mean=meansev;
 run;
-/* proc print data=postsev2x4; title 'postsev 2x4'; run; *N=80; */
+/* proc print data=postsev2x4; title 'postsev 2x4'; run; *N=84; */
 
 data postsev2 (drop=_TYPE_ _FREQ_); set postsev2x4;
 	* assigning burnsev categories to vege+subs burn avg;
@@ -144,7 +146,7 @@ data postsev2 (drop=_TYPE_ _FREQ_); set postsev2x4;
 	if 3 <= meansev <4 then burnsev = 'l';
 	if 4 <= meansev <5 then burnsev = 's';
 	if meansev = 5     then burnsev = 'u';
-	if meansev = '.' | meansev = 9 then delete;
+	if meansev = 9 	   then delete;
 	* makes new set of treatment names with natural ordering for graphs and constrasts;
     if burnsev = 'u' then burn = 0;
     if burnsev = 's' then burn = 1;
@@ -160,9 +162,9 @@ data postsev2 (drop=_TYPE_ _FREQ_); set postsev2x4;
     if (burnsev = 'm') then bcat2 = 'B';
     if (burnsev = 's' | burnsev = 'l') then bcat2 = 'A';	
     if (burnsev = 'u') then bcat2 = 'AA';
-run; *N=42;
-proc sort data = postsev2; by plot year burn; run; 
-/* proc print data = postsev2; title 'postsev2'; run; *N=42; */
+run; *N=83;
+proc sort data = postsev2; by plot year; run; 
+/* proc print data = postsev2; title 'postsev2'; run; *N=83; */
 
 *----------------------------------------- TREES --------------------------------------------------;
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
@@ -176,6 +178,7 @@ run;  * N = 998;
 * cleanup;
 data seedlings1; set seedlings;
  	year = year(date);
+	subp = 'seed';
 	if Species_Symbol='' then delete;
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set seedlings1;
@@ -187,8 +190,7 @@ data seedlings2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 				 rename=(SizeClHt=heig) rename=(Status=stat) 
 				 rename=(Count=coun));
 	set dat2;
-data seedlings3 (keep=plot year sspp heig coun stat);
-	set seedlings2;
+data seedlings3 (keep=plot year sspp heig coun stat subp); set seedlings2;
 run;
 proc sort data = seedlings3; by plot; run;
 
@@ -249,6 +251,7 @@ proc contents data=saplings; run; */
 * cleanup;
 data saplings1;	set saplings; 
  	year = year(date);
+	subp = 'sapl';
 	if Species_Symbol='' then delete;
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set saplings1;
@@ -258,7 +261,7 @@ data saplings2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 				rename=(SizeClDia=diam) rename=(Status=stat) 
 				rename=(AvgHt=heig));
 	set dat2;
-data saplings3 (keep=plot year sspp diam stat heig);
+data saplings3 (keep=plot year sspp diam stat heig subp);
 	set saplings2;
 run;
 proc sort data=saplings3; by plot; run;
@@ -314,17 +317,17 @@ proc contents data=overstory; run; */
 
 * cleanup;
 data overstory1; set overstory;
-	if Species_Symbol='' then delete;
+	if Species_Symbol='' then delete; 
+	subp = 'tree';
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set overstory1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data overstory2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
-				 rename=(QTR=quar) rename=(TagNo=tagn) 
-			 	 rename=(Status=stat) rename=(DBH=diam) rename=(CrwnRto=crwn));
+				 rename=(Status=stat) rename=(DBH=diam) rename=(CrwnRto=crwn));
 	set dat2;
-data overstory3 (keep=plot year sspp quar tagn stat diam crwn);	
-	year = year(date);
+data overstory3 (keep=plot year sspp stat diam crwn subp);	
+	year = year(date); 
 	set overstory2;
 run;
 proc sort data=overstory3; by plot; run;
@@ -372,7 +375,8 @@ proc contents data=shrubs; run;	*/
 
 * cleanup;
 data shrubs1; set shrubs;
-	if Species_Symbol='' then delete;
+	if Species_Symbol='' then delete; 
+	subp = 'shru';
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set shrubs1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
@@ -381,7 +385,7 @@ data shrubs2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 			  rename=(AgeCl=agec) rename=(Count=coun) 
 			  rename=(Status=stat));
 	set dat2;
-data shrubs3 (keep=plot year sspp agec coun stat);
+data shrubs3 (keep=plot year sspp agec coun stat subp);
 	year = year(date);
 	set shrubs2;
 run;
@@ -458,20 +462,21 @@ proc contents data=herbaceous; title 'herbaceous'; run;	*/
 * cleanup;
 data herb1; set herbaceous;
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+	subp = 'herb';
 data dat2; set herb1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data herb2 (rename=(MacroPlot_Name=plot) rename=(Status=stat)
-			rename=(char3=sspp) rename=(Quadrat=quad) rename=(Count=coun));
+			rename=(char3=sspp) rename=(Count=coun));
 	set dat2;
-data herb3 (keep=plot year sspp quad coun stat);
+data herb3 (keep=plot year sspp coun stat subp);
 	year = year(date);
 	set herb2;
 run;
 proc sort data = herb3; by plot; run;
 
 /*proc contents data=herb3; title 'herb3'; run;  * N = 8674;
-proc print data=herb3; run;
+proc print data=herb3 (firstobs=1 obs=20); run;
 proc freq data=herb3; tables sspp; run;  */
 
 * problem species:
@@ -502,12 +507,6 @@ data herbprobspp; set herb4;
 	if (sspp = "RUBUS" | sspp = "SMILA");
 run;
 
-data seedlings4; set seedlings3;
-	if (sspp NE "CAAM2" & sspp NE "ILVOx") ;
-data seedlingprobspp; set seedlings3;
-	if (sspp  = "CAAM2" | sspp  = "ILVOx");
-run;
-
 /* proc contents data=herb5; title 'herb5'; run;  * N = 8414;
 proc print data=herb5; run;
 proc freq data=herb5; tables sspp; run; 
@@ -533,22 +532,23 @@ proc contents data=transect; title 'transect'; run;	*/
 * cleanup;
 
 data trans1; set transect;
-	if  Species_Symbol = '' then delete;
+	if  Species_Symbol = '' then delete; 
+	subp = 'tran';
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set trans1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
-data trans2 (rename=(MacroPlot_Name=plot) rename=(Point=poin)
+data trans2 (rename=(MacroPlot_Name=plot) 
 			rename=(char3=sspp) rename=(Height=heig));
 	set dat2;
-data trans3 (keep=plot year Tape sspp poin heig);
+data trans3 (keep=plot year sspp heig subp);
 	year = year(date);
 	set trans2;
 run;
 proc sort data = trans3; by plot; run;
 
 /*proc contents data=trans3; title 'trans3'; run;  * N = 41,703;
-proc print data=trans3; run;
+proc print data=trans3 (firstobs=1 obs=20); run;
 proc freq data=trans3; tables sspp; run; */
 
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
@@ -584,10 +584,11 @@ data canopy2; set canopy;
 	orig = -((orim * fact) - 100);
 	*getting mean canopy cover per plot;
 	covm = ((cov1 + cov2 + cov3 + cov4 + orig)/5);
+	subp = 'ccov';
 run;
-data canopy3 (keep = year plot cov1 cov2 cov3 cov4 orig covm); set canopy2;
+data canopy3 (keep = year plot covm subp); set canopy2;
 proc sort data=canopy3; by plot year; run;
-proc print data=canopy3; run; *N = 197;
+/* proc print data=canopy3; title 'canopy cover'; run; *N = 197; */
 
 *-----------------------------------------dataset merges-----------------------------;
 data seedlings5; merge hist2 canopy2 seedlings4; by plot; year = year(date); run; 
@@ -600,19 +601,19 @@ proc sql;
 quit; */
 
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
-data seedlingsshrubs; merge shrubs5 seedlings4; by plot; run;
-/* proc print data=seedlingsshrubs; run; */
+/* data seedlingsshrubs; merge shrubs5 seedlings4; by plot; run;
+/* proc print data=seedlingsshrubs; run; 
 
 * pulling just the important species--pines, ilvo, and quma, quma3;
 data piquil; set seedlingsshrubs;
 	if (sspp = "PITAx" |sspp = "QUMAx" | sspp = "QUMA3" | sspp = "ILVOx");
-run; /* proc print data=piquil; title 'piquil'; var plot sspp; run;*/
-/* proc freq data=piquil; tables sspp; title 'piquil'; run; * N = 473; */
+run; /* proc print data=piquil; title 'piquil'; var plot sspp; run;
+/* proc freq data=piquil; tables sspp; title 'piquil'; run; * N = 473; 
 
 
 proc sort data=piquil; by plot;  
 data piquil2; merge hist2 piquil; by plot; run;
-/* proc print data=piquil2; title 'piquil2'; var plot sspp year; run;*/
+/* proc print data=piquil2; title 'piquil2'; var plot sspp year; run;
 data piquil3; set piquil2;
    if (sspp = '     ') then sspp = 'NONEx';
    if year < 2011 then prpo = 'pref';
@@ -622,42 +623,49 @@ run;
 proc contents data = piquil3; run;
 proc freq data=piquil3; tables sspp*coun; title 'piquil3'; run;*/
 
-
-data all; merge postsev2 seedlings4 seedlingprobspp saplings5 saplingprobspp
+data alld; merge postsev2 seedlings4 seedlingprobspp saplings5 saplingprobspp
 				overstory4 shrubs5 shrubsprobspp herb5 herbprobspp trans3 canopy3; 
 		  by plot; 
 run; *N = 41740;
-/* proc contents data=all; title 'all'; run;
+/* proc contents data=alld; title 'all'; run;
 *Variables:			   #    Variable    Type    Len    Format     Informat
-					  24	Tape        Num       8    BEST12.    BEST32.
                       21    agec        Char      1    $1.        $1.
                       11    bcat1       Char      1
                       12    bcat2       Char      1
                       10    burn        Num       8
                        4    burnsev     Char      1    $1.        $1.
                       15    coun        Num       8    BEST12.    BEST32.
-                      25    cov1        Num       8
-                      26    cov2        Num       8
-                      27    cov3        Num       8
-                      28    cov4        Num       8
                       30    covm        Num       8
                       20    crwn        Num       8    BEST12.    BEST32.
                       17    diam        Num       8    BEST12.    BEST32.
                       13    heig        Num       8    BEST12.    BEST32.
                        5    lastrx      Num       8    BEST12.    BEST32.
                        9    meansev     Num       8
-                      29    orig        Num       8
                        1    plot        Num       8    BEST12.    BEST32.
-                      23    poin        Num       8    BEST12.    BEST32.
-                      22    quad        Num       8    BEST12.    BEST32.
-                      18    quar        Num       8    BEST12.    BEST32.
                       16    sspp        Char      5
                       14    stat        Char      1    $1.        $1. ;
-proc print data=all; run;
-*/
-                      19    tagn        Num       8    BEST12.    BEST32.
+ 					  16    subp        Char      4
                        3    typecat     Char      1
                        2    year        Num       8    BEST12.    BEST32.
                        6    yrrx1       Num       8    BEST12.    BEST32.
                        7    yrrx2       Num       8    BEST12.    BEST32.
-                       8    yrrx3
+                       8    yrrx3       Num       8    BEST12.    BEST32.
+proc print data=alld (firstobs=41700 obs=41740); run;
+
+proc sql;
+	select subp	, plot, year
+	from  alld
+	where subp eq 'seed';
+quit; 
+
+* subp is retaining tree, tran ccov, but seed, sapl, herb, shru are absent;
+
+PROC PRINTTO PRINT='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\alld.csv' NEW;
+RUN;
+
+PROC PRINT DATA=alld;
+RUN;
+
+PROC PRINTTO PRINT=PRINT;
+RUN; 
+*/
