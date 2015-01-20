@@ -29,7 +29,9 @@ out=spcomp dbms=csv replace; getnames=yes;run;
 
 *--------------------------------------- POST-BURN SEVERITY ASSESSMENT AND PLOT HISTORY -----------------------------------------------------;
 *Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\postburnsev.csv"
+/*proc import datafile="g:\FFI CSV files\postburnsev.csv"*/
+
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\postburnsev.csv"
 out=postsev dbms=csv replace; getnames=yes; run;  * N = 1227;
 /* proc print data = postsev; run;
 proc contents data = postsev; run;
@@ -40,7 +42,7 @@ data postsev1; set postsev;
    type = PlotType; vege = Veg; subs=Sub; 
    keep plot year type vege subs;
 run;   	*N = 1227;
-proc sort data=postsev1; by plot year; run;
+proc sort data=postsev1; by plot; run;
 *proc print data=postsev1; *run;
 
 * Variables:
@@ -56,7 +58,7 @@ proc sort data=postsev1; by plot year; run;
 * Plot history: This comes from my own document, not FFI;
 * Includes hydromulch, rx burn history, and burn severity variables. Burn severity is only for plots 1227-5300--these are the new plots
 that were not included in the initial post-burn assessment. Qualitative assessment was done in summer 2012.;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothistory.csv"  
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\plothistory.csv"  
 out=hist dbms=csv replace; getnames=yes; run;  * N = 61;
 /*proc contents data=hist; title 'plot history'; run;
 proc print data=hist; run;  * N = 61; */
@@ -101,16 +103,16 @@ datalines;
 data dummydatx; set dummydat;
   if type = 'xxxxx' then type = '     '; run;
 data postsev2x; set plothist dummydatx; run; * N = 1250;
-proc sort data=postsev2x; by plot type; run;
+proc sort data=postsev2x; by plot; run;
 /*proc print data=postsev2x; title 'postsev2x'; run; */
 
 data postsev2x1; set postsev2x; dummy=1; keep plot year type vege subs dummy burnsev hydr lastrx yrrx1 yrrx2 yrrx3;
-proc sort data=postsev2x1; by plot type; run;
+proc sort data=postsev2x1; by plot; run;
 /*proc print data=postsev2x1; title 'postsev2x1'; run; *N = 1250; */
 
 * only plots with labeled types;
 data postsev2x2; set postsev2x1; if (type ^= '      ' | type ^= '     '); run;  * N = 1247;
-proc sort data=postsev2x2; ; by plot type; run;
+proc sort data=postsev2x2; ; by plot; run;
 /*proc print data=postsev2x2; title 'postsev2x2'; run; */
 
 proc means data=postsev2x2 mean noprint; var dummy; by plot type;
@@ -166,7 +168,9 @@ proc sort data = postsev2; by plot year; run;
 
 *----------------------------------------- TREES --------------------------------------------------;
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Seedlings-allyrs.csv"
+/*proc import datafile="D:\FFI CSV files\seedlings-allyrs.csv" */
+
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\seedlings-allyrs.csv"
 out=seedlings dbms=csv replace; getnames=yes;
 run;  * N = 998;
 
@@ -231,7 +235,7 @@ proc freq data=seedlingprobspp; tables sspp; title 'seedlingprobspp'; run; * N =
 ******POLE TREES (SAPLINGS, DBH >=2.5 and < 15.1);
 /*proc import datafile="D:\FFI CSV files\Saplings-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Saplings-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Saplings-allyrs.csv"
 out=saplings dbms=csv replace; getnames=yes;
 run;
 
@@ -296,7 +300,7 @@ proc print data=saplingprobspp; run;*/
 ******OVERSTORY (MATURE TREES, DBH >= 15.1);
 /*proc import datafile="D:\FFI CSV files\overstory-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Overstory-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\overstory-allyrs.csv"
 out=overstory dbms=csv replace; getnames=yes;
 run;  
 
@@ -356,7 +360,7 @@ run;
 *--------------------------------------- SHRUBS -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\shrubs-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Shrubs-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\shrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
@@ -442,7 +446,7 @@ SILA2: 5, 2002;
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\herbaceous-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Herbaceous-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\herbaceous-allyrs.csv"
 out=herbaceous dbms=csv replace; getnames=yes;
 run;  * N = 8674;
 
@@ -512,7 +516,7 @@ proc print data=herbprobspp; title 'herb prob spp'; run; *N = 4;*/
 *--------------------------------------- POINT INTERCEPT -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\PointIntercept-allyrs.csv"	*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\PointIntercept-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\PointIntercept-allyrs.csv"
 out=transect dbms=csv replace; getnames=yes;
 run;  
 
@@ -550,7 +554,7 @@ proc freq data=trans3; tables sspp; run; */
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\cc.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\cc.csv"
 out=canopy dbms=csv replace; getnames=yes;
 run;  
 proc sort data = canopy; by plot; run;
@@ -587,8 +591,10 @@ proc sort data=canopy3; by plot year; run;
 /* proc print data=canopy3; title 'canopy cover'; run; *N = 197; */
 
 *-----------------------------------------dataset merges-----------------------------;
+/*
+* outdated merge--use alld instead;
 data seedlings5; merge hist2 canopy2 seedlings4; by plot; year = year(date); run; 
-/*proc print data = seedlings5; title 'seedlings5'; run; *N = 1039;
+proc print data = seedlings5; title 'seedlings5'; run; *N = 1039;
 proc contents data = seedlings5; run;
 
 proc sql;
@@ -646,7 +652,7 @@ run; *N = 41740;
                        6    yrrx1       Num       8    BEST12.    BEST32.
                        7    yrrx2       Num       8    BEST12.    BEST32.
                        8    yrrx3       Num       8    BEST12.    BEST32.
-proc print data=alld (firstobs=41700 obs=41740); run;
+proc print data=alld (firstobs=1 obs=40); run;
 
 proc sql;
 	select subp	, plot, year
@@ -656,7 +662,7 @@ quit;
 
 * subp is retaining tree, tran ccov, but seed, sapl, herb, shru are absent;
 
-PROC PRINTTO PRINT='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\alld.csv' NEW;
+PROC PRINTTO PRINT='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\alld.csv' NEW;
 RUN;
 
 PROC PRINT DATA=alld;

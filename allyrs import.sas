@@ -591,8 +591,10 @@ proc sort data=canopy3; by plot year; run;
 /* proc print data=canopy3; title 'canopy cover'; run; *N = 197; */
 
 *-----------------------------------------dataset merges-----------------------------;
+/*
+* outdated merge--use alld instead;
 data seedlings5; merge hist2 canopy2 seedlings4; by plot; year = year(date); run; 
-/*proc print data = seedlings5; title 'seedlings5'; run; *N = 1039;
+proc print data = seedlings5; title 'seedlings5'; run; *N = 1039;
 proc contents data = seedlings5; run;
 
 proc sql;
@@ -650,7 +652,7 @@ run; *N = 41740;
                        6    yrrx1       Num       8    BEST12.    BEST32.
                        7    yrrx2       Num       8    BEST12.    BEST32.
                        8    yrrx3       Num       8    BEST12.    BEST32.
-proc print data=alld (firstobs=41700 obs=41740); run;
+proc print data=alld (firstobs=1 obs=40); run;
 
 proc sql;
 	select subp	, plot, year
