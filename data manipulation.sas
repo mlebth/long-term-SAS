@@ -162,3 +162,9 @@ run;
 * type 1 burnsev df=2 X2=3.66 P = 0.1603
          hydromulch  df=2  X2=10.91 P=0.0043
          int df=3 X2=17.59 P = 0.0005;
+
+
+
+*********************for herbaceous: each quadrat is a separate record. Add or find means per species to analyze. 
+*********************for transect: need to separate out substrate from plants and set substrate heights to '.' instead of '0'.
+
