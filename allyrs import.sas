@@ -120,10 +120,17 @@ proc print data=hist; run;  * N = 56; */
    hydr (x, n, l, h) = hydromulch [x = unknown, n = none, l = light, h = heavy]
    lastrx = year of last prescribed burn
    yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
-   plot = fmh plot #;
+   plot = fmh plot #
+   soil1 = full SSURGO soil name
+   soil2 = abbreviated soil names:
+		{fslo = fine sandy loam, gfsl = gravelly fine sandy loam, sand = fine sand, loam = loam, lfsa = loamy fine sand}
+   elev	= elevation in m above sea level
+   slope = % change in elevation
+   aspect = azimuth (values of -1 = undefined--slope =<2);
 
 *plot history cleanup;
 data hist2; set hist;
+   drop soil1;
    if lastrx = 9999 then lastrx = .;
    if yrrx1 = 9999 then yrrx1 = .;
    if yrrx2 = 9999 then yrrx2 = .;
@@ -133,10 +140,15 @@ data hist2; set hist;
    if (lastrx = .) then yrcat = 'nev';
    if (lastrx = 3| lastrx = 6 | lastrx = 7) then yrcat = 'rec';
    if (lastrx = 9 | lastrx = 11) then yrcat = 'old';   */
+   if (aspect >= 315 & aspect < 45)  then aspect = 'north'; 
+   if (aspect >= 45  & aspect < 135) then aspect = 'east';
+   if (aspect >= 135 & aspect < 225) then aspect = 'south';
+   if (aspect >= 225 & aspect < 315) then aspect = 'west';
 run;
 proc sort data=hist2; by plot; run;
 /* proc print data=hist2; title 'hist2'; run; *N = 56;
 proc freq data=hist2; tables burnsev; run; */
+proc contents data=hist2; run;
 
 *merging post-fire assessment and plot history files;
 data plothist1; merge hist2 postsev2x5; by plot; 
