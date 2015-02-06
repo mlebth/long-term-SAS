@@ -173,7 +173,7 @@ proc sort data=plothist1; by plot year typecat burnsev lastrx yrrx1 yrrx2 yrrx3;
 proc freq data=plothist1; tables burnsev; run; */
 
 * burnsev cleanup;
-data plothist (drop=_TYPE_ _FREQ_ year); set plothist1;
+data plothist2 (drop=_TYPE_ _FREQ_ year); set plothist1;
 	*deleting 2008: there is only one stray plot recorded in 2008, maybe from an rx burn? 
 	not useful without others;
 	if year=2008 then delete;
@@ -202,13 +202,58 @@ data plothist (drop=_TYPE_ _FREQ_ year); set plothist1;
 	*typecat for new plots--all forest;
 	if typecat = '' then typecat = 'f';
 run;
-proc sort data=plothist; by plot; run;
-/*proc print data=plothist; title 'plothist'; run; * N =56;
-proc contents data=plothist; run; */
+proc sort data=plothist2; by plot; run;
+/*proc print data=plothist2; title 'plothist2'; run; * N =56;
+proc contents data=plothist2; run; */
 
 *IMPORTANT: plots 1227-5300 were given burnsev classes visually, veg and subs measurements were not taken.
 This was done because these plots were established the year following the BCCF.
 Burnsev for all other plots was calculated from veg and subs values in the post-burn assessment.;
+
+
+*--------------------------------------- CANOPY COVER -----------------------------------------------------;
+/*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
+
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\cc.csv"
+out=canopy dbms=csv replace; getnames=yes;
+run;  
+proc sort data = canopy; by plot year; run;	
+/* proc contents data = canopyx; title 'canopyx'; run; * N = 201;
+proc print data = canopyx; title 'canopyx'; run;  
+
+*Variables: 
+	plot
+	qu1a-qu1d, same for qu2-qu4 and ori: 4 measurements at each corner and at origin;
+*/
+
+* canopy cover calculations;
+data canopy2; set canopy;
+	*removing plots 1242 and 1244-1247. These plots are not in BSP;
+	if (plot = '1242' | plot = '1244' | plot = '1245' | plot = '1246' | plot = '1247') then delete;
+	*averaging measurements at each location;
+	qua1 = ((qu1a + qu1b + qu1c + qu1d) / 4);
+	qua2 = ((qu2a + qu2b + qu2c + qu2d) / 4);
+	qua3 = ((qu3a + qu3b + qu3c + qu3d) / 4);
+	qua4 = ((qu4a + qu4b + qu4c + qu4d) / 4);
+	orim = ((oria + orib + oric + orid) / 4);
+	*conversion factor;
+	fact = (100/96);
+	*converting to canopy cover from canopy openness;
+	cov1 = -((qua1 * fact) - 100);
+	cov2 = -((qua2 * fact) - 100);
+	cov3 = -((qua3 * fact) - 100);
+	cov4 = -((qua4 * fact) - 100);
+	orig = -((orim * fact) - 100);
+	*getting mean canopy cover per plot;
+	covm = ((cov1 + cov2 + cov3 + cov4 + orig)/5);
+run;
+data canopy3 (keep = year plot covm); set canopy2;
+proc sort data=canopy3; by plot year; run;
+data plothist; merge canopy3 plothist2; by plot year; 
+run;  *N=201;
+proc sort data=plothist; by plot; run;
+/* proc print data=plothist; title 'plothist'; run; *N = 196; */
+
 
 *----------------------------------------- TREES --------------------------------------------------;
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
@@ -613,51 +658,6 @@ run;  *N=41704;
 proc print data=trans3x (firstobs=1 obs=20); title 'trans3x'; run;
 proc freq data=trans3x; tables sspp; run; */
 
-*--------------------------------------- CANOPY COVER -----------------------------------------------------;
-/*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
-
-proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\cc.csv"
-out=canopy dbms=csv replace; getnames=yes;
-run;  
-proc sort data = canopy; by plot year; run;	
-data canopyx; merge canopy plothist; by plot; 
-run;  *N=201;
-
-/* proc contents data = canopyx; title 'canopyx'; run; * N = 201;
-proc print data = canopyx; title 'canopyx'; run;  
-
-*Variables: 
-	plot
-	qu1a-qu1d, same for qu2-qu4 and ori: 4 measurements at each corner and at origin;
-*/
-
-* canopy cover calculations;
-data canopy2; set canopyx;
-	*removing plots 1242 and 1244-1247. These plots are not in BSP;
-	if (plot = '1242' | plot = '1244' | plot = '1245' | plot = '1246' | plot = '1247') then delete;
-	*averaging measurements at each location;
-	qua1 = ((qu1a + qu1b + qu1c + qu1d) / 4);
-	qua2 = ((qu2a + qu2b + qu2c + qu2d) / 4);
-	qua3 = ((qu3a + qu3b + qu3c + qu3d) / 4);
-	qua4 = ((qu4a + qu4b + qu4c + qu4d) / 4);
-	orim = ((oria + orib + oric + orid) / 4);
-	*conversion factor;
-	fact = (100/96);
-	*converting to canopy cover from canopy openness;
-	cov1 = -((qua1 * fact) - 100);
-	cov2 = -((qua2 * fact) - 100);
-	cov3 = -((qua3 * fact) - 100);
-	cov4 = -((qua4 * fact) - 100);
-	orig = -((orim * fact) - 100);
-	*getting mean canopy cover per plot;
-	covm = ((cov1 + cov2 + cov3 + cov4 + orig)/5);
-	subp = 'ccov';
-run;
-data canopy3 (keep = bcat1 bcat2 burn burnsev hydr lastrx meansev aspect slope soil
-					 typecat yrrx1 yrrx2 yrrx3 year plot covm subp); set canopy2;
-proc sort data=canopy3; by plot year; run;
-/* proc print data=canopy3; title 'canopy cover'; run; *N = 196; */
-
 *-----------------------------------------dataset merges-----------------------------;
 /*
 * outdated merge--use alld instead;
@@ -694,8 +694,8 @@ proc contents data = piquil3; run;
 proc freq data=piquil3; tables sspp*coun; title 'piquil3'; run;*/
 
 data alld; set seedlings4 seedlingprobspp saplings5 saplingprobspp
-				 overstory4 shrubs5 shrubsprobspp herb5 herbprobspp trans3 canopy3; 
-run; *N = 61126;
+				 overstory4 shrubs5 shrubsprobspp herb5 herbprobspp trans3; 
+run; *N = 60936;
 proc sort data=alld; by plot year subp; run;
 /* proc contents data=alld; title 'all'; run;
 *Variables:			   #    Variable    Type    Len    Format     Informat
@@ -724,9 +724,9 @@ proc sort data=alld; by plot year subp; run;
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
 
 proc sql;
-	select subp	, plot, year, slope, aspect, soil
+	select subp	, plot, year, covm
 	from  alld
-	where subp eq 'tran';
+	where subp eq 'shru';
 quit; 
 
 PROC PRINTTO PRINT='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\alld.csv' NEW;
