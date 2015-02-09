@@ -1,14 +1,9 @@
 /* Datasets:
-	* postsev2
+	* plothist
 		Variables:
 			plot = fmh plot #
 			year = year of plot visit
-			type = plot type (Forest, Brush)
-			dist = tape distance where measurement was recorded
-			vege = vegetation severity, on a scale of 0-5. 
-			subs = substrate severity	   
-				* for both vege and subs: [0=N/A, 1=heavily burned, 2=moderately burned, 3=lightly burned, 4=scorched, 5=unburned]
-					see backside of FMH-21 for more details on categories.
+			typecat = plot type (f, b = Forest, Brush)
 	   		burnsev (u, s, l, m, h) = wildfire severity
 			burn (0-4 in order of increasing severity)
 			bcat1 [AA = u, A = s, l, m; B = h]
@@ -16,6 +11,12 @@
    			hydr (x, n, l, h) = hydromulch [x = unknown, n = none, l = light, h = heavy]
 			lastrx = year of last prescribed burn
    			yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
+			aspect = nort, sout, east, west
+			elev = elevation (m) above sea level
+			slope = % slope from topo
+			soil = soil type
+		*****plothist is merged with all other datasets. all of these variables are also
+			in the following datasets.
 
 	* seedlings4
 		Variables:
@@ -23,7 +24,8 @@
 			sspp = species code
 			heig = height class
 			snum = number of seedlings or resprouts per height class. sdlngs here on out for simplicity.
-			stat = L/D (live or dead)
+			stat = L/D (live or dead) 
+			covm = mean canopy cover
 			year = year of plot visit;
 	
 	*seedlingprobspp
@@ -35,7 +37,8 @@
 			sspp = species code
 			diam = dbh
 			heig = height class
-			stat = L/D (live or dead)
+			stat = L/D (live or dead) 
+			covm = mean canopy cover
 			year = year of plot visit;
 	
 	*saplingprobspp
@@ -49,7 +52,8 @@
 			tagn = individual tree tag number
 			diam = dbh
 			crwn = relative dominance of crown
-			stat = L/D (live or dead)
+			stat = L/D (live or dead) 
+			covm = mean canopy cover
 			year = year of plot visit;
 
 	* shrubs5
@@ -59,7 +63,8 @@
 			sspp = species code
 			agec = age class [R = resprout, I = immature, M = mature]
 			coun = count
-			stat = L/D (live or dead)
+			stat = L/D (live or dead) 
+			covm = mean canopy cover
 			Date = date of plot visit;
 
 	* shrubsprobspp
@@ -71,7 +76,8 @@
 			sspp = species code
 			quad = quadrat (1-10)
 			coun = count
-			stat = L/D (live or dead)
+			stat = L/D (live or dead) 
+			covm = mean canopy cover
 			year = year of plot visit;
 
 	*herbprobspp
@@ -84,28 +90,41 @@
 			sspp = species code
 			poin = numbered point on tape (0.3m = point 1,  0.6m = point 2, etc.)
 			Tape = distance on tape measure
-			heig = height of tallest plant at any given point
+			heig = height of tallest plant at any given point 
+			covm = mean canopy cover
 			Date = date of plot visit;	
-	
-	* canopy3
-		Variables:
-			plot = fmh plot #
-			year = year of data collection
-			*conversion factor;
-			fact = (100/96);
-			*converting to canopy cover from canopy openness;
-			cov1 = -((qua1 * fact) - 100);
-			cov2 = -((qua2 * fact) - 100);
-			cov3 = -((qua3 * fact) - 100);
-			cov4 = -((qua4 * fact) - 100);
-			orig = -((orim * fact) - 100);
-			*getting mean canopy cover per plot;
-			covm = ((cov1 + cov2 + cov3 + cov4 + orig)/5); 
 
 	* piquil
-		Variables: hist2 + seedlings4 + shrubs5
-		Notes: This is a dataset including pines and oaks as seedlings (measured in 10mx5m subplot), and ilex as a shrub (measured in 1mx50m subplot). 
-			May or may not be useful. piquil2 merges with plot history and piquil3 separates dates to pre- and post-fire.
+		QUMAx, QUMA3, PITAx pulled from alld (supb seed) & ILVOx from alld (subp shru)
+		Notes: This is a dataset including pines and oaks as seedlings (measured in 10mx5m subplot), 
+		and ilex as a shrub (measured in 1mx50m subplot). 
 
-	*all
-		just what it sounds like.
+	*alld
+					   #    Variable    Type    Len    Format     Informat
+                       3    stat        Char      1    $1.        $1.
+                       6    subp        Char      4
+                      19    typecat     Char      1
+                       5    year        Num       8    BEST12.    BEST32.
+                      12    yrrx1       Num       8    BEST12.    BEST32.
+                      13    yrrx2       Num       8    BEST12.    BEST32.
+                      14    yrrx3       Num       8    BEST12.    BEST32.
+					  26    agec        Char      1    $1.        $1.
+                      18    aspect      Char      4
+                      22    bcat1       Char      1
+                      23    bcat2       Char      1
+                      21    burn        Num       8
+                      10    burnsev     Char      1    $1.        $1.
+                       4    coun        Num       8    BEST12.    BEST32.
+                       8    covm        Num       8
+                      25    crwn        Num       8    BEST12.    BEST32.
+                      24    diam        Num       8    BEST12.    BEST32.
+                      15    elev        Num       8    BEST12.    BEST32.
+                       2    heig        Num       8    BEST12.    BEST32.
+                       9    hydr        Char      1    $1.        $1.
+                      11    lastrx      Num       8    BEST12.    BEST32.
+                      20    meansev     Num       8
+                       1    plot        Num       8    BEST12.    BEST32.
+ 					  27    prpo        Char      4
+                      16    slope       Num       8    BEST12.    BEST32.
+                      17    soil        Char      4
+                       7    sspp        Char      5

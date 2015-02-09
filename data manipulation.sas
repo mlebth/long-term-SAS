@@ -10,7 +10,7 @@ shrubs subplot - species, stem count (pooled)
 
 independent variables:
 	Fixed: Canopy cover, burn severity, soil type, hydromulch (0,1,2), 
-           elevation, aspect, year, prpo (pre, post fire)
+           elevation, aspect (NESW), slope (%), year, prpo (pre, post fire)
 	Random: plot
 dependent variables:
 	Species (all samples)
@@ -39,17 +39,16 @@ Strategy:
 
 *--------------------------piquil: relative abundances;
 * getting number of individuals per species, per year and plot.
-  ilvo from shrubs. qu, pi from seedlings. no transect data. 
-  add ilvo from seedlings.  NOTE: check: if measured twice, interpretation of density must be adjusted.
+  ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
+  no transect data. 
   nperspp = number stems per species for pines, oaks, ilvo;
 * plots with none of these 3 spp have NONEx as their species;
-* NOTE TEMPORARILY POOLING YEARS - FIX THIS;
-proc sort data=piquil3; by plot sspp burn prpo;
-proc means data=piquil3 noprint sum; by plot sspp burn prpo; var coun; 
+proc sort data=piquil; by plot sspp burn prpo year;
+proc means data=piquil noprint sum; by plot sspp burn prpo year; var coun; 
   output out=numplantdatapo sum=nperspp;
 proc print data=numplantdatapo; title 'pi-qu-il numplantdata'; 
-  var plot burn prpo sspp nperspp; run;   
-* N = 342 plot-year-spp combinations;
+  var plot burn prpo sspp nperspp year; run;   
+* N = 216 plot-year-spp combinations;
 * numplantdatapo contains: obs, plot, year, burn, prpo, sspp, nperspp
   nperspp = # of sdlngs per plot per species;
 
@@ -57,7 +56,7 @@ proc sort data=numplantdatapo; by plot burn prpo;
 proc means data=numplantdatapo noprint sum; by plot burn prpo; var nperspp; 
 	output out=numperplot sum=nperplot;
 proc print data=numperplot; title 'totals per plot'; var plot burn prpo nperplot; run;   
-* N = 89 plot-prpo combinations;
+* N = 84 plot-prpo combinations;
 * numperplot contains: obs, plot, burn, prpo, nperplot
   nperplot = # of all sdlngs in the plot;
 
@@ -80,9 +79,9 @@ proc means data=relabund sum noprint; by sspp; var nperspp;
   output out=spptotals sum=spptot; title 'species counts'; 
 proc print data=spptotals; run;
 * SPECIES: count (in # of plot-year-burn combos):
-ILVO: 2629 (40), QUMA3: 1330 (92), PITA: 1122 (103), QUMA: 955 (95), 
+ILVO: 8115 (65), QUMA3: 1332 (42), PITA: 1125 (50), QUMA: 955 (46), 
 12 plot combos with none
----more ILVO total, but in fewer plot combos;
+---more ILVO total;
 
 *freq of spp in burnsev cats, prpo cats. fisher: p-value calc takes too long, freezes system;
 proc freq data=relabund; tables sspp*burn; run;
@@ -90,7 +89,7 @@ proc freq data=relabund; tables sspp*prpo; run;
 
 *------------------------------piquil models;
 proc univariate data=relabund plot normal; run;
-*Shapiro-Wilk: 0.1875, P < 0.0001. 
+*Shapiro-Wilk: 0.825349, P < 0.0001. 
 Lognormally distributed, create new variable with transformed data;
 
 data logpiquil; set relabund;
@@ -105,7 +104,7 @@ proc glimmix data=logpiquil; title 'glimmix'; class burn prpo sspp;
 	output out=glimout pred=p resid=ehat;
 run;
 proc univariate data = glimout plot normal; var ehat; run;
-* Shapiro-Wilk  W = 0.858531  p<0.0001;
+* Shapiro-Wilk  W = 0.876522  p<0.0001;
 * long left tail -- different transformation?;
 
 

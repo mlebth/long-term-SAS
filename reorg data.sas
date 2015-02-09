@@ -6,7 +6,7 @@ data holdnonex; set numplantdatapo; if sspp = 'NONEx'; flag=1;
 
 proc print data=holdquma3; var plot prpo sspp nquma3 nperspp; run; 
 
-data reorg; merge holdquma3 holdqumax holdpitax holdilvox holdnonex; by plot prpo; * PUT YEAR BACK IN;
+data reorg; merge holdquma3 holdqumax holdpitax holdilvox holdnonex; by plot prpo year; * PUT YEAR BACK IN;
   if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
