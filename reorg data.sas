@@ -1,28 +1,27 @@
-data holdquma3; set numplantdatapo; if sspp = 'QUMA3'; nquma3 = nperspp; 
-data holdqumax; set numplantdatapo; if sspp = 'QUMAx'; nqumax = nperspp;
-data holdpitax; set numplantdatapo; if sspp = 'PITAx'; npitax = nperspp; 
-data holdilvox; set numplantdatapo; if sspp = 'ILVOx'; nilvox = nperspp; 
-data holdnonex; set numplantdatapo; if sspp = 'NONEx'; flag=1;
+data holdquma3; set numplantdata; if sspp = 'QUMA3'; nquma3 = nperspp; 
+data holdqumax; set numplantdata; if sspp = 'QUMAx'; nqumax = nperspp;
+data holdpitax; set numplantdata; if sspp = 'PITAx'; npitax = nperspp; 
+data holdilvox; set numplantdata; if sspp = 'ILVOx'; nilvox = nperspp; 
+data holdnonex; set numplantdata; if sspp = 'NONEx'; flag=1;
 
-proc print data=holdquma3; var plot prpo sspp nquma3 nperspp; run; 
+/* proc print data=holdquma3; run; 	*/
 
-data reorg; merge holdquma3 holdqumax holdpitax holdilvox holdnonex; by plot prpo year; * PUT YEAR BACK IN;
+data reorg; merge holdquma3 holdqumax holdpitax holdilvox holdnonex; by plot year;
   if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
   if (nilvox = .) then nilvox=0; if (nilvox=0) then pailvox=0; if (nilvox ^= 0) then pailvox=1; 
   if (flag NE 1) then flag = 0;
-  keep plot prpo burn nquma3 nqumax npitax nilvox flag paquma3 paqumax papitax pailvox;  * dropping sspp & nperspp - become garbage;
-proc print data=reorg; run;
+  drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
+/* proc print data=reorg; run;	*N = 208; */
 
 proc glimmix data=reorg;
   class burn;
   model paquma3 = burn / dist = binomial solution;  * default to link=logit; 
   * plot is the replication; 
 run;
-* on obs missing burn.  therefore N = 60 plot-prpo combination;
-* -2LL = 79.99  AIC = 87.99;  * penalty of 8 = 4 df * 2;  * X2/df = 1.07 - a very good fit;
-*  logit (prob(quma3 present in burn1))  = -0.07411 -0.4367 = .51;
+*-2LL = 260.22  AIC = 270.22;  *penalty of 8 = 4 df * 2;  * X2/df = 1.01 - a very good fit;
+*logit (prob(quma3 present in burn1))  = .04652 - 2.6115 = -2.56498;
 
 proc freq data=reorg; table paquma3*burn / chisq;
 run;  * for burn1, p(present) = .375; * gives a lot of -.58;

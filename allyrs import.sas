@@ -735,13 +735,13 @@ RUN;
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
 * pulling just the important species--pines, ilvo, and quma, quma3;
 data piquil; set alld;
-	if (subp = 'seed') & (sspp = "PITAx" |sspp = "QUMAx" | sspp = "QUMA3" | sspp = 'XXXXx') |
+	if (subp = 'seed') & (sspp = "PITAx" |sspp = "QUMAx" | sspp = "QUMA3") |
 	   (subp = 'shrp') & (sspp = "PITAx" |sspp = "QUMAx" | sspp = "QUMA3") |
-	   (subp = 'shru') & (sspp = "ILVOx" | sspp = 'XXXXx') |
+	   (subp = 'shru') & (sspp = "ILVOx") |
 	   (subp = 'seep') & (sspp = "ILVOx");
-run; 
-proc sort data=piquil; by plot year;  
-/* proc print data=piquil; title 'piquil'; var plot subp sspp year; run;  * N = 902; 
+run;  
+proc sort data=piquil; by plot year;
+/* proc print data=piquil; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
 proc contents data = piquil; run;
 proc freq data=piquil; tables sspp*subp*year; title 'piquil'; run;
 
