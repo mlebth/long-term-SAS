@@ -1,54 +1,40 @@
-/*
-10 herbaceous subplots (no woody plants) - species, # stems (pooled)
-transect - species (all plants), ht
-seedling subplot - species, ht class
-mature trees - plot. dbh, species
-pole trees subplot - species, dbh, ht class
-shrubs subplot - species, stem count (pooled) 
-
-independent variables:
-	Fixed: Canopy cover, burn severity, soil type, hydromulch (0,1,2), 
-           elevation, aspect (NESW), slope (%), year, prpo (pre, post fire)
-	Random: plot
-dependent variables:
-	Species (all samples)
-		presence/absence by species
-		richness
-		other measures of diversity and composition
-	plant cover (transect)- hits on transect - check values
-	stem count - wherever an individual has >1 stem, they are treated as separate. in lieu of N.
-	height of each stem. transect: cm,  seedlings& poles: class, shrubs & trees: not measured
-	DBH - pole & mature trees 
-	canopy cover - densiometer in 5 places/plot x 4 readings/place = 20 readings/plot. converted to 1 #/plot.
-
-Nesting:
-	--site (Bastrop/Buescher)
-		--soil type	/ --burn severity
-			--plot (FMH, invasive, or demog)
-				--veg
-
-Strategy:
-	--for main FMH datasets (herbaceous, shrubs, 'seedlings', pole and mature trees): merge plot history 
-	  and canopy cover with each dataset  (DONE as of Feb 2015)
-	--point transect: treat as other datasets for extra info (messy method)
-	--invasives: logistic regressions with p/a?
-	--demography: depends on data quality/quantity
-*/
-
-*--------------------------piquil: relative abundances;
+*--------------------------PIQUIL (Pinus-Quercus-Ilvo): relative abundances------------------------;
 * getting number of individuals per species, per year and plot.
   ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
-  no transect data. 
-  nperspp = number stems per species for pines, oaks, ilvo;
-* plots with none of these 3 spp have NONEx as their species;
+  no transect data. ;
 proc sort data=piquil; by plot sspp year burn prpo covm soil elev slope aspect hydr; run;
 proc means data=piquil noprint sum; by plot sspp year burn prpo covm soil elev slope aspect hydr; var coun; 
   output out=numplantdata sum=nperspp;
 proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
-* N = 442 combinations;
+* N = 442 species-plot-year combinations;
 * numplantdata contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
-  nperspp = # of sdlngs per species per plot/year;
+  nperspp = # of sdlngs/stems per species per plot/year;
+
+*reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
+has its own variable for count;
+data holdquma3; set numplantdata; if sspp = 'QUMA3'; nquma3 = nperspp; 
+data holdqumax; set numplantdata; if sspp = 'QUMAx'; nqumax = nperspp;
+data holdpitax; set numplantdata; if sspp = 'PITAx'; npitax = nperspp; 
+data holdilvox; set numplantdata; if sspp = 'ILVOx'; nilvox = nperspp; 
+run;
+/* proc print data=holdquma3; run; 
+proc print data=holdqumax; run; 	
+proc print data=holdpitax; run; 	
+proc print data=holdilvox; run; */
+
+*n(spp) is count, pa(spp) is presence/absence;
+data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot year;
+  if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
+  if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
+  if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
+  if (nilvox = .) then nilvox=0; if (nilvox=0) then pailvox=0; if (nilvox ^= 0) then pailvox=1; 
+  drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
+run;
+/* proc print data=piquil2; run; *N = 208; */
+
+/* *This was done before above reorganization of data to eliminate need for sspp and nperspp;
+*getting to relative abundances;
 
 proc sort data=numplantdata; by plot burn prpo;
 proc means data=numplantdata noprint sum; by plot burn prpo; var nperspp; 
@@ -63,11 +49,12 @@ proc sort data = numperplot; by plot burn prpo;
 data numperplot2; merge numplantdata numperplot; by plot burn prpo; run;
 proc print data = numperplot2; title 'numperplot2'; run; 
 *back to N=342;
-*numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot
+*numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot;
 
 *calculting relative abundance of each species in each plot/yr combo;
-data relabund; set numperplot2;
-	relabun = nperspp / nperplot;
+
+data relabund; set numperplot2;	
+	relabun = nperspp / nperplot; 
 proc print data = relabund; title 'relative abundance'; run;
 *numperplot3 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot, relabun;
 
@@ -77,15 +64,42 @@ proc means data=relabund sum noprint; by sspp; var nperspp;
   output out=spptotals sum=spptot; title 'species counts'; 
 proc print data=spptotals; run;
 * SPECIES: count (in # of plot-year-burn combos):
-ILVO: 8115 (65), QUMA3: 1332 (42), PITA: 1125 (50), QUMA: 955 (46), 
-12 plot combos with none
----more ILVO total;
+ILVO: 8115 (148), QUMA3: 1332 (94), PITA: 1125 (105), QUMA: 955 (95)
+---more ILVO total and occurs in more plot combos;
 
 *freq of spp in burnsev cats, prpo cats. fisher: p-value calc takes too long, freezes system;
 proc freq data=relabund; tables sspp*burn; run;
 proc freq data=relabund; tables sspp*prpo; run;
+*/
 
 *------------------------------piquil models;
+proc glimmix data=piquil2;
+  class burn;
+  model paquma3 = burn / dist = binomial solution;  * default to link=logit; 
+  * plot is the replication; 
+run;
+*-2LL = 260.22  AIC = 270.22;  *penalty of 10 = 5 df * 2;  * X2/df = 1.01 - a very good fit;
+*logit (prob(quma3 present in burn1))  = .04652 - 2.6115 = -2.56498;
+
+proc univariate data=piquil2 plot; var nquma3 nqumax npitax nilvox;
+run;
+
+proc glimmix data=piquil2;
+  class burn;
+  * model nquma3 = burn / dist=poisson link=log solution; * bad fit;
+  model nquma3 = burn / dist=negbin link=log solution; 
+  lsmeans burn / cl ilink;
+run;
+* poisson: X2/df = 57.63 very bad fit, -2LL = 2892.86, AIC = 2900.86; * N = 60, 1 obs not used;
+* negbin: X2/df = 0.44. -2LL = 363.39, AIC = 373.39;
+*  burn1: log(#) = 3.1499 - 4.1307 = -.9808, estimated value = exp(.9808) = .375
+   burn2: log(#) = 3.1499 + .08599 = 3.23189, estimated value = 25.327;
+
+
+
+
+
+
 proc univariate data=relabund plot normal; run;
 *Shapiro-Wilk: 0.825349, P < 0.0001. 
 Lognormally distributed, create new variable with transformed data;

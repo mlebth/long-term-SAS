@@ -128,3 +128,42 @@
                       16    slope       Num       8    BEST12.    BEST32.
                       17    soil        Char      4
                        7    sspp        Char      5
+*/
+
+/*   ***************ORGANIZATION OF DATA FOR ANALYSES;
+*******TAKEN FROM DATA MANIPULATION FILE;
+10 herbaceous subplots (no woody plants) - species, # stems (pooled)
+transect - species (all plants), ht
+seedling subplot - species, ht class
+mature trees - plot. dbh, species
+pole trees subplot - species, dbh, ht class
+shrubs subplot - species, stem count (pooled) 
+
+independent variables:
+	Fixed: Canopy cover, burn severity, soil type, hydromulch (0,1,2), 
+           elevation, aspect (NESW), slope (%), year, prpo (pre, post fire)
+	Random: plot
+dependent variables:
+	Species (all samples)
+		presence/absence by species
+		richness
+		other measures of diversity and composition
+	plant cover (transect)- hits on transect - check values
+	stem count - wherever an individual has >1 stem, they are treated as separate. in lieu of N.
+	height of each stem. transect: cm,  seedlings& poles: class, shrubs & trees: not measured
+	DBH - pole & mature trees 
+	canopy cover - densiometer in 5 places/plot x 4 readings/place = 20 readings/plot. converted to 1 #/plot.
+
+Nesting:
+	--site (Bastrop/Buescher)
+		--soil type	/ --burn severity
+			--plot (FMH, invasive, or demog)
+				--veg
+
+Strategy:
+	--for main FMH datasets (herbaceous, shrubs, 'seedlings', pole and mature trees): merge plot history 
+	  and canopy cover with each dataset  (DONE as of Feb 2015)
+	--point transect: treat as other datasets for extra info (messy method)
+	--invasives: logistic regressions with p/a?
+	--demography: depends on data quality/quantity
+*/

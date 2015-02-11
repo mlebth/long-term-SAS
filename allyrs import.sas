@@ -740,7 +740,10 @@ data piquil; set alld;
 	   (subp = 'shru') & (sspp = "ILVOx") |
 	   (subp = 'seep') & (sspp = "ILVOx");
 run;  
-proc sort data=piquil; by plot year;
+proc sort data=piquil; by plot year; run;
+
+proc freq data=piquil; tables sspp * plot; run;
+
 /* proc print data=piquil; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
 proc contents data = piquil; run;
 proc freq data=piquil; tables sspp*subp*year; title 'piquil'; run;
