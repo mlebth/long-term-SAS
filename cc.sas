@@ -1,11 +1,23 @@
+data post; set alld; if year > 2010; run;
+proc print data=post (firstobs=10108 obs=10110); run;
+
 proc glm data=alld;
-	class prpo burn;
-	model covm = prpo burn;
+	class burn prpo;
+	model covm = burn year burn*prpo;
+	lsmeans burn*prpo;
 	output out=glmout2 r=ehat;
 run;
 proc univariate data=glmout2 plot normal; var ehat; run;
 
-proc univariate data=alld plot; var covm; run;
+proc glm data=piquil2; 
+	class soil;
+	*model nquma3 = covm soil covm*soil;
+	model nquma3 = covm soil;
+	output out=glmout2 r=ehat;
+run; 
+proc univariate data=glmout2 plot normal; var ehat; run;
+
+
 
 proc glimmix data = piquil2; title 'pita glimmix'; class soil;
 	model papitax = soil covm soil*covm / dist = binomial;
@@ -16,7 +28,7 @@ run;
 proc univariate data=glimout plot normal; var ehat; run;
 
 proc glimmix data = piquil2; title 'quma3 glimmix'; class soil;
-	model paquma3 = soil covm soil*covm / dist = binomial;
+	model nquma3 = soil covm soil*covm;
 	random residual / subject = plot(soil);
 	lsmeans soil / ilink;
 	output out=glimout pred=p resid=ehat;

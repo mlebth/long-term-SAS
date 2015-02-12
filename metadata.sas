@@ -14,7 +14,8 @@
 			aspect = nort, sout, east, west
 			elev = elevation (m) above sea level
 			slope = % slope from topo
-			soil = soil type
+			soil = soil type (sand = fine sand, gfsl = gravelly fine sandy loam, 
+							  fslo = fine sandy loam, lfsa = loamy fine sand, loam = loam)
 		*****plothist is merged with all other datasets. all of these variables are also
 			in the following datasets.
 

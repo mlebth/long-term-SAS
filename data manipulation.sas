@@ -155,8 +155,7 @@ proc genmod data=allburn; class burnsev hydromulch;
 run;
 
 proc genmod data=allburn; class burnsev hydromulch;
-	model totpita =  hydromulch burnsev hydromulch*burnsev/
-	dist = negbin link=log type1 type3;
+	model totpita =  hydromulch burnsev hydromulch*burnsev/	dist = negbin link=log type1 type3;
 * interaction NS;
 run;
 * oak; 
