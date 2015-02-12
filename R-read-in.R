@@ -1,15 +1,32 @@
-setwd('D:/Research/FMH All Data/FFI long-term data')
+setwd('D:/Research/FMH Raw Data, SAS, Tables/FFI long-term data')
 
 # read in all datasets
 plothist <- read.csv('plothistory.csv')
-postburnsev <- read.csv('postburnsev.csv')
+postsev <- read.csv('postburnsev.csv')
 canopy <- read.csv('cc.csv')
-trans <- read.csv('PointIntercept-allyrs.csv')
-herb <- read.csv('Herbaceous-allyrs.csv')
-shrub <- read.csv('Shrubs-allyrs.csv')
-overstory <- read.csv('Overstory-allyrs.csv')
-poles <- read.csv('Saplings-allyrs.csv')
 seedlings <- read.csv('Seedlings-allyrs.csv')
+poles <- read.csv('Saplings-allyrs.csv')
+overstory <- read.csv('Overstory-allyrs.csv')
+shrub <- read.csv('Shrubs-allyrs.csv')
+herb <- read.csv('Herbaceous-allyrs.csv')
+trans <- read.csv('PointIntercept-allyrs.csv')
+
+#POST-BURN SEV
+library(plyr)
+postsev$year <- as.Date(postsev$Date, "%m/%d/%Y")
+postsev$year <- format(postsev$year, "%Y")
+postsev <- rename(postsev, c("MacroPlot.Name"="plot", "PlotType"="type", 
+                              "Veg"="vege", "Sub"="subs"))
+myvars <- names(postsev) %in% c("plot", "year", "type", "vege", "subs") 
+postsev1 <- postsev[myvars]
+postsev2 <- arrange(postsev1, plot)
+
+dummydat <- data.frame (id=1:3, plot=9999, year=9999, type="     ", vege=9, subs=9)
+postsev2x <- merge(postsev2, dummydat, "plot")
+########## left off here 2/12/15 still trying to merge successfully
+data postsev2x; set postsev1 dummydatx; run; * N = 1230;
+proc sort data=postsev2x; by plot type; run;
+/*proc print data=postsev2x; title 'postsev2x'; run; */
 
 # -----------CANOPY
 # averaging measurements at each location;
