@@ -5,11 +5,11 @@
 proc sort data=piquil; by plot sspp year burn prpo covm soil elev slope aspect hydr; run;
 proc means data=piquil noprint sum; by plot sspp year burn prpo covm soil elev slope aspect hydr; var coun; 
   output out=numplantdata sum=nperspp;
-proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
+/* proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * N = 442 species-plot-year combinations;
 * numplantdata contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
-  nperspp = # of sdlngs/stems per species per plot/year;
+  nperspp = # of sdlngs/stems per species per plot/year;  */
 
 *reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
 has its own variable for count;

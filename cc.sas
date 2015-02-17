@@ -2,12 +2,12 @@ data post; set alld; if year > 2010; run;
 proc print data=post (firstobs=10108 obs=10110); run;
 
 proc glm data=alld;
-	class burn prpo;
-	model covm = burn year burn*prpo;
-	lsmeans burn*prpo;
+	class burn;
+	model covm = burn year burn*year;
 	output out=glmout2 r=ehat;
 run;
 proc univariate data=glmout2 plot normal; var ehat; run;
+*Model: 9df, R-sq 0.700, p<0.0001;
 
 proc glm data=piquil2; 
 	class soil;
@@ -17,7 +17,13 @@ proc glm data=piquil2;
 run; 
 proc univariate data=glmout2 plot normal; var ehat; run;
 
-
+data herb; set alld; if subp = 'herb'; run;
+proc genmod data=herb; 
+	class soil sspp;
+	model sspp = covm soil covm*soil;
+  	output reslik=ehat out=glmout1;
+run; 
+proc univariate data=glmout1 plot normal; var ehat; run;
 
 proc glimmix data = piquil2; title 'pita glimmix'; class soil;
 	model papitax = soil covm soil*covm / dist = binomial;
