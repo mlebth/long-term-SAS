@@ -12,10 +12,67 @@ proc univariate data=glmout2 plot normal; var ehat; run;
 proc glm data=piquil2; 
 	class soil;
 	*model nquma3 = covm soil covm*soil;
-	model nquma3 = covm soil;
+	model nquma3 = covm soil covm*soil;
 	output out=glmout2 r=ehat;
 run; 
 proc univariate data=glmout2 plot normal; var ehat; run;
+
+proc glimmix data=piquil2;
+  class soil;
+  *model nquma3 = covm soil covm*soil/ dist=poisson link=log solution; 
+  model nquma3 = covm soil/ dist=poisson link=log solution; 
+  lsmeans soil/ cl ilink;
+run;
+
+
+proc glm data=piquil2; 
+	class soil;
+	*model nquma3 = covm soil covm*soil;
+	model nqumax = covm soil;
+	output out=glmout2 r=ehat;
+run; 
+proc univariate data=glmout2 plot normal; var ehat; run;
+
+proc glimmix data=piquil2;
+  class soil;
+  *model nquma3 = covm soil covm*soil/ dist=poisson link=log solution; 
+  model nqumax = covm soil/ dist=poisson link=log solution; 
+  lsmeans soil/ cl ilink;
+run;
+
+proc glm data=piquil2; 
+	class soil;
+	*model nquma3 = covm soil covm*soil;
+	model npitax = covm soil;
+	output out=glmout2 r=ehat;
+run; 
+proc univariate data=glmout2 plot normal; var ehat; run;
+
+proc glimmix data=piquil2;
+  class soil;
+  *model nquma3 = covm soil covm*soil/ dist=poisson link=log solution; 
+  model npitax= covm soil/ dist=poisson link=log solution; 
+  lsmeans soil/ cl ilink;
+run;
+
+proc glm data=piquil2; 
+	class soil;
+	*model nquma3 = covm soil covm*soil;
+	model ilvox = covm soil;
+	output out=glmout2 r=ehat;
+run; 
+proc univariate data=glmout2 plot normal; var ehat; run;
+
+
+
+
+
+
+
+
+
+
+
 
 data herb; set alld; if subp = 'herb'; run;
 proc genmod data=herb; 
