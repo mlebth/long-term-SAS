@@ -7,7 +7,6 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 proc datasets library=work kill; run; 
 */
 
-
 /*
 *--------------------------------------- FUELS AND SPECIES COMP -----------------------------------------------------;
 * All these fuels data were only collected in 1999. Not including in mass import. ;
@@ -111,7 +110,8 @@ proc sort data = postsev2x5; by plot; run;
 * Includes hydromulch, rx burn history, and burn severity variables. Burn severity is only for plots 1227-5300--these are the new plots
 that were not included in the initial post-burn assessment. Qualitative assessment was done in summer 2012.;
 proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothistory.csv"  
-out=hist dbms=csv replace; getnames=yes; run; * N = 56;
+out=hist dbms=csv replace; getnames=yes; 
+run;  * N = 56;
 /*proc contents data=hist; title 'plot history'; run;
 proc print data=hist; run;  * N = 56; */
 
@@ -215,7 +215,7 @@ Burnsev for all other plots was calculated from veg and subs values in the post-
 /*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
 proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\cc.csv"
 out=canopy dbms=csv replace; getnames=yes;
-run;    
+run;  
 proc sort data = canopy; by plot year; run;	
 /* proc contents data = canopyx; title 'canopyx'; run; * N = 197;
 proc print data = canopyx; title 'canopyx'; run;  
@@ -255,7 +255,7 @@ proc contents data=canopy3; run;*/
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
 /*proc import datafile="D:\FFI CSV files\seedlings-allyrs.csv" */
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Seedlings-allyrs.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings-allyrs.csv"
 out=seedlings dbms=csv replace; getnames=yes;
 run;  * N = 1285;
 
@@ -404,9 +404,9 @@ proc print data=saplingprobspp; run;*/
 ******OVERSTORY (MATURE TREES, DBH >= 15.1);
 /*proc import datafile="D:\FFI CSV files\overstory-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Overstory-allyrs.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\overstory-allyrs.csv"
 out=overstory dbms=csv replace; getnames=yes;
-run; 
+run;  
 
 /* proc print data=overstory; run; * N = 6817;
 proc contents data=overstory; run; */
@@ -470,7 +470,7 @@ run;
 *--------------------------------------- SHRUBS -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\shrubs-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Shrubs-allyrs.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\FFI long-term data and SAS\shrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
@@ -564,7 +564,7 @@ SILA2: 5, 2002;
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\herbaceous-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Herbaceous-allyrs.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\FFI long-term data and SAS\herbaceous-allyrs.csv"
 out=herbaceous dbms=csv replace; getnames=yes;
 run;  * N = 8674;
 
@@ -727,9 +727,12 @@ proc sql;
 	where subp eq 'shrp';
 quit; 
 
-PROC PRINTTO PRINT='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\alld.csv' NEW;
+PROC PRINTTO PRINT='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\alld.csv' NEW;
 RUN; 
 */
+
+*set of just post-fire data;
+data post; set alld; if year > 2010; run;
 
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
 * pulling just the important species--pines, ilvo, and quma, quma3;
@@ -740,6 +743,40 @@ data piquil; set alld;
 	   (subp = 'seep') & (sspp = "ILVOx");
 run;  
 proc sort data=piquil; by plot year; run;
+
+*--------------------------PIQUIL (Pinus-Quercus-Ilvo): relative abundances------------------------;
+* getting number of individuals per species, per year and plot.
+  ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
+  no transect data. ;
+proc sort data=piquil; by plot sspp year burn prpo covm soil elev slope aspect hydr; run;
+proc means data=piquil noprint sum; by plot sspp year burn prpo covm soil elev slope aspect hydr; var coun; 
+  output out=numplantdata sum=nperspp;
+/* proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
+  var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
+* N = 442 species-plot-year combinations;
+* numplantdata contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
+  nperspp = # of sdlngs/stems per species per plot/year;  */
+
+*reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
+has its own variable for count;
+data holdquma3; set numplantdata; if sspp = 'QUMA3'; nquma3 = nperspp; 
+data holdqumax; set numplantdata; if sspp = 'QUMAx'; nqumax = nperspp;
+data holdpitax; set numplantdata; if sspp = 'PITAx'; npitax = nperspp; 
+data holdilvox; set numplantdata; if sspp = 'ILVOx'; nilvox = nperspp; 
+run;
+/* proc print data=holdquma3; run; 
+proc print data=holdqumax; run; 	
+proc print data=holdpitax; run; 	
+proc print data=holdilvox; run; */
+
+*n(spp) is count, pa(spp) is presence/absence;
+data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot year;
+  if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
+  if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
+  if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
+  if (nilvox = .) then nilvox=0; if (nilvox=0) then pailvox=0; if (nilvox ^= 0) then pailvox=1; 
+  drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
+run;
 
 /* proc print data=piquil; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
 proc contents data = piquil; run;
@@ -754,4 +791,87 @@ proc sql;
 quit;
 *A: NO, they are not counted twice. Won't affect abundance.
 
+*/
+
+* relative abundance;
+proc sort data=numplantdata; by plot burn prpo;
+proc means data=numplantdata noprint sum; by plot burn prpo; var nperspp; 
+	output out=numperplot sum=nperplot;
+/* proc print data=numperplot; title 'totals per plot'; var plot burn prpo nperplot; run;    
+* N = 84 plot-prpo combinations;
+* numperplot contains: obs, plot, burn, prpo, nperplot
+  nperplot = # of all sdlngs in the plot; */
+
+*merging to get both nperspp and nperplot in same dataset;
+proc sort data = numperplot; by plot burn prpo;
+data numperplot2; merge numplantdata numperplot; by plot burn prpo; run;
+/* proc print data = numperplot2; title 'numperplot2'; run;  
+*back to N=342;
+*numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot; */
+
+*calculting relative abundance of each species in each plot/yr combo;
+data relabund; set numperplot2;	
+	relabun = nperspp / nperplot; 
+/* proc print data = relabund; title 'relative abundance'; run;
+*numperplot3 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot, relabun; */
+
+* which are the most common spp?;
+proc sort data=relabund; by sspp;
+proc means data=relabund sum noprint; by sspp; var nperspp;
+  output out=spptotals sum=spptot; title 'species counts'; 
+/* proc univariate data=relabund plot normal; run;
+*Shapiro-Wilk: 0.825349, P < 0.0001. 
+Lognormally distributed, create new variable with transformed data;	*/
+
+data logpiquil; set relabund;
+	logabund = log(relabun);
+run;
+
+/* proc print data=spptotals; run;
+* SPECIES: count (in # of plot-year-burn combos):
+ILVO: 8115 (148), QUMA3: 1332 (94), PITA: 1125 (105), QUMA: 955 (95)
+---more ILVO total and occurs in more plot combos;
+
+*freq of spp in burnsev cats, prpo cats. fisher: p-value calc takes too long, freezes system;
+proc freq data=relabund; tables sspp*burn; run;
+proc freq data=relabund; tables sspp*prpo; run;
+*/
+
+*--------------------------------demographic data;
+proc import datafile="g:Research\Demography\demogdata3.csv"
+out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
+/* proc print data=demog; run;
+proc contents data=demog; run; */
+
+data demog1; set demog;	
+	*setting treatment levels;
+	if 0   <= plot < 80  & trmt = 'xx' then trmt = 'sl';
+	if 80  <= plot < 160 & trmt = 'xx' then trmt = 'sh'; 
+	if 160 <= plot < 240 & trmt = 'xx' then trmt = 'gl';
+	if 240 <= plot < 320 & trmt = 'xx' then trmt = 'gh';
+	if 320 <= plot < 370 & trmt = 'xx' then trmt = 'sn';
+	if 370 <= plot < 420 & trmt = 'xx' then trmt = 'gn';
+	*missing hgt values (plants with fewer than 5 stems);
+	if hgt2 = 999 then hgt2 = .; 
+	if hgt3 = 999 then hgt3 = .;
+	if hgt4 = 999 then hgt4 = .;
+	if hgt5 = 999 then hgt5 = .;
+	*missing stco values (for pines. always only 1 stem);
+	if stco = 99 then stco = .;	
+	*converting date to just the year;
+	year = year(date); 
+	drop gpsp;
+run;
+
+/* proc print data=demog1; run;
+proc contents data=demog2; run;
+proc freq data=demog1; tables trmt; run; 
+proc freq data=demog1; tables sspp; run; 
+proc freq data=demog1; tables trmt*sspp; run;
+
+proc sql;
+	select date, sspp, plot, trmt
+	from demog1
+    where sspp in ('QUMAx', 'QUMA3') and trmt = 'sl';
+quit;
 */

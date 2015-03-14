@@ -731,6 +731,9 @@ PROC PRINTTO PRINT='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-t
 RUN; 
 */
 
+*set of just post-fire data;
+data post; set alld; if year > 2010; run;
+
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
 * pulling just the important species--pines, ilvo, and quma, quma3;
 data piquil; set alld;
@@ -740,6 +743,40 @@ data piquil; set alld;
 	   (subp = 'seep') & (sspp = "ILVOx");
 run;  
 proc sort data=piquil; by plot year; run;
+
+*--------------------------PIQUIL (Pinus-Quercus-Ilvo): relative abundances------------------------;
+* getting number of individuals per species, per year and plot.
+  ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
+  no transect data. ;
+proc sort data=piquil; by plot sspp year burn prpo covm soil elev slope aspect hydr; run;
+proc means data=piquil noprint sum; by plot sspp year burn prpo covm soil elev slope aspect hydr; var coun; 
+  output out=numplantdata sum=nperspp;
+/* proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
+  var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
+* N = 442 species-plot-year combinations;
+* numplantdata contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
+  nperspp = # of sdlngs/stems per species per plot/year;  */
+
+*reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
+has its own variable for count;
+data holdquma3; set numplantdata; if sspp = 'QUMA3'; nquma3 = nperspp; 
+data holdqumax; set numplantdata; if sspp = 'QUMAx'; nqumax = nperspp;
+data holdpitax; set numplantdata; if sspp = 'PITAx'; npitax = nperspp; 
+data holdilvox; set numplantdata; if sspp = 'ILVOx'; nilvox = nperspp; 
+run;
+/* proc print data=holdquma3; run; 
+proc print data=holdqumax; run; 	
+proc print data=holdpitax; run; 	
+proc print data=holdilvox; run; */
+
+*n(spp) is count, pa(spp) is presence/absence;
+data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot year;
+  if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
+  if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
+  if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
+  if (nilvox = .) then nilvox=0; if (nilvox=0) then pailvox=0; if (nilvox ^= 0) then pailvox=1; 
+  drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
+run;
 
 /* proc print data=piquil; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
 proc contents data = piquil; run;
@@ -756,6 +793,51 @@ quit;
 
 */
 
+* relative abundance;
+proc sort data=numplantdata; by plot burn prpo;
+proc means data=numplantdata noprint sum; by plot burn prpo; var nperspp; 
+	output out=numperplot sum=nperplot;
+/* proc print data=numperplot; title 'totals per plot'; var plot burn prpo nperplot; run;    
+* N = 84 plot-prpo combinations;
+* numperplot contains: obs, plot, burn, prpo, nperplot
+  nperplot = # of all sdlngs in the plot; */
+
+*merging to get both nperspp and nperplot in same dataset;
+proc sort data = numperplot; by plot burn prpo;
+data numperplot2; merge numplantdata numperplot; by plot burn prpo; run;
+/* proc print data = numperplot2; title 'numperplot2'; run;  
+*back to N=342;
+*numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot; */
+
+*calculting relative abundance of each species in each plot/yr combo;
+data relabund; set numperplot2;	
+	relabun = nperspp / nperplot; 
+/* proc print data = relabund; title 'relative abundance'; run;
+*numperplot3 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot, relabun; */
+
+* which are the most common spp?;
+proc sort data=relabund; by sspp;
+proc means data=relabund sum noprint; by sspp; var nperspp;
+  output out=spptotals sum=spptot; title 'species counts'; 
+/* proc univariate data=relabund plot normal; run;
+*Shapiro-Wilk: 0.825349, P < 0.0001. 
+Lognormally distributed, create new variable with transformed data;	*/
+
+data logpiquil; set relabund;
+	logabund = log(relabun);
+run;
+
+/* proc print data=spptotals; run;
+* SPECIES: count (in # of plot-year-burn combos):
+ILVO: 8115 (148), QUMA3: 1332 (94), PITA: 1125 (105), QUMA: 955 (95)
+---more ILVO total and occurs in more plot combos;
+
+*freq of spp in burnsev cats, prpo cats. fisher: p-value calc takes too long, freezes system;
+proc freq data=relabund; tables sspp*burn; run;
+proc freq data=relabund; tables sspp*prpo; run;
+*/
+
+*--------------------------------demographic data;
 proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 /* proc print data=demog; run;
