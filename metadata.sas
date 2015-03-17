@@ -1,4 +1,4 @@
-/* Datasets:
+/* ---------------------------------------Datasets:
 	* plothist
 		Variables:
 			plot = fmh plot #
@@ -18,6 +18,10 @@
 							  fslo = fine sandy loam, lfsa = loamy fine sand, loam = loam)
 		*****plothist is merged with all other datasets. all of these variables are also
 			in the following datasets.
+
+	*canopy3
+		Variables:
+			year, plot, covm (mean cover)
 
 	* seedlings4
 		Variables:
@@ -95,11 +99,15 @@
 			covm = mean canopy cover
 			Date = date of plot visit;	
 
-	* piquil
+	* piquil2
 		QUMAx, QUMA3, PITAx pulled from alld (supb seed) & ILVOx from alld (subp shru)
 		Notes: This is a dataset including pines and oaks as seedlings (measured in 10mx5m subplot), 
 		and ilex as a shrub (measured in 1mx50m subplot). 
+		Includes presence/absence and count data;
 
+	*relabund & logpiquil
+		like piquil2 but relative abundances. loqpiquil = log(relabun)
+		
 	*alld
 					   #    Variable    Type    Len    Format     Informat
                        3    stat        Char      1    $1.        $1.
@@ -129,10 +137,27 @@
                       16    slope       Num       8    BEST12.    BEST32.
                       17    soil        Char      4
                        7    sspp        Char      5
+
+	*post
+		alld just post-fire;
+	
+	*demog1 
+		Variables:
+			trmt = treatment (sh, sl, sn, gh, gl, gn) = sand|gravel * high|low|no burn
+			date = date of survey
+			year = year of survey (careful though, year 1 survey done in 2014 & 2015
+			plot = plot id
+			hgt1-hgt5 = heights (cm)of each stem
+			drcr = diameter at root crown
+			plid = plant id
+			sspp = species
+			stco = stem count;
+	
 */
 
-/*   ***************ORGANIZATION OF DATA FOR ANALYSES;
-*******TAKEN FROM DATA MANIPULATION FILE;
+
+
+/* ------------------------------ORGANIZATION OF DATA FOR ANALYSES;
 10 herbaceous subplots (no woody plants) - species, # stems (pooled)
 transect - species (all plants), ht
 seedling subplot - species, ht class

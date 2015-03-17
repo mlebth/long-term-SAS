@@ -864,7 +864,7 @@ data demog1; set demog;
 run;
 
 /* proc print data=demog1; run;
-proc contents data=demog2; run;
+proc contents data=demog1; run;
 proc freq data=demog1; tables trmt; run; 
 proc freq data=demog1; tables sspp; run; 
 proc freq data=demog1; tables trmt*sspp; run;
