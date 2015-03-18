@@ -462,7 +462,7 @@ UNKN1 was recorded 3x, all in 11/1999, plot 1206. Tags 11, 12, and 13, all dead.
 	where sspp eq 'UNKN1';
 quit; */
 
-data overstory4; set overstory3x;
+data overstory4; set overstory3xx;
 	if sspp = "PINUS" then sspp = "PITAx";
 run;
 /* proc freq data = overstory4; tables sspp; run;  *N = 6571; */
@@ -470,7 +470,7 @@ run;
 *--------------------------------------- SHRUBS -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\shrubs-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\FFI long-term data and SAS\shrubs-allyrs.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\shrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
@@ -564,7 +564,7 @@ SILA2: 5, 2002;
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\herbaceous-allyrs.csv"*/
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\FFI long-term data and SAS\herbaceous-allyrs.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbaceous-allyrs.csv"
 out=herbaceous dbms=csv replace; getnames=yes;
 run;  * N = 8674;
 
@@ -838,7 +838,7 @@ proc freq data=relabund; tables sspp*prpo; run;
 */
 
 *--------------------------------demographic data;
-proc import datafile="g:Research\Demography\demogdata3.csv"
+proc import datafile="g:\Research\Demography\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 /* proc print data=demog; run;
 proc contents data=demog; run; */
