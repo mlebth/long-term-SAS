@@ -58,33 +58,35 @@ run;  *N=1079;
 
 proc print data=seedlings3x; title 'seedlings3x'; run;	
 */
-/*
+
 * EXAMPLE;
 title 'iml example';
-data oak; set seedlings3x; 
+data oak; set alld; 
   if sspp = 'QUMAx';
-  keep plot coun year covm; 
+  if subp = 'seed';
+  keep plot burn coun year covm heig; 
 run; * N = 186;
-proc sort data=oak; by year plot;
+proc sort data=oak; by year plot burn;
 
-proc means data=oak mean noprint; by year plot;
-  var coun covm;
-  output out=oak1 mean = mcoun covm;
+proc means data=oak mean noprint; by year plot burn;
+  var coun covm heig;
+  output out=oak1 mean = mcoun covm mhgt;
 * proc print data=oak1; title 'oakx';
 run;
-data oak2; set oak1; keep year plot mcoun covm; 
-*/
+data oak2; set oak1; keep year plot burn mcoun covm mhgt; 
+*proc print data=oak2; run;
+
 proc iml;
 
 inputyrs = {1999, 2002, 2003, 2005, 2006, 2010, 2012, 2013, 2014};
-nyrs = nrow(inputyrs);  print nyrs;
+nyrs = nrow(inputyrs);  * print nyrs; *9 yrs;
 
 use oak2; read all into mat1;
-print mat1;
+* print mat1;
  
-nrecords = nrow(mat1); print nrecords;
+nrecords = nrow(mat1); *print nrecords;
 
-mat2 = j(nrecords,7,.);  * create mat2 has 186 rows, 2 columns, each element=0;
+mat2 = j(nrecords,12,.);  * create mat2 has 95 rows, 11 columns, each element=0;
 do i = 1 to nrecords;    * record by record loop;
   do j = 1 to nyrs;      * yr by yr loop;
     if (mat1[i,1] = inputyrs[j]) then mat2[i,1] = j;  * yr1 in col 1;
@@ -98,32 +100,38 @@ do i = 1 to nrecords;
   if mat2[i,1] = nyrs  then mattemp[i,2] = 1;
 end;
 * print mattemp;
-nyr1obs = sum(mattemp[,1]); print nyr1obs;  * how many in 1st yr?;
-nyr2obs = sum(mattemp[,2]); print nyr2obs;  * how many in last yr?;
+nyr1obs = sum(mattemp[,1]); *print nyr1obs;  * how many in 1st yr?;
+nyr2obs = sum(mattemp[,2]); *print nyr2obs;  * how many in last yr?;
 
 * fill mat2; * col1 already has first yr;
 do i = 1 to nrecords;    * record by record loop;
   firstyr = mat2[i,1];
   secondyr = firstyr+1;
   mat2[i,2] = secondyr;
-  mat2[i,3] = mat1[i,2];   * plot;
-  mat2[i,4] = mat1[i,3];   * variable coun1;
-  mat2[i,5] = mat1[i,4];   * variable covm1;
+  mat2[i,3] = mat1[i,1];   * year1;
+  mat2[i,5] = mat1[i,2];   * plot;
+  mat2[i,6] = mat1[i,3];   * variable burn;
+  mat2[i,7] = mat1[i,4];   * variable coun1;
+  mat2[i,8] = mat1[i,5];   * variable covm1;
+  mat2[i,9] = mat1[i,6];   * variable hgt1;
 end;
 * print mat2;
 do i = 1 to nrecords;
-  plot = mat2[i,3]; secondyr = mat2[i,2];
+  plot = mat2[i,5]; secondyr = mat2[i,2];
   do j = 1 to nrecords;
-    if (mat2[j,3] = plot & mat2[j,1] = secondyr) then do;
-	  print i,j;
-	  mat2[i,6] = mat2[j,4];    * variable count2;
-	  mat2[i,7] = mat2[j,5];    * variable covm2;
+    if (mat2[j,5] = plot & mat2[j,1] = secondyr) then do;
+	  *print i,j;
+	  mat2[i,4]  = mat2[j,3];    * variable year2;
+	  mat2[i,10] = mat2[j,7];    * variable count2;
+	  mat2[i,11] = mat2[j,8];    * variable covm2;
+	  mat2[i,12] = mat2[j,9];	 * variable hgt2;
 	                                                  end;
   end;  * end j loop;
 end;    * end i loop;
-print mat2;
+* print mat2;
+*Problem with years--years 1-9 are fixed. If a plot was skipped one year, the continuity is broken;
 
-cnames1 = {'yr1', 'yr2', 'plot', 'count1', 'cov1','count2', 'cov2'};
+cnames1 = {'yr1', 'yr2', 'year1', 'year2', 'plot', 'burn', 'count1', 'cov1', 'hgt1', 'count2', 'cov2', 'hgt2'};
 create oakpairs from mat2 [colname = cnames1];
 append from mat2;
  
@@ -132,3 +140,16 @@ quit; run;
 proc print data=oakpairs; title 'oakpairs';
 run;
 
+proc glm data=oakpairs;	title 'oakpairs glm';  * N = 128 because 2010 & 2011 dropped; 
+	class burn;
+	model count2 = count1 burn count1*burn;
+	output out=glmout2 r=ehat;
+run;
+proc univariate data=glmout2 plot normal; var ehat count2; run;
+
+proc glimmix data=oakpairs; title 'oakpairs glimmix';
+  class plot burn;
+  model count2 = count1 cov1/ distribution=normal; *removed interaction term;
+  random plot(burn);
+  output out=glmout2 resid=ehat;
+run;

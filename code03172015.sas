@@ -25,12 +25,14 @@ run;
 /* checking code;
 * proc freq data=alldx; * table burn*year prepost*year prepost*burn;
 run;
-* TREE data does not have burn;
+* TREE data did not have burn (PROBLEM HAS BEEN FIXED);
 data checkcovm; set alldx; if (burn=. & subp ^= 'tree'); run; * N = 4179 missing burn;
 proc print data=checkcovm (firstobs=1000 obs=1200); var year burn covm subp; run;
 proc print data=alld (firstobs=1 obs=20); var year burn covm; run;
 proc print data=alldx (firstobs=1 obs=20); var year yrA yrB prepost burn covm; run;
 */
+
+
 proc glm data=alldxbyplot;	title 'cover';  * N = 128 because 2010 & 2011 dropped; 
 	class burn;
 	model covm = yrB burn yrB*burn;
@@ -47,16 +49,6 @@ proc univariate data=glmout2 plot normal; var covm; by burn; run;
   which means not enough ehat value on 'shoulders' of the distribution;
 
 * BUT plot is a random repeated factor;
-
-data postburn; set alldxbyplot; if (year > 2011);
-proc glimmix data=postburn; title 'glimmix - random plot';
-  class burn plot year;
-  model covm = year burn year*burn / distribution=normal;
-  random plot(burn);
-  output out=glmout2 resid=ehat;
-run;
-* use this;
-
 
 proc glimmix data=postburn; title 'glimmix - repeated code';
   class burn plot year;
@@ -77,6 +69,17 @@ proc glimmix data=postburn; title 'simple anova via glmmix';
   model covm = year burn year*burn plot(burn) / distribution=normal;
   output out=glmout2 resid=ehat;
 run;
+
+* ----------------------Use this model;
+data postburn; set alldxbyplot; if (year > 2011);
+proc glimmix data=postburn; title 'glimmix - random plot';
+  class burn plot year;
+  model covm = year burn year*burn / distribution=normal;
+  random plot(burn);
+  output out=glmout2 resid=ehat;
+run;
+*50 plots. Used normal distribution--somewhat leptokurtic but not too bad;
+
 
 
 
