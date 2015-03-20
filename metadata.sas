@@ -168,21 +168,22 @@ shrubs subplot - species, stem count (pooled)
 independent variables:
 	Fixed: Canopy cover, burn severity, soil type, hydromulch (0,1,2), 
            elevation, aspect (NESW), slope (%), year, prpo (pre, post fire)
-	Random: plot
+	Random: plot - NESTED WITHIN BURN
 dependent variables:
 	Species (all samples)
 		presence/absence by species
 		richness
 		other measures of diversity and composition
 	plant cover (transect)- hits on transect - check values
-	stem count - wherever an individual has >1 stem, they are treated as separate. in lieu of N.
+	stem count - wherever an individual has >1 stem, they are treated as separate. in lieu of N. 
+        probably work well for grasses, ferns, etc. but for resprouting oaks, etc probably better stems/plant if available
 	height of each stem. transect: cm,  seedlings& poles: class, shrubs & trees: not measured
 	DBH - pole & mature trees 
 	canopy cover - densiometer in 5 places/plot x 4 readings/place = 20 readings/plot. converted to 1 #/plot.
 
 Nesting:
 	--site (Bastrop/Buescher)
-		--soil type	/ --burn severity
+		--soil type	x --burn severity. ideally soil X burn. in practice, unbalanced, will need 
 			--plot (FMH, invasive, or demog)
 				--veg
 
