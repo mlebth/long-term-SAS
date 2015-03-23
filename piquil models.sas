@@ -1,15 +1,7 @@
 *----------------PIQUIL MODELS;
-*cover = burn year burn*year;
-proc glm data=alld;	title 'cover';
-	class burn;
-	model covm = burn year burn*year;
-	output out=glmout2 r=ehat;
-run;
-proc univariate data=glmout2 plot normal; var ehat; run;
-*9df, R-sq 0.700, p<0.0001;
 
-/* proc univariate data=piquil2 plot; var nquma3 nqumax npitax nilvox;
-run; */
+proc univariate data=piquil2 plot; var nquma3 nqumax npitax nilvox;
+run; 
 
 *------------------pa models (presence/absence);
 proc glimmix data=piquil2; title 'paquma3';

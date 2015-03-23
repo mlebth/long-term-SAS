@@ -8,7 +8,16 @@
 * no densiometer data in 1999 thru 2008;
 * all plots 2010 thru 2014 have densiometer data;
 
+*cover = burn year burn*year;
+proc glm data=alld;	title 'cover';
+	class burn;
+	model covm = burn year burn*year;
+	output out=glmout2 r=ehat;
+run;
+proc univariate data=glmout2 plot normal; var ehat; run;
+*9df, R-sq 0.700, p<0.0001;
 
+*----------------work with NLF, Spring Break 2015;
 data alldx; set alld; if (covm NE . & burn NE .);  * N = 40224;
   if (year < 2011) then do; prepost = 'pref'; yrA = year; yrB =.;     end;
   if (year > 2011) then do; prepost = 'post'; yrA = .;    yrB = year; end;
@@ -32,7 +41,6 @@ proc print data=alld (firstobs=1 obs=20); var year burn covm; run;
 proc print data=alldx (firstobs=1 obs=20); var year yrA yrB prepost burn covm; run;
 */
 
-
 proc glm data=alldxbyplot;	title 'cover';  * N = 128 because 2010 & 2011 dropped; 
 	class burn;
 	model covm = yrB burn yrB*burn;
@@ -50,6 +58,7 @@ proc univariate data=glmout2 plot normal; var covm; by burn; run;
 
 * BUT plot is a random repeated factor;
 
+/*
 proc glimmix data=postburn; title 'glimmix - repeated code';
   class burn plot year;
   model covm = year burn year*burn / distribution=normal;
@@ -69,6 +78,7 @@ proc glimmix data=postburn; title 'simple anova via glmmix';
   model covm = year burn year*burn plot(burn) / distribution=normal;
   output out=glmout2 resid=ehat;
 run;
+*/
 
 * ----------------------Use this model;
 data postburn; set alldxbyplot; if (year > 2011);
