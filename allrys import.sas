@@ -42,10 +42,10 @@ data postsev1; set postsev;
    keep plot year type vege subs;
 run;   	*N = 1227;
 proc sort data=postsev1; by plot; run;
-*proc print data=postsev1; *run;
+*proc print data=postsev1; run;
 
 * Variables:
-	Date, MacroPlot_Name, 
+	Date, MacroPlot_Name, Monitoring_Status
 	PlotType = Forest or Shrub
 	Transect = Transect id number, out of 3
 	Point = Gives each measurement a number (ex. Point 1 is at 1m, 2 is at 5m, 3 is at 10m etc.)
@@ -102,6 +102,7 @@ proc means data=postsev2x4 mean noprint; var vege subs; by plot year typecat;
 run;
 proc sort data = postsev2x5; by plot; run; 
 /* proc print data=postsev2x5; title 'postsev2x5'; run; *N=43; 
+proc contents data=postsev2x5; run;
 *41 plots--one of these is '9999', and only plot 1226 was sampled twice with this method--once in 2008, once in 2011;
 */
 
@@ -170,13 +171,16 @@ data plothist1; merge hist2 postsev2x5; by plot;
 run;
 proc sort data=plothist1; by plot year typecat burnsev lastrx yrrx1 yrrx2 yrrx3; run;
 /* proc print data=plothist1; title 'plothist1'; run; *N = 58;
-proc freq data=plothist1; tables burnsev; run; */
+proc contents data=plothist1; run;
+proc freq data=plothist1; tables year*plot/missing; run; */
 
 * burnsev cleanup;
-data plothist (drop=_TYPE_ _FREQ_ year); set plothist1;
+data plothistx (drop=_TYPE_ _FREQ_); set plothist1;
 	*deleting 2008: there is only one stray plot recorded in 2008, maybe from an rx burn? 
 	not useful without others;
 	if year=2008 then delete;
+	*deleting plot 9999: not an actual plot, just a placeholder;
+	if plot=9999 then delete;
 	* assigning burnsev categories to vege+subs burn avg;
 	if 1 <= meansev <2 then burnsev = 'h';
 	if 2 <= meansev <3 then burnsev= 'm';
@@ -202,6 +206,7 @@ data plothist (drop=_TYPE_ _FREQ_ year); set plothist1;
 	*typecat for new plots--all forest;
 	if typecat = '' then typecat = 'f';
 run;
+data plothist (drop = year); set plothistx;
 proc sort data=plothist; by plot; run;
 /*proc print data=plothist; title 'plothist'; run; * N =56;
 proc contents data=plothist; run; */
@@ -211,7 +216,8 @@ This was done because these plots were established the year following the BCCF.
 Burnsev for all other plots was calculated from veg and subs values in the post-burn assessment.;
 
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
-proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\FFI long-term data\cc.csv"
+/*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\cc.csv"
 out=canopy dbms=csv replace; getnames=yes;
 run;  
 proc sort data = canopy; by plot year; run;	
@@ -251,7 +257,9 @@ proc contents data=canopy3; run;*/
 
 *----------------------------------------- TREES --------------------------------------------------;
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
-proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\FFI long-term data\seedlings-allyrs.csv"
+/*proc import datafile="D:\FFI CSV files\seedlings-allyrs.csv" */
+
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\seedlings-allyrs.csv"
 out=seedlings dbms=csv replace; getnames=yes;
 run;  * N = 1285;
 
@@ -327,6 +335,8 @@ proc freq data=seedlingprobspp; tables sspp; title 'seedlingprobspp'; run; * N =
 * all ilvo and caam are from 1999.;	 */
 
 ******POLE TREES (SAPLINGS, DBH >=2.5 and < 15.1);
+/*proc import datafile="D:\FFI CSV files\Saplings-allyrs.csv"*/
+
 proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Saplings-allyrs.csv"
 out=saplings dbms=csv replace; getnames=yes;
 run;
@@ -396,6 +406,8 @@ proc print data=saplingprobspp; run;*/
 
 
 ******OVERSTORY (MATURE TREES, DBH >= 15.1);
+/*proc import datafile="D:\FFI CSV files\overstory-allyrs.csv"*/
+
 proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\overstory-allyrs.csv"
 out=overstory dbms=csv replace; getnames=yes;
 run;  
@@ -424,6 +436,7 @@ data overstory2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 	set dat2;
 data overstory3 (keep=plot year sspp stat diam crwn subp);	
 	year = year(date); 
+	if year = '.' then year = 1999;
 	set overstory2;
 run;
 proc sort data=overstory3; by plot year; run;
@@ -460,7 +473,9 @@ run;
 /* proc freq data = overstory4; tables sspp; run;  *N = 6571; */
 
 *--------------------------------------- SHRUBS -----------------------------------------------------;
-proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\shrubs-allyrs.csv"
+/*proc import datafile="D:\FFI CSV files\shrubs-allyrs.csv"*/
+
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\hrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
@@ -487,6 +502,7 @@ data shrubs2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 	set dat2;
 data shrubs3 (keep=plot year sspp agec coun stat subp);
 	year = year(date);
+	if year = '.' then year = 1999;
 	set shrubs2;
 run;
 proc sort data=shrubs3; by plot year; run; 
@@ -552,6 +568,8 @@ SILA2: 5, 2002;
 /*proc print data=shrubs5; run; */
 
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
+/*proc import datafile="D:\FFI CSV files\herbaceous-allyrs.csv"*/
+
 proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\herbaceous-allyrs.csv"
 out=herbaceous dbms=csv replace; getnames=yes;
 run;  * N = 8674;
@@ -627,6 +645,8 @@ proc print data=herbprobspp; title 'herb prob spp'; run; *N = 4;*/
 	
 
 *--------------------------------------- POINT INTERCEPT -----------------------------------------------------;
+/*proc import datafile="D:\FFI CSV files\PointIntercept-allyrs.csv"	*/
+
 proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\PointIntercept-allyrs.csv"
 out=transect dbms=csv replace; getnames=yes;
 run;  
@@ -654,6 +674,7 @@ data trans1x (rename=(MacroPlot_Name=plot)
 	set dat2;
 data trans2 (keep=plot year sspp heig subp);
 	year = year(date);
+	if year = '.' then year = 1999;
 	set trans1x;
 run;
 proc sort data = trans2; by plot year; run;	
@@ -671,10 +692,14 @@ proc freq data=trans3; tables sspp; run; */
 *-----------------------------------------dataset merges-----------------------------;
 data alld; set seedlings4 seedlingprobspp saplings5 saplingprobspp
 			   overstory4 shrubs5 shrubsprobspp herb5 herbprobspp trans3; 
+	*splitting to into pre/post fire variable 'prpo';
 	if year < 2011  then prpo = 'pref';
    	if year >= 2011 then prpo = 'post';
-run; *N = 61104;
+	* 12 'missing' years that come from postburn severity metric, all come from 2011;
+	if year = '.' 	then year = 2011;
+run; *N = 61108;
 proc sort data=alld; by plot year subp; run;
+
 /* proc contents data=alld; title 'all'; run;
 *Variables:			   #    Variable    Type    Len    Format     Informat
                        3    stat        Char      1    $1.        $1.
@@ -708,9 +733,16 @@ proc sort data=alld; by plot year subp; run;
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
 
 proc sql;
-	select subp	, sspp
+	select subp, sspp
 	from  alld
 	where subp eq 'shrp';
+quit; 
+
+
+proc sql;
+	select plot, year, subp, sspp
+	from  alld
+	where subp eq 'PEDI9';
 quit; 
 
 PROC PRINTTO PRINT='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\alld.csv' NEW;

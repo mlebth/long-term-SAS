@@ -30,7 +30,6 @@ out=spcomp dbms=csv replace; getnames=yes;run;
 
 *--------------------------------------- POST-BURN SEVERITY ASSESSMENT AND PLOT HISTORY -----------------------------------------------------;
 *Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
-/*proc import datafile="g:\FFI CSV files\postburnsev.csv"*/
 proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\postburnsev.csv"
 out=postsev dbms=csv replace; getnames=yes; run;  * N = 1227;
 /* proc print data = postsev; run;
