@@ -1,9 +1,13 @@
-proc sort data=alld; by year plot burn; *N=61108;
-proc means data=alld mean noprint; by year plot burn;
+proc sort data=alld; by year plot burn sspp; *N=61108;
+proc means data=alld mean noprint; by year plot burn sspp;
   var coun covm crwn diam heig;
   output out=alld1 mean = mcoun covm mcrwn mdbh mhgt;
-* proc print data=alld1; title 'alld1';
-run; *N=270;
+* proc print data=alld1 (firstobs=1000 obs=1100); title 'alld1';
+run; *N=285;
+proc contents data=alld1; run;
+data alld2; merge alld alld1; by year plot burn; 
+run;  *N=1079;
+proc contents data=alld2; run;
 /*
 *alld2 is a subset but i want to use all variables;
 
