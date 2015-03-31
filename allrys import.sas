@@ -154,11 +154,11 @@ data hist2; set hist (rename=(aspect=oldaspect));
    aspect = put(temp,4. -L);
    drop oldaspect temp;
    * translating aspect number categories to cardinal directions;
-   if aspect = '0' then aspect = 'flat';
-   if aspect = '1' then aspect = 'nort';
-   if aspect = '2' then aspect = 'east'; 
-   if aspect = '3' then aspect = 'sout';
-   if aspect = '4' then aspect = 'west';
+   if aspect = 0 then aspectc = 'flat';
+   if aspect = 1 then aspectc = 'nort';
+   if aspect = 2 then aspectc = 'east'; 
+   if aspect = 3 then aspectc = 'sout';
+   if aspect = 4 then aspectc = 'west';
 run;
 proc sort data=hist2; by plot; run;
 /* proc print data=hist2; title 'hist2'; run; *N = 56;
@@ -268,18 +268,17 @@ run;  * N = 1285;
 data seedlings1; set seedlings;
  	year = year(date);
 	subp = 'seed';
+	if Status = 'D' then delete;
 	if Species_Symbol='' then delete;
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set seedlings1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 /*proc print data=dat2; run;*/
-
 data seedlings2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp) 
-				 rename=(SizeClHt=heig) rename=(Status=stat) 
-				 rename=(Count=coun));
+				 rename=(SizeClHt=heig) rename=(Count=coun));
 	set dat2;
-data seedlings3 (keep=plot year sspp heig coun stat subp); set seedlings2; run;
+data seedlings3 (keep=plot year sspp heig coun subp); set seedlings2; run;
 proc sort data = seedlings3; by plot year; run;
 *merging with canopy cover;
 data seedlings3x; merge seedlings3 canopy3; by plot year; 
@@ -302,8 +301,7 @@ quit;
    plot = fmh plot #
    sspp = species code
    heig = height class
-   coun = number of seedlings or resprouts per height class. sdlngs here on out for simplicity.
-   stat = L/D (live or dead);
+   coun = number of seedlings or resprouts per height class. sdlngs here on out for simplicity;
 
 *CAAM is entered 2x (shrub, not a tree)
 ILVO is entered 9x (shrub, not a tree)
@@ -354,19 +352,20 @@ proc contents data=saplings; run; */
 data saplings1;	set saplings; 
  	year = year(date);
 	subp = 'sapl';
+	if Status = 'D' then delete;
 	if Species_Symbol='' then delete;
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set saplings1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data saplings2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
-				rename=(SizeClDia=diam) rename=(Status=stat) 
-				rename=(AvgHt=heig));
+				rename=(SizeClDia=diam) rename=(AvgHt=heig));
 	set dat2;
-data saplings3 (keep=plot year sspp diam stat heig subp);
+data saplings3 (keep=plot year sspp diam heig subp);
 	set saplings2;
 run;
 proc sort data=saplings3; by plot year; run;
+
 *merging with canopy cover;
 data saplings3x; merge saplings3 canopy3; by plot year; 
 run;  *N=2350;
@@ -425,6 +424,7 @@ proc contents data=overstory; run; */
 
 * cleanup;
 data overstory1; set overstory;
+	if Status = 'D' then delete;
 	if Species_Symbol='' then delete; 
 	subp = 'tree';
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
@@ -432,9 +432,9 @@ data dat2; set overstory1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data overstory2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
-				 rename=(Status=stat) rename=(DBH=diam) rename=(CrwnRto=crwn));
+				 rename=(DBH=diam) rename=(CrwnRto=crwn));
 	set dat2;
-data overstory3 (keep=plot year sspp stat diam crwn subp);	
+data overstory3 (keep=plot year sspp diam crwn subp);	
 	year = year(date); 
 	if year = '.' then year = 1999;
 	set overstory2;
@@ -475,7 +475,7 @@ run;
 *--------------------------------------- SHRUBS -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\shrubs-allyrs.csv"*/
 
-proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\hrubs-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\shrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
@@ -491,16 +491,16 @@ proc contents data=shrubs; run;	*/
 * cleanup;
 data shrubs1; set shrubs;
 	if Species_Symbol='' then delete; 
+	if Status = 'D' then delete;
 	subp = 'shru';
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set shrubs1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data shrubs2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)	
-			  rename=(AgeCl=agec) rename=(Count=coun) 
-			  rename=(Status=stat));
+			  rename=(AgeCl=agec) rename=(Count=coun));
 	set dat2;
-data shrubs3 (keep=plot year sspp agec coun stat subp);
+data shrubs3 (keep=plot year sspp agec coun subp);
 	year = year(date);
 	if year = '.' then year = 1999;
 	set shrubs2;
@@ -585,15 +585,15 @@ proc contents data=herbaceous; title 'herbaceous'; run;	*/
 
 * cleanup;
 data herb1; set herbaceous;
+	if Status = 'D' then delete;
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 	subp = 'herb';
 data dat2; set herb1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
-data herb2 (rename=(MacroPlot_Name=plot) rename=(Status=stat)
-			rename=(char3=sspp) rename=(Count=coun));
+data herb2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp) rename=(Count=coun));
 	set dat2;
-data herb3 (keep=plot year sspp coun stat subp);
+data herb3 (keep=plot year sspp coun subp);
 	year = year(date);
 	set herb2;
 run;
@@ -697,18 +697,11 @@ data alld; set seedlings4 seedlingprobspp saplings5 saplingprobspp
    	if year >= 2011 then prpo = 'post';
 	* 12 'missing' years that come from postburn severity metric, all come from 2011;
 	if year = '.' 	then year = 2011;
-run; *N = 61108;
+run; *N = 59195;
 proc sort data=alld; by plot year subp; run;
 
 /* proc contents data=alld; title 'all'; run;
 *Variables:			   #    Variable    Type    Len    Format     Informat
-                       3    stat        Char      1    $1.        $1.
-                       6    subp        Char      4
-                      19    typecat     Char      1
-                       5    year        Num       8    BEST12.    BEST32.
-                      12    yrrx1       Num       8    BEST12.    BEST32.
-                      13    yrrx2       Num       8    BEST12.    BEST32.
-                      14    yrrx3       Num       8    BEST12.    BEST32.
 					  26    agec        Char      1    $1.        $1.
                       18    aspect      Char      4
                       22    bcat1       Char      1
@@ -729,6 +722,12 @@ proc sort data=alld; by plot year subp; run;
                       16    slope       Num       8    BEST12.    BEST32.
                       17    soil        Char      4
                        7    sspp        Char      5
+                       6    subp        Char      4
+                      19    typecat     Char      1
+                       5    year        Num       8    BEST12.    BEST32.
+                      12    yrrx1       Num       8    BEST12.    BEST32.
+                      13    yrrx2       Num       8    BEST12.    BEST32.
+                      14    yrrx3       Num       8    BEST12.    BEST32.
 
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
 

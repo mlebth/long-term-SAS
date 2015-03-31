@@ -8,10 +8,12 @@
 			burn (0-4 in order of increasing severity)
 			bcat1 [AA = u, A = s, l, m; B = h]
 			bcat2 [AA = u, A = s, l; B = m ; C = h]
+			meansev = mean burn severity for veg & substrate
    			hydr (x, n, l, h) = hydromulch [x = unknown, n = none, l = light, h = heavy]
 			lastrx = year of last prescribed burn
    			yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
-			aspect = nort, sout, east, west
+			aspect = [0=flat, 1=north, 2=east, 3=south, 4=west]
+			aspectc = cardinal directions (flat, nort, sout, east, west)
 			elev = elevation (m) above sea level
 			slope = % slope from topo
 			soil = soil type (sand = fine sand, gfsl = gravelly fine sandy loam, 

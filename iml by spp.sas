@@ -1,4 +1,21 @@
 proc sort data=alld; by year plot burn sspp aspect hydr soil subp; run; *N=59195;
+data oak; set alld; 
+  if sspp = 'QUMAx';
+  if subp = 'seed';
+  keep plot burn coun year covm heig;  coun covm crwn diam elev heig slope year plot burn aspect hydr soil subp
+run; * N = 186;
+proc sort data=oak; by year plot burn;
+
+proc means data=oak mean noprint; by year plot burn;
+  var coun covm heig;
+  output out=oak1 mean = mcoun covm mhgt;
+* proc print data=oak1; title 'oakx';
+run;
+data oak2; set oak1; keep year plot burn mcoun covm mhgt; 
+*proc print data=oak2; run;
+
+
+
 proc means data=alld mean noprint; by year plot burn sspp aspect hydr soil subp;
   var coun covm crwn diam elev heig slope;
   output out=alld1 mean = mcoun covm mcrwn mdbh elev mhgt slope;
@@ -25,14 +42,7 @@ proc contents data=alld1; run;
                        8    subp        Char      4
                        1    year        Num       8    BEST12.    BEST32.
 
-proc freq data=alld1; tables year; run; 
 
-*alld2 is a subset but i want to use all variables;
-
-data alld2; set alld1; keep year plot burn mcoun covm mhgt; 
-*proc print data=alld2; run; 
-
-proc freq data=alld2; tables year; run; 
 */
 
 proc iml;
