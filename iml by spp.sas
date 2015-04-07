@@ -1,26 +1,16 @@
 proc sort data=alld; by year plot burn sspp aspect hydr soil subp; run; *N=59195;
-data oak; set alld; 
+data sandpost; set alld; 
   if sspp = 'QUMAx';
-  if subp = 'seed';
-  keep plot burn coun year covm heig;  coun covm crwn diam elev heig slope year plot burn aspect hydr soil subp
-run; * N = 186;
-proc sort data=oak; by year plot burn;
+  keep plot burn coun year covm heig crwn diam elev slope aspect hydr soil subp;
+run; * N = 2275;
+proc sort data=sandpost; by year plot burn aspect hydr soil subp; run;
 
-proc means data=oak mean noprint; by year plot burn;
-  var coun covm heig;
-  output out=oak1 mean = mcoun covm mhgt;
-* proc print data=oak1; title 'oakx';
+proc means data=sandpost mean noprint; by year plot burn aspect hydr soil subp;	
+  var coun covm crwn diam elev heig slope; 
+  output out=sandpost1 mean = mcoun covm mcrwn mdbh elev mhgt slope;
+* proc print data=sandpost1; title 'sandpost1';
 run;
-data oak2; set oak1; keep year plot burn mcoun covm mhgt; 
-*proc print data=oak2; run;
 
-
-
-proc means data=alld mean noprint; by year plot burn sspp aspect hydr soil subp;
-  var coun covm crwn diam elev heig slope;
-  output out=alld1 mean = mcoun covm mcrwn mdbh elev mhgt slope;
-* proc print data=alld1 (firstobs=9000 obs=9093); title 'alld1';
-run; *N=9093;
 /*
 proc contents data=alld1; run;
  					   #    Variable    Type    Len    Format     Informat
