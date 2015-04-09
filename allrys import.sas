@@ -119,21 +119,32 @@ proc print data=hist; run;  * N = 56; */
 * variables: 
    burnsev (u, s, l, m, h) = wildfire severity
    hydr (x, n, l, h) = hydromulch [x = unknown, n = none, l = light, h = heavy]
+   hydrn = hydromulch given numbers for iml [x = 0, n = 1, l = 2, h = 3]
    lastrx = year of last prescribed burn
    yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
    plot = fmh plot #
    soil1 = full SSURGO soil name
    soil2 = abbreviated soil names:
 		{fslo = fine sandy loam, gfsl = gravelly fine sandy loam, sand = fine sand, loam = loam, lfsa = loamy fine sand}
+   soil3 = soil names given numbers for iml: {fslo = 1, gfsl = 2, sand = 3, loam = 4, lfsa = 5}
    elev	= elevation in m above sea level
    slope = % change in elevation
    aspect = azimuth (values of -1 = undefined--slope =<2);
                                                               
 *plot history cleanup;
 data hist2; set hist (rename=(aspect=oldaspect));
+   if hydr = 'x' then hydrn = 0; 
+   if hydr = 'n' then hydrn = 1;
+   if hydr = 'l' then hydrn = 2;
+   if hydr = 'h' then hydrn = 3;
    drop soil1;
    soil = soil2;
    drop soil2;
+   if soil = 'fslo' then soiln = 1;	
+   if soil = 'gfsl' then soiln = 2;
+   if soil = 'sand' then soiln = 3;
+   if soil = 'loam' then soiln = 4;
+   if soil = 'lfsa' then soiln = 5;
    if lastrx = 9999 then lastrx = .;
    if yrrx1 = 9999 then yrrx1 = .;
    if yrrx2 = 9999 then yrrx2 = .;
@@ -693,8 +704,8 @@ proc freq data=trans3; tables sspp; run; */
 data alld; set seedlings4 seedlingprobspp saplings5 saplingprobspp
 			   overstory4 shrubs5 shrubsprobspp herb5 herbprobspp trans3; 
 	*splitting to into pre/post fire variable 'prpo';
-	if year < 2011  then prpo = 'pref';
-   	if year >= 2011 then prpo = 'post';
+	if year < 2011  then prpo = 1;
+   	if year >= 2011 then prpo = 2;
 	* 12 'missing' years that come from postburn severity metric, all come from 2011;
 	if year = '.' 	then year = 2011;
 run; *N = 59195;
@@ -732,16 +743,16 @@ proc sort data=alld; by plot year subp; run;
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
 
 proc sql;
-	select subp, sspp
+	select subp, sspp, soil
 	from  alld
 	where subp eq 'shrp';
 quit; 
 
 
 proc sql;
-	select plot, year, subp, sspp
+	select plot, year, subp, sspp, soil
 	from  alld
-	where subp eq 'PEDI9';
+	where sspp = 'CAAMx';
 quit; 
 
 PROC PRINTTO PRINT='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\alld.csv' NEW;
