@@ -1,35 +1,38 @@
-proc sort data=alld; by prpo plot burn sspp aspect hydrn soiln subp; run; *N=59195;
-data sandpost; set alld; 
-  if sspp = 'QUMAx';
-  if subp = 'seed';
-  keep plot burn coun prpo covm heig elev slope aspect hydrn soiln subp;
-run; * N = 181;
-proc sort data=sandpost; by prpo plot burn aspect hydrn soiln subp; run;
+proc sort data=piquil2; by prpo plot burn aspect hydrn soiln; run; *N=207;
 
-proc means data=sandpost mean noprint; by prpo plot burn aspect hydrn soiln subp;	
-  var coun covm elev heig slope; 
-  output out=sandpost1 mean = mcoun covm elev mhgt slope;
-* proc print data=sandpost1; title 'sandpost1';
-run; *N=46;
-data sandpost2; set sandpost1; drop _TYPE_; run;
+  keep plot sspp burn coun prpo covm heig elev slope aspect hydrn soiln subp;
+
+
+proc means data=piquil2 mean noprint; by prpo plot burn aspect hydrn soiln;	
+  var covm elev heig slope; 
+  output out=piquil3 mean = mcoun covm elev mhgt slope;
+* proc print data=piquil3; title 'piquil3';
+run; *N=83;
+data piquil4; set piquil3; drop _TYPE_; run;
 
 /*
-proc print data=sandpost2; run;
-proc contents data=sandpost2; run;
+proc print data=piquil4; run;
+proc contents data=piquil4; run;
  					   #    Variable    Type    Len    Format     Informat
-                       8    _FREQ_      Num       8
-                       4    aspect      Char      4
+         			   9    aspect      Char      4
                        3    burn        Num       8
-                      10    covm        Num       8
-                      13    elev        Num       8    BEST12.    BEST32.
-                       5    hydrn       Num       8
-                       9    mcoun       Num       8    BEST12.    BEST32.
-                      14    mhgt        Num       8    BEST12.    BEST32.
-                       2    plot        Num       8    BEST12.    BEST32.
-                       1    prpo        Char      4
-                      15    slope       Num       8    BEST12.    BEST32.
-                       6    soiln       Num       8
-                       7    subp        Char      4
+                       5    covm        Num       8
+                       7    elev        Num       8    BEST12.    BEST32.
+                      10    hydr        Char      1    $1.        $1.
+                      14    nilvox      Num       8
+                      13    npitax      Num       8
+                      11    nquma3      Num       8
+                      12    nqumax      Num       8
+                      18    pailvox     Num       8
+                      17    papitax     Num       8
+                      15    paquma3     Num       8
+                      16    paqumax     Num       8
+                       1    plot        Num       8    BEST12.    BEST32.
+                       4    prpo        Num       8
+                       8    slope       Num       8    BEST12.    BEST32.
+                       6    soil        Char      4
+                       2    year        Num       8    BEST12.    BEST32.
+
 */
 
 proc iml;
