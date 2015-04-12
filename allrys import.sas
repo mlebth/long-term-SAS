@@ -118,8 +118,11 @@ proc print data=hist; run;  * N = 56; */
 * plot history data in this file;
 * variables: 
    burnsev (u, s, l, m, h) = wildfire severity
-   hydr (x, n, l, h) = hydromulch [x = unknown, n = none, l = light, h = heavy]
-   hydrn = hydromulch given numbers for iml [x = 0, n = 1, l = 2, h = 3]
+   hydr (n, l, h) = post-wildfire (2012) hydromulch [n = none, l = light, h = heavy]
+   hydrn = 2012 hydromulch given numbers for iml [n = 0, l = 1, h = 2]
+   hyyr = year of hydromulch application. Variable added when more was applied in 2014.
+		NOTE that 2012 hydro was a different mix:
+		2012 (Triticale, Leptochloa dubia), 2014 (Schizachryium scoparium)
    lastrx = year of last prescribed burn
    yrrx1, yrrx2, yrrx3 = years of rx burns since 2003
    plot = fmh plot #
@@ -133,10 +136,9 @@ proc print data=hist; run;  * N = 56; */
                                                               
 *plot history cleanup;
 data hist2; set hist (rename=(aspect=oldaspect));
-   if hydr = 'x' then hydrn = 0; 
-   if hydr = 'n' then hydrn = 1;
-   if hydr = 'l' then hydrn = 2;
-   if hydr = 'h' then hydrn = 3;
+   if hydr = 'n' then hydrn = 0;
+   if hydr = 'l' then hydrn = 1;
+   if hydr = 'h' then hydrn = 2;
    drop soil1;
    soil = soil2;
    drop soil2;
@@ -146,14 +148,15 @@ data hist2; set hist (rename=(aspect=oldaspect));
    if soil = 'loam' then soiln = 4;
    if soil = 'lfsa' then soiln = 5;
    if lastrx = 9999 then lastrx = .;
-   if yrrx1 = 9999 then yrrx1 = .;
-   if yrrx2 = 9999 then yrrx2 = .;
-   if yrrx3 = 9999 then yrrx3 = .;
+   if yrrx1  = 9999 then yrrx1 = .;
+   if yrrx2  = 9999 then yrrx2 = .;
+   if yrrx3  = 9999 then yrrx3 = .;
    /* years since prescribed fire variables. So far not very useful.
    lastrx = 2014 - yrrx;
    if (lastrx = .) then yrcat = 'nev';
    if (lastrx = 3| lastrx = 6 | lastrx = 7) then yrcat = 'rec';
    if (lastrx = 9 | lastrx = 11) then yrcat = 'old';   */
+   /*  *the following was to categorize aspects. 4/11/15, changing to have aspect as num instead of char;
    * categorizing aspects;
    if (oldaspect = -1) then temp = 0; 
    if (oldaspect >= 0 	& oldaspect < 45)	then temp = 1; 
@@ -169,7 +172,15 @@ data hist2; set hist (rename=(aspect=oldaspect));
    if aspect = 1 then aspectc = 'nort';
    if aspect = 2 then aspectc = 'east'; 
    if aspect = 3 then aspectc = 'sout';
-   if aspect = 4 then aspectc = 'west';
+   if aspect = 4 then aspectc = 'west';	*/
+   * 4/11/15 new categorizing of aspects;
+   if (oldaspect = -1) then aspect = 0; 
+   if (oldaspect >= 0 	& oldaspect < 45)	then aspect = 1; 
+   if (oldaspect >= 315 & oldaspect <= 360) then aspect = 1;
+   if (oldaspect >= 45  & oldaspect < 135)  then aspect = 2;
+   if (oldaspect >= 135 & oldaspect < 225)  then aspect = 3;
+   if (oldaspect >= 225 & oldaspect < 315)  then aspect = 4;	
+   drop oldaspect;
 run;
 proc sort data=hist2; by plot; run;
 /* proc print data=hist2; title 'hist2'; run; *N = 56;
@@ -806,7 +817,7 @@ data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot year;
   drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
 run;
 
-/* proc print data=piquil; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
+/* proc print data=piquil2; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
 proc contents data = piquil2; run;
 proc freq data=piquil; tables sspp*subp*year; title 'piquil'; run;
 
