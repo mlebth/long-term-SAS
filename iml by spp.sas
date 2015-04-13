@@ -127,7 +127,7 @@ proc univariate data=glmout2 plot normal; var ehat mcoun2; run;
 
 proc glimmix data=oakpairs; title 'oakpairs glimmix';
   class plot burn;
-  model count2 = count1 cov1/ distribution=normal; *removed interaction term;
+  model mcoun2 = mcoun1 covm1/ distribution=normal; *removed interaction term;
   random plot(burn);
   output out=glmout2 resid=ehat;
 run;
