@@ -1,5 +1,5 @@
 /* 
-*using prpo and piquil;
+*using prpo and piquil w/ n&pa reorg--didn't work;
 
 proc sort data=piquil2; by year plot burn aspect hydrn soiln; run; *N=473;
 

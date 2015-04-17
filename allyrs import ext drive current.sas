@@ -239,7 +239,7 @@ Burnsev for all other plots was calculated from veg and subs values in the post-
 
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\FFI long-term data and SAS\cc.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\cc.csv"
 out=canopy dbms=csv replace; getnames=yes;
 run;  
 proc sort data = canopy; by plot year; run;	
@@ -877,7 +877,7 @@ proc freq data=relabund; tables sspp*prpo; run;
 */
 
 *--------------------------------demographic data;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\demogdata3.csv"
+proc import datafile="G:\Research\Demography\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 /* proc print data=demog; run;
 proc contents data=demog; run; */
