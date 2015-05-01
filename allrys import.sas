@@ -119,7 +119,7 @@ proc print data=hist; run;  * N = 56; */
 * variables: 
    burnsev (u, s, l, m, h) = wildfire severity
    hydr (n, l, h) = post-wildfire (2012) hydromulch [n = none, l = light, h = heavy]
-   hydrn = 2012 hydromulch given numbers for iml [n = 0, l = 1, h = 2]
+   hydrn = 2012 hydromulch given numbers for iml [n = 0, l = 0, h = 2]--'l' category eliminated
    hyyr = year of hydromulch application. Variable added when more was applied in 2014.
 		NOTE that 2012 hydro was a different mix:
 		2012 (Triticale, Leptochloa dubia), 2014 (Schizachryium scoparium)
@@ -137,8 +137,8 @@ proc print data=hist; run;  * N = 56; */
 *plot history cleanup;
 data hist2; set hist (rename=(aspect=oldaspect));
    if hydr = 'n' then hydrn = 0;
-   if hydr = 'l' then hydrn = 1;
-   if hydr = 'h' then hydrn = 2;
+   if hydr = 'l' then hydrn = 0;
+   if hydr = 'h' then hydrn = 1;
    drop soil1;
    soil = soil2;
    drop soil2;
@@ -217,14 +217,14 @@ data plothistx (drop=_TYPE_ _FREQ_); set plothist1;
     if burnsev = 'm' then burn = 3;
     if burnsev = 'h' then burn = 4;
 	* poolingA - scorch, light, moderate;
-    if (burnsev = 'h') then bcat1 = 'B';
-    if (burnsev = 'm' | burnsev = 'l' | burnsev = 's') then bcat1 = 'A';
-    if (burnsev = 'u') then bcat1 = 'X';
+    if (burnsev = 'h' | burnsev = 'm') then bcat1 = 2;
+    if (burnsev = 'l' | burnsev = 's') then bcat1 = 1;
+    if (burnsev = 'u') then bcat1 = 0;
     * poolingB - combine scorch + light;
-    if (burnsev = 'h') then bcat2 = 'C';
-    if (burnsev = 'm') then bcat2 = 'B';
-    if (burnsev = 's' | burnsev = 'l') then bcat2 = 'A';	
-    if (burnsev = 'u') then bcat2 = 'X';
+    if (burnsev = 'h') then bcat2 = 3;
+    if (burnsev = 'm') then bcat2 = 2;
+    if (burnsev = 's' | burnsev = 'l') then bcat2 = 1;	
+    if (burnsev = 'u') then bcat2 = 0;
 	*typecat for new plots--all forest;
 	if typecat = '' then typecat = 'f';
 run;
@@ -771,7 +771,9 @@ RUN;
 */
 
 *set of just post-fire data;
-data post; set alld; if year > 2010; run;
+data post; set alld; if year > 2010; run; 
+*set of just pre-fire data;
+data pre; set alld; if year < 2010; run;
 
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
 * pulling just the important species--pines, ilvo, and quma, quma3;
@@ -787,8 +789,8 @@ proc sort data=piquil; by plot year; run;
 * getting number of individuals per species, per year and plot.
   ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
   no transect data. ;
-proc sort data=piquil; by plot sspp year burn prpo covm heig soiln elev slope aspect hydrn; run;
-proc means data=piquil noprint sum; by plot sspp year burn prpo covm heig soiln elev slope aspect hydrn; var coun; 
+proc sort data=piquil; by plot sspp year burn bcat1 prpo covm heig soiln elev slope aspect hydrn; run;
+proc means data=piquil noprint sum; by plot sspp year burn bcat1 prpo covm heig soiln elev slope aspect hydrn; var coun; 
   output out=numplantdata sum=nperspp;
 /* proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
@@ -809,7 +811,7 @@ proc print data=holdpitax; run;
 proc print data=holdilvox; run; */
 
 *n(spp) is count, pa(spp) is presence/absence;
-data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot year;
+data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot bcat1 year;
   if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;

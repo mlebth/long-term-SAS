@@ -36,14 +36,14 @@ proc contents data=piquil4; run;
 
 data oak; set piquil; 	
 	if sspp="QUMAx";
- 	keep aspect burn coun covm elev heig hydrn plot prpo slope soiln;
+ 	keep aspect bcat1 coun covm elev heig hydrn plot year prpo slope soiln;
 run;  * N = 181;
 *proc contents data=oak; 
-proc sort data=oak; by prpo plot burn aspect hydrn soiln; run;
+proc sort data=oak; by year prpo plot bcat1 aspect hydrn soiln; run;
 /* Contents:
  				   	   #    Variable    Type    Len    Format     Informat
                       10    aspect      Num       8
-                      11    burn        Num       8
+                      11    bcat1        Num       8
                        3    coun        Num       8    BEST12.    BEST32.
                        5    covm        Num       8
                        6    elev        Num       8    BEST12.    BEST32.
@@ -56,13 +56,19 @@ proc sort data=oak; by prpo plot burn aspect hydrn soiln; run;
                        4    year        Num       8    BEST12.    BEST32
 */
 
-proc means data=oak mean noprint; by prpo plot burn aspect hydrn soiln;
+proc means data=oak mean noprint; by year prpo plot bcat1 aspect hydrn soiln;
   var coun covm elev slope heig;
   output out=oak1 mean = mcoun mcov elev slope mhgt;
 run;
 data oak2; set oak1; drop _TYPE_; 
 *proc print data=oak2; title 'oak2'; run;
 
+data oak3; set oak2; if year >2011; run;
+proc plot data=oak3; plot mcoun*year; run;
+proc glm data=oak2; title 'post';  
+	model mcoun = year;
+	output out=glmout2 r=ehat;
+run;
 
 proc iml;
 
@@ -91,10 +97,10 @@ end;
 nyr1obs = sum(mattemp[,1]); *print nyr1obs;  * how many year1? (23);
 nyr2obs = sum(mattemp[,2]); *print nyr2obs;  * how many year2? (23);
 
-* variables same each year: aspect, burn, elev, hydrn, plot, slope, soiln, 
+* variables same each year: aspect, bcat1, elev, hydrn, plot, slope, soiln, 
   variables change each year: _FREQ_, covm, mhgt, prpo, 
 
-prpo, plot, burn, aspect, hydrn, soiln, freq, covm, elev, mght, slope
+prpo, plot, bcat1, aspect, hydrn, soiln, freq, covm, elev, mght, slope
 ;
 
 * fill mat2; * col1 already has first yr;
@@ -104,7 +110,7 @@ do i = 1 to nrecords;    * record by record loop;
   mat2[i,2] = time2;	
   mat2[i,3] = mat1[i,1];   * pre-fire;
   mat2[i,5] = mat1[i,2];   * plot;
-  mat2[i,6] = mat1[i,3];   * burn;
+  mat2[i,6] = mat1[i,3];   * bcat1;
   mat2[i,7] = mat1[i,4];   * aspect;
   mat2[i,8] = mat1[i,5];   * hydrn;
   mat2[i,9] = mat1[i,6];   * soiln;
@@ -132,7 +138,7 @@ do i = 1 to nrecords;
 end;    * end i loop;
 * print mat2;
 
-cnames1 = {'time1', 'time2', 'pref', 'post', 'plot', 'burn', 'aspect', 'hydr', 'soil', 'elev', 
+cnames1 = {'time1', 'time2', 'pref', 'post', 'plot', 'bcat1', 'aspect', 'hydr', 'soil', 'elev', 
 			'slope', 'coun1', 'coun2', 'covm1', 'covm2', 'mhgt1', 'mhgt2', 'freq1', 'freq2'
 };
 create oakpairsprpo from mat2 [colname = cnames1];
@@ -144,16 +150,23 @@ proc print data=oakpairsprpo; title 'oakpairsprpo';
 run;
 
 proc glm data=oakpairsprpo; title 'oakpairsprpo glm';  * N = 15 because only 15 plots have pre/post combos; 
-	class burn;
-	model coun2 = covm2 covm2*coun1
-;
+	class bcat1;
+	model coun2 = covm2 covm2*coun1;
 	output out=glmout2 r=ehat;
 run;
 proc univariate data=glmout2 plot normal; var ehat coun2; run;
 
+proc glm data=post; title 'post';  
+	class bcat1;
+	model coun2 = covm2 covm2*coun1;
+	output out=glmout2 r=ehat;
+run;
+proc univariate data=glmout2 plot normal; var ehat coun2; run;
+
+
 proc glimmix data=oakpairsprpo; title 'oakpairsprpo glimmix';
-  class plot burn;
-  model coun2 = coun1 / distribution=poisson DDFM=KR; *removed interaction term;
-  random plot(burn);
+  class plot bcat1;
+  model coun2 = bcat1 coun1 coun1*bcat1 / distribution=poisson DDFM = KR; *removed DDFM=KR;
+  random plot(bcat1);
   output out=glmout2 resid=ehat;
 run; 

@@ -1,3 +1,9 @@
+
+proc glimmix data=piquil2; title 'nilvox';
+  class bcat1 soiln plot;
+  model nqumax = soiln bcat1 soiln*bcat1/ dist=normal link=identity solution; *-2LL=1152.89, AIC=1162.89.59, X2/df=0.84;
+  random plot(bcat1);
+run;
 *----------------PIQUIL MODELS;
 
 proc univariate data=piquil2 plot; var nquma3 nqumax npitax nilvox;
@@ -99,6 +105,13 @@ proc glimmix data=piquil2; title 'nilvox';
   model nilvox= covm soil/ dist=negbin link=log solution; *-2LL=1152.89, AIC=1162.89.59, X2/df=0.84;
   lsmeans soil/ cl ilink;
 run;
+
+proc glimmix data=piquil2; title 'nilvox';
+  class bcat1 soiln plot;
+  model nqumax = bcat1 / dist=normal link=identity solution;
+  random plot(bcat1);
+run;
+proc contents data=piquil2; run;
 
 
 *-----------------relabund models;
