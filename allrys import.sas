@@ -142,11 +142,19 @@ data hist2; set hist (rename=(aspect=oldaspect));
    drop soil1;
    soil = soil2;
    drop soil2;
+   *giving each soil type a number;
    if soil = 'fslo' then soiln = 1;	
    if soil = 'gfsl' then soiln = 2;
    if soil = 'sand' then soiln = 3;
    if soil = 'loam' then soiln = 4;
    if soil = 'lfsa' then soiln = 5;
+   * pooling soils to just sand/gravel. 1 = sand, 2 = gravel, 3 = loam;
+   if soil = 'fslo' then soilt = 1;	
+   if soil = 'gfsl' then soilt = 2;
+   if soil = 'sand' then soilt = 1;
+   if soil = 'loam' then soilt = 3;
+   if soil = 'lfsa' then soilt = 1;
+   *fixing rx;
    if lastrx = 9999 then lastrx = .;
    if yrrx1  = 9999 then yrrx1 = .;
    if yrrx2  = 9999 then yrrx2 = .;
@@ -185,6 +193,7 @@ run;
 proc sort data=hist2; by plot; run;
 /* proc print data=hist2; title 'hist2'; run; *N = 56;
 proc freq data=hist2; tables burnsev; run; 
+proc freq data=hist2; tables soilt; run; 
 proc contents data=hist2; run;
 */
 
@@ -231,7 +240,16 @@ run;
 data plothist (drop = year); set plothistx;
 proc sort data=plothist; by plot; run;
 /*proc print data=plothist; title 'plothist'; run; * N =56;
-proc contents data=plothist; run; */
+proc contents data=plothist; run; 
+
+*making a printout for EK;
+proc export data=plothist
+   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\plothist.csv'
+   dbms=csv
+   replace;
+run;
+
+*/
 
 *IMPORTANT: plots 1227-5300 were given burnsev classes visually, veg and subs measurements were not taken.
 This was done because these plots were established the year following the BCCF.
@@ -784,13 +802,16 @@ data piquil; set alld;
 	   (subp = 'seep') & (sspp = "ILVOx");
 run;  
 proc sort data=piquil; by plot year; run;
+/* proc print data=piquil; run;
+proc freq data=piquil; tables soilt*plot; run; */
+
 
 *--------------------------PIQUIL (Pinus-Quercus-Ilvo): relative abundances------------------------;
 * getting number of individuals per species, per year and plot.
   ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
   no transect data. ;
-proc sort data=piquil; by plot sspp year burn bcat1 prpo covm heig soiln elev slope aspect hydrn; run;
-proc means data=piquil noprint sum; by plot sspp year burn bcat1 prpo covm heig soiln elev slope aspect hydrn; var coun; 
+proc sort data=piquil; by plot sspp year burn bcat1 prpo covm heig soiln soilt elev slope aspect hydrn; run;
+proc means data=piquil noprint sum; by plot sspp year burn bcat1 prpo covm heig soiln soilt elev slope aspect hydrn; var coun; 
   output out=numplantdata sum=nperspp;
 /* proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   

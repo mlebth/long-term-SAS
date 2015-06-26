@@ -1,9 +1,9 @@
 /* 
 *using prpo and piquil w/ n&pa reorg--didn't work;
 
-proc sort data=piquil2; by year plot burn aspect hydrn soiln; run; *N=473;
+proc sort data=piquil2; by year plot burn aspect hydrn soilt; run; *N=473;
 
-proc means data=piquil2 mean noprint; by year plot burn aspect hydrn soiln;	
+proc means data=piquil2 mean noprint; by year plot burn aspect hydrn soilt;	
   var covm elev heig slope nquma3 nqumax npitax nilvox paquma3 paqumax papitax pailvox; 
   output out=piquil3 mean = covm elev mhgt slope mquma3 mqumax mpitax milvox mpaquma3 mpaqumax mpapitax mpailvox;
 * proc print data=piquil3; title 'piquil3';
@@ -31,15 +31,16 @@ proc contents data=piquil4; run;
                        2    plot        Num       8    BEST12.    BEST32.
                        1    prpo        Num       8
                       11    slope       Num       8    BEST12.    BEST32.
-                       6    soiln       Num       8
+                       6    soilt       Num       8
 */
 
 data oak; set piquil; 	
 	if sspp="QUMAx";
- 	keep aspect bcat1 coun covm elev heig hydrn plot year prpo slope soiln;
+ 	keep aspect bcat1 coun covm elev heig hydrn plot year prpo slope soilt;
 run;  * N = 181;
-*proc contents data=oak; 
-proc sort data=oak; by year prpo plot bcat1 aspect hydrn soiln; run;
+*proc contents data=oak; run;
+proc sort data=oak; by year prpo plot bcat1 aspect hydrn soilt; run;
+proc freq data=oak; tables soilt; run;
 /* Contents:
  				   	   #    Variable    Type    Len    Format     Informat
                       10    aspect      Num       8
@@ -52,23 +53,23 @@ proc sort data=oak; by year prpo plot bcat1 aspect hydrn soiln; run;
                        1    plot        Num       8    BEST12.    BEST32.
                       12    prpo        Num       8
                        7    slope       Num       8    BEST12.    BEST32.
-                       9    soiln       Num       8
+                       9    soilt       Num       8
                        4    year        Num       8    BEST12.    BEST32
 */
 
-proc means data=oak mean noprint; by year prpo plot bcat1 aspect hydrn soiln;
+proc means data=oak mean noprint; by year prpo plot bcat1 aspect hydrn soilt;
   var coun covm elev slope heig;
   output out=oak1 mean = mcoun mcov elev slope mhgt;
 run;
 data oak2; set oak1; drop _TYPE_; 
 *proc print data=oak2; title 'oak2'; run;
 
-data oak3; set oak2; if year >2011; run;
+/* data oak3; set oak2; if year >2011; run;
 proc plot data=oak3; plot mcoun*year; run;
 proc glm data=oak2; title 'post';  
 	model mcoun = year;
 	output out=glmout2 r=ehat;
-run;
+run; */
 
 proc iml;
 
@@ -78,9 +79,9 @@ nyrs = nrow(inputyrs);  * print nyrs; *2 yrs;
 use oak2; read all into mat1;
 * print mat1;
 
-nrecords = nrow(mat1); *print nrecords; *N = 46;
+nrecords = nrow(mat1); *print nrecords; *N = 95;
 
-mat2 = j(nrecords,19,.); * create mat2 has 46 rows, 19 columns, each element=0;
+mat2 = j(nrecords,19,.); * create mat2 has 95 rows, 19 columns, each element=0;
 do i = 1 to nrecords;    * record by record loop;
   do j = 1 to nyrs;      * yr by yr loop;
     if (mat1[i,1] = inputyrs[j]) then mat2[i,1] = j;  * pref in col 1;
@@ -97,10 +98,10 @@ end;
 nyr1obs = sum(mattemp[,1]); *print nyr1obs;  * how many year1? (23);
 nyr2obs = sum(mattemp[,2]); *print nyr2obs;  * how many year2? (23);
 
-* variables same each year: aspect, bcat1, elev, hydrn, plot, slope, soiln, 
+* variables same each year: aspect, bcat1, elev, hydrn, plot, slope, soilt, 
   variables change each year: _FREQ_, covm, mhgt, prpo, 
 
-prpo, plot, bcat1, aspect, hydrn, soiln, freq, covm, elev, mght, slope
+prpo, plot, bcat1, aspect, hydrn, soilt, freq, covm, elev, mght, slope
 ;
 
 * fill mat2; * col1 already has first yr;
@@ -113,7 +114,7 @@ do i = 1 to nrecords;    * record by record loop;
   mat2[i,6] = mat1[i,3];   * bcat1;
   mat2[i,7] = mat1[i,4];   * aspect;
   mat2[i,8] = mat1[i,5];   * hydrn;
-  mat2[i,9] = mat1[i,6];   * soiln;
+  mat2[i,9] = mat1[i,6];   * soilt;
   mat2[i,10] = mat1[i,10];  * elev;
   mat2[i,11] = mat1[i,11];  * slope;
   mat2[i,12] = mat1[i,8];  * coun1;
