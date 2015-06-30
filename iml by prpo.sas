@@ -36,15 +36,15 @@ proc contents data=piquil4; run;
 
 data oak; set piquil; 	
 	if sspp="QUMAx";
- 	keep aspect bcat1 coun covm elev heig hydrn plot year prpo slope soilt;
+ 	keep aspect bcat1 coun covm elev heig hydrn plot year prpo slope soilt soileb;
 run;  * N = 181;
 *proc contents data=oak; run;
-proc sort data=oak; by year prpo plot bcat1 aspect hydrn soilt; run;
-proc freq data=oak; tables soilt; run;
+proc sort data=oak; by year prpo plot bcat1 aspect hydrn soilt soileb; run;
+proc freq data=oak; tables soilt soileb; run;
 /* Contents:
  				   	   #    Variable    Type    Len    Format     Informat
                       10    aspect      Num       8
-                      11    bcat1        Num       8
+                      11    bcat1       Num       8
                        3    coun        Num       8    BEST12.    BEST32.
                        5    covm        Num       8
                        6    elev        Num       8    BEST12.    BEST32.

@@ -810,8 +810,8 @@ proc freq data=piquil; tables soilt*plot; run; */
 * getting number of individuals per species, per year and plot.
   ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
   no transect data. ;
-proc sort data=piquil; by plot sspp year burn bcat1 prpo covm heig soiln soilt elev slope aspect hydrn; run;
-proc means data=piquil noprint sum; by plot sspp year burn bcat1 prpo covm heig soiln soilt elev slope aspect hydrn; var coun; 
+proc sort data=piquil; by plot sspp year burn bcat1 prpo covm heig soiln soilt soileb elev slope aspect hydrn; run;
+proc means data=piquil noprint sum; by plot sspp year burn bcat1 prpo covm heig soiln soilt soileb elev slope aspect hydrn; var coun; 
   output out=numplantdata sum=nperspp;
 /* proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
