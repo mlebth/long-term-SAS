@@ -119,7 +119,7 @@ proc print data=hist; run;  * N = 56; */
 * variables: 
    burnsev (u, s, l, m, h) = wildfire severity
    hydr (n, l, h) = post-wildfire (2012) hydromulch [n = none, l = light, h = heavy]
-   hydrn = 2012 hydromulch given numbers for iml [n = 0, l = 1, h = 2]
+   hydrn = 2012 hydromulch given numbers for iml [n = 0, l = 0, h = 2]--'l' category eliminated
    hyyr = year of hydromulch application. Variable added when more was applied in 2014.
 		NOTE that 2012 hydro was a different mix:
 		2012 (Triticale, Leptochloa dubia), 2014 (Schizachryium scoparium)
@@ -137,16 +137,24 @@ proc print data=hist; run;  * N = 56; */
 *plot history cleanup;
 data hist2; set hist (rename=(aspect=oldaspect));
    if hydr = 'n' then hydrn = 0;
-   if hydr = 'l' then hydrn = 1;
-   if hydr = 'h' then hydrn = 2;
+   if hydr = 'l' then hydrn = 0;
+   if hydr = 'h' then hydrn = 1;
    drop soil1;
    soil = soil2;
    drop soil2;
+   *giving each soil type a number;
    if soil = 'fslo' then soiln = 1;	
    if soil = 'gfsl' then soiln = 2;
    if soil = 'sand' then soiln = 3;
    if soil = 'loam' then soiln = 4;
    if soil = 'lfsa' then soiln = 5;
+   * pooling soils to just sand/gravel. 1 = sand, 2 = gravel, 3 = loam--for piquil, no 'loam' data;
+   if soil = 'fslo' then soilt = 1;	
+   if soil = 'gfsl' then soilt = 2;
+   if soil = 'sand' then soilt = 1;
+   if soil = 'loam' then soilt = 3; 
+   if soil = 'lfsa' then soilt = 1;
+   *fixing rx;
    if lastrx = 9999 then lastrx = .;
    if yrrx1  = 9999 then yrrx1 = .;
    if yrrx2  = 9999 then yrrx2 = .;
@@ -185,6 +193,7 @@ run;
 proc sort data=hist2; by plot; run;
 /* proc print data=hist2; title 'hist2'; run; *N = 56;
 proc freq data=hist2; tables burnsev; run; 
+proc freq data=hist2; tables soilt; run; 
 proc contents data=hist2; run;
 */
 
@@ -217,21 +226,31 @@ data plothistx (drop=_TYPE_ _FREQ_); set plothist1;
     if burnsev = 'm' then burn = 3;
     if burnsev = 'h' then burn = 4;
 	* poolingA - scorch, light, moderate;
-    if (burnsev = 'h') then bcat1 = 'B';
-    if (burnsev = 'm' | burnsev = 'l' | burnsev = 's') then bcat1 = 'A';
-    if (burnsev = 'u') then bcat1 = 'X';
+    if (burnsev = 'h' | burnsev = 'm') then bcat1 = 2;
+    if (burnsev = 'l' | burnsev = 's') then bcat1 = 1;
+    if (burnsev = 'u') then bcat1 = 0;
     * poolingB - combine scorch + light;
-    if (burnsev = 'h') then bcat2 = 'C';
-    if (burnsev = 'm') then bcat2 = 'B';
-    if (burnsev = 's' | burnsev = 'l') then bcat2 = 'A';	
-    if (burnsev = 'u') then bcat2 = 'X';
+    if (burnsev = 'h') then bcat2 = 3;
+    if (burnsev = 'm') then bcat2 = 2;
+    if (burnsev = 's' | burnsev = 'l') then bcat2 = 1;	
+    if (burnsev = 'u') then bcat2 = 0;
 	*typecat for new plots--all forest;
 	if typecat = '' then typecat = 'f';
 run;
 data plothist (drop = year); set plothistx;
 proc sort data=plothist; by plot; run;
 /*proc print data=plothist; title 'plothist'; run; * N =56;
-proc contents data=plothist; run; */
+proc contents data=plothist; run; 
+proc freq data=plothist; tables soileb*plot; run;
+
+*making a printout for EK;
+proc export data=plothist
+   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\plothist.csv'
+   dbms=csv
+   replace;
+run;
+
+*/
 
 *IMPORTANT: plots 1227-5300 were given burnsev classes visually, veg and subs measurements were not taken.
 This was done because these plots were established the year following the BCCF.
@@ -714,6 +733,8 @@ proc freq data=trans3; tables sspp; run; */
 *-----------------------------------------dataset merges-----------------------------;
 data alld; set seedlings4 seedlingprobspp saplings5 saplingprobspp
 			   overstory4 shrubs5 shrubsprobspp herb5 herbprobspp trans3; 
+	*dropping all data from 1999. sfa data, useless per ek;
+	if year = 1999 then delete;
 	*splitting to into pre/post fire variable 'prpo';
 	if year < 2011  then prpo = 1;
    	if year >= 2011 then prpo = 2;
@@ -771,7 +792,9 @@ RUN;
 */
 
 *set of just post-fire data;
-data post; set alld; if year > 2010; run;
+data post; set alld; if year > 2010; run; 
+*set of just pre-fire data;
+data pre; set alld; if year < 2010; run;
 
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
 * pulling just the important species--pines, ilvo, and quma, quma3;
@@ -782,26 +805,29 @@ data piquil; set alld;
 	   (subp = 'seep') & (sspp = "ILVOx");
 run;  
 proc sort data=piquil; by plot year; run;
+/* proc print data=piquil; run;
+proc freq data=piquil; tables soilt*plot; run; */
+
 
 *--------------------------PIQUIL (Pinus-Quercus-Ilvo): relative abundances------------------------;
 * getting number of individuals per species, per year and plot.
   ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
   no transect data. ;
-proc sort data=piquil; by plot sspp year burn prpo covm heig soiln elev slope aspect hydrn; run;
-proc means data=piquil noprint sum; by plot sspp year burn prpo covm heig soiln elev slope aspect hydrn; var coun; 
-  output out=numplantdata sum=nperspp;
-/* proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
+proc sort data=piquil; by plot sspp year burn bcat1 prpo covm heig soiln soilt soileb elev slope aspect hydrn; run;
+proc means data=piquil noprint sum; by plot sspp year burn bcat1 prpo covm heig soiln soilt soileb elev slope aspect hydrn; var coun; 
+  output out=piquil2 sum=nperspp; run;
+/* proc print data=piquil2; title 'pi-qu-il numplantdata'; 
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * N = 442 species-plot-year combinations;
-* numplantdata contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
+* piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
   nperspp = # of sdlngs/stems per species per plot/year;  */
 
 *reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
 has its own variable for count;
-data holdquma3; set numplantdata; if sspp = 'QUMA3'; nquma3 = nperspp; 
-data holdqumax; set numplantdata; if sspp = 'QUMAx'; nqumax = nperspp;
-data holdpitax; set numplantdata; if sspp = 'PITAx'; npitax = nperspp; 
-data holdilvox; set numplantdata; if sspp = 'ILVOx'; nilvox = nperspp; 
+data holdquma3; set piquil2; if sspp = 'QUMA3'; nquma3 = nperspp; 
+data holdqumax; set piquil2; if sspp = 'QUMAx'; nqumax = nperspp;
+data holdpitax; set piquil2; if sspp = 'PITAx'; npitax = nperspp; 
+data holdilvox; set piquil2; if sspp = 'ILVOx'; nilvox = nperspp; 
 run;
 /* proc print data=holdquma3; run; 
 proc print data=holdqumax; run; 	
@@ -809,7 +835,7 @@ proc print data=holdpitax; run;
 proc print data=holdilvox; run; */
 
 *n(spp) is count, pa(spp) is presence/absence;
-data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot year;
+data piquil3; merge holdquma3 holdqumax holdpitax holdilvox; by plot bcat1 year;
   if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
@@ -817,9 +843,9 @@ data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot year;
   drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
 run;
 
-/* proc print data=piquil2; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
-proc contents data = piquil2; run;
-proc freq data=piquil; tables sspp*subp*year; title 'piquil'; run;
+/* proc print data=piquil3; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
+proc contents data = piquil3; run;
+proc freq data=piquil3; tables soileb*npitax; title 'piquil'; run;
 
 *finding whether each is counted more than once
 proc sql;
@@ -833,8 +859,8 @@ quit;
 */
 
 * relative abundance;
-proc sort data=numplantdata; by plot burn prpo;
-proc means data=numplantdata noprint sum; by plot burn prpo; var nperspp; 
+proc sort data=piquil2; by plot burn prpo;
+proc means data=piquil2 noprint sum; by plot burn prpo; var nperspp; 
 	output out=numperplot sum=nperplot;
 /* proc print data=numperplot; title 'totals per plot'; var plot burn prpo nperplot; run;    
 * N = 84 plot-prpo combinations;
@@ -843,7 +869,7 @@ proc means data=numplantdata noprint sum; by plot burn prpo; var nperspp;
 
 *merging to get both nperspp and nperplot in same dataset;
 proc sort data = numperplot; by plot burn prpo;
-data numperplot2; merge numplantdata numperplot; by plot burn prpo; run;
+data numperplot2; merge piquil2 numperplot; by plot burn prpo; run;
 /* proc print data = numperplot2; title 'numperplot2'; run;  
 *back to N=342;
 *numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot; */
@@ -877,7 +903,7 @@ proc freq data=relabund; tables sspp*prpo; run;
 */
 
 *--------------------------------demographic data;
-proc import datafile="G:\Research\Demography\demogdata3.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 /* proc print data=demog; run;
 proc contents data=demog; run; */

@@ -36,11 +36,11 @@ proc contents data=piquil4; run;
 
 data oak; set piquil; 	
 	if sspp="QUMAx";
- 	keep aspect bcat1 coun covm elev heig hydrn plot year prpo slope soilt soileb;
+ 	keep aspect bcat1 coun covm elev heig hydrn plot year prpo slope soilt soile soileb;
 run;  * N = 181;
 *proc contents data=oak; run;
-proc sort data=oak; by year prpo plot bcat1 aspect hydrn soilt soileb; run;
-proc freq data=oak; tables soilt soileb; run;
+proc sort data=oak; by year prpo plot bcat1 aspect hydrn soilt soile soileb; run;
+proc freq data=oak; tables soilt soile soileb; run;
 /* Contents:
  				   	   #    Variable    Type    Len    Format     Informat
                       10    aspect      Num       8
@@ -57,7 +57,7 @@ proc freq data=oak; tables soilt soileb; run;
                        4    year        Num       8    BEST12.    BEST32
 */
 
-proc means data=oak mean noprint; by year prpo plot bcat1 aspect hydrn soilt;
+proc means data=oak mean noprint; by year prpo plot bcat1 aspect hydrn soileb;
   var coun covm elev slope heig;
   output out=oak1 mean = mcoun mcov elev slope mhgt;
 run;
@@ -65,7 +65,7 @@ data oak2; set oak1; drop _TYPE_;
 *proc print data=oak2; title 'oak2'; run;
 
 /* data oak3; set oak2; if year >2011; run;
-proc plot data=oak3; plot mcoun*year; run;
+proc plot data=oak3; plot mcoun*mcov; run;
 proc glm data=oak2; title 'post';  
 	model mcoun = year;
 	output out=glmout2 r=ehat;
