@@ -2,9 +2,10 @@ data piquil4; set piquil3;
  	keep aspect bcat1 covm elev heig hydrn nilvox npitax nquma3 nqumax plot year prpo slope soileb;
 run;  * N = 437;
 proc sort data=piquil4; by year prpo plot bcat1 aspect hydrn soileb; run;
-proc freq data=piquil4; tables soileb; run; *301 sand, 136 gravel;
-*proc contents data=piquil4; run;
-/* Contents:
+/* proc freq data=piquil4; tables soileb; run; *301 sand, 136 gravel;
+   proc contents data=piquil4; run; */
+
+* Contents:
  				   	   #    Variable    Type    Len    Format     Informat
                        10    aspect      Num       8
                        3    bcat1       Num       8
@@ -21,9 +22,9 @@ proc freq data=piquil4; tables soileb; run; *301 sand, 136 gravel;
                        9    slope       Num       8    BEST12.    BEST32.
                        7    soileb      Num       8    BEST12.    BEST32.
                        2    year        Num       8    BEST12.    BEST32
-*/
+;
 
-proc means data=piquil4 mean noprint; by year prpo plot bcat1 aspect hydrn soileb;
+proc means data=piquil4 mean noprint; by year plot bcat1 aspect hydrn soileb;
   var nilvox npitax nquma3 nqumax covm elev slope heig;
   output out=piquil5 mean = milvox mpitax mquma3 mqumax mcov elev slope mhgt;
 run;
@@ -65,7 +66,7 @@ nyr1obs = sum(mattemp[,1]); *print nyr1obs;  * how many year1? (3);
 nyr2obs = sum(mattemp[,2]); *print nyr2obs;  * how many year2? (43);
 
 * variables same each year: aspect, bcat1, elev, hydrn, plot, slope, soileb, 
-  variables change each year: _FREQ_, covm, mhgt, prpo, year, milvox, mpitax, mqumax,
+  variables change each year: _FREQ_, covm, mhgt, year, milvox, mpitax, mqumax,
 								mquma3;
 
 *year, prpo, plot, bcat,  aspect, hydr, soileb, _FREQ_, ilvo, pita, quma3, qumax, 
@@ -77,20 +78,20 @@ do i = 1 to nrecords;    * record by record loop;
   time2 = time1 + 1;
   mat2[i,2] = time2;	
   mat2[i,3] = mat1[i,1];   * year1;
-  mat2[i,5] = mat1[i,3];   * plot;
-  mat2[i,6] = mat1[i,4];   * bcat1;
-  mat2[i,7] = mat1[i,5];   * aspect;
-  mat2[i,8] = mat1[i,6];   * hydrn;
-  mat2[i,9] = mat1[i,7];   * soileb;
-  mat2[i,10] = mat1[i,14];  * elev;
-  mat2[i,11] = mat1[i,15];  * slope;
-  mat2[i,12] = mat1[i,9];  * milvo1;
-  mat2[i,14] = mat1[i,10]; * mpita1;
-  mat2[i,16] = mat1[i,11]; * mqum31;
-  mat2[i,18] = mat1[i,12]; * mqumx1;
-  mat2[i,20] = mat1[i,13]; * covm1;
-  mat2[i,22] = mat1[i,16]; * mhgt1;
-  mat2[i,24] = mat1[i,8];  * _FREQ_1;
+  mat2[i,5] = mat1[i,2];   * plot;
+  mat2[i,6] = mat1[i,3];   * bcat1;
+  mat2[i,7] = mat1[i,4];   * aspect;
+  mat2[i,8] = mat1[i,5];   * hydrn;
+  mat2[i,9] = mat1[i,6];   * soileb;
+  mat2[i,10] = mat1[i,13];  * elev;
+  mat2[i,11] = mat1[i,14];  * slope;
+  mat2[i,12] = mat1[i,8];  * milvo1;
+  mat2[i,14] = mat1[i,9]; * mpita1;
+  mat2[i,16] = mat1[i,10]; * mqum31;
+  mat2[i,18] = mat1[i,11]; * mqumx1;
+  mat2[i,20] = mat1[i,12]; * covm1;
+  mat2[i,22] = mat1[i,15]; * mhgt1;
+  mat2[i,24] = mat1[i,7];  * _FREQ_1;
 end;
 * print mat2;
 
@@ -120,27 +121,6 @@ append from mat2;
  
 quit; run;
 
-proc print data=seedpairs; title 'seedpairs';
-run;
-
-proc glm data=seedpairs; title 'seedpairs glm';  * N = 15 because only 15 plots have pre/post combos; 
-	class bcat1;
-	model pita2 = covm2 covm2*pita1;
-	output out=glmout2 r=ehat;
-run;
-proc univariate data=glmout2 plot normal; var ehat coun2; run;
-
-proc glm data=post; title 'post';  
-	class bcat1;
-	model coun2 = covm2 covm2*coun1;
-	output out=glmout2 r=ehat;
-run;
-proc univariate data=glmout2 plot normal; var ehat coun2; run;
-
-
-proc glimmix data=oakpairsprpo; title 'oakpairsprpo glimmix';
-  class plot bcat1;
-  model coun2 = bcat1 coun1 coun1*bcat1 / distribution=poisson DDFM = KR; *removed DDFM=KR;
-  random plot(bcat1);
-  output out=glmout2 resid=ehat;
-run; 
+*boak = blackjack oak (QUMA3), poak = sand post oak (QUMAx);
+*proc print data=seedpairs; title 'seedpairs';
+run; *N=191;
