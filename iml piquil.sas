@@ -124,3 +124,6 @@ quit; run;
 *boak = blackjack oak (QUMA3), poak = sand post oak (QUMAx);
 *proc print data=seedpairs; title 'seedpairs';
 run; *N=191;
+/* proc freq data=seedpairs; tables soil; run;
+* 145 sand, 46 gravel;
+*/

@@ -9,7 +9,7 @@ proc freq data=seedpairs; tables bcat1 *plot; run;
 /*
 ods html;
 proc sgplot data=seedpairs;
-	scatter y=bcat1 x=pita1 /group=soil name="data";
+	scatter y=covm2 x=pita2 /group=soil name="data";
 	keylegend "data"/ title="group";
 run;
 ods html close;

@@ -903,7 +903,7 @@ proc freq data=relabund; tables sspp*prpo; run;
 */
 
 *--------------------------------demographic data;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\demogdata3.csv"
+proc import datafile="G:\Research\Demography\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 /* proc print data=demog; run;
 proc contents data=demog; run; */
