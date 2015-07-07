@@ -191,7 +191,7 @@ Nesting:
 
 Strategy:
 	--for main FMH datasets (herbaceous, shrubs, 'seedlings', pole and mature trees): merge plot history 
-	  and canopy cover with each dataset  (DONE as of Feb 2015)
+	  and canopy cover with each dataset  (DONE Feb 2015)
 	--point transect: treat as other datasets for extra info (messy method)
 	--invasives: logistic regressions with p/a?
 	--demography: depends on data quality/quantity

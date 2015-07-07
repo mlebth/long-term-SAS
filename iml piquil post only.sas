@@ -31,27 +31,19 @@ run;
 data piquil6; set piquil5; drop _TYPE_; 
 *proc print data=piquil6; title 'piquil6'; run; *N=191;
 
-/* 
-*Just messing around with dataset;
 data piquil7; set piquil6; if year >2011; run;
-proc plot data=piquil6; plot mcoun*mcov; run;
-proc glm data=piquil6; title 'post';  
-	model mcoun = year;
-	output out=glmout2 r=ehat;
-run; 
-*/
 
 proc iml;
 
-inputyrs = {2002, 2003, 2005, 2006, 2008, 2010, 2011, 2012, 2013, 2014};
-nyrs = nrow(inputyrs);  * print nyrs; *10 yrs;
+inputyrs = {2011, 2012, 2013, 2014};
+nyrs = nrow(inputyrs);  * print nyrs; *4 yrs;
 
-use piquil6; read all into mat1;
+use piquil7; read all into mat1;
 * print mat1;
 
-nrecords = nrow(mat1);   *print nrecords; *N = 191;
+nrecords = nrow(mat1);   *print nrecords; *N = 118;
 
-mat2 = j(nrecords,25,.); * create mat2 has 191 rows, 25 columns, each element=0;
+mat2 = j(nrecords,25,.); * create mat2 has 118 rows, 25 columns, each element=0;
 do i = 1 to nrecords;    * record by record loop;
   do j = 1 to nyrs;      * yr by yr loop;
     if (mat1[i,1] = inputyrs[j]) then mat2[i,1] = j;  * pref in col 1;
@@ -119,14 +111,12 @@ end;    * end i loop;
 cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat1', 'aspect', 'hydr', 'soil', 'elev', 
 			'slope', 'ilvo1', 'ilvo2', 'pita1', 'pita2', 'boak1', 'boak2', 'poak1', 'poak2', 
 			'covm1', 'covm2', 'mhgt1', 'mhgt2', 'freq1', 'freq2'}; *boak = blackjack oak (QUMA3), poak = sand post oak (QUMAx);
-create seedpairs from mat2 [colname = cnames1];
+create seedpairspost from mat2 [colname = cnames1];
 append from mat2;
  
 quit; run;
 
 /* 
-proc print data=seedpairs; title 'seedpairs'; run; *N=191;
-proc freq data=seedpairs; tables soil; run; 	   * 145 sand, 46 gravel;
+proc print data=seedpairspost; title 'seedpairspost'; run; *N=118;
+proc freq data=seedpairspost; tables soil; run; 	   * 85 sand, 33 gravel;
 */
-
-*to get y = 201x, x = pre-fire means--split into 2 datasets? could split into pre- and post-, proc means on pre-, re-merge with 9999 as year for pre?;
