@@ -1,14 +1,15 @@
 data piquil4; set piquil3; 	
- 	keep aspect bcat1 covm elev heig hydrn nilvox npitax nquma3 nqumax plot year prpo slope soileb;
-run;  * N = 437;
-proc sort data=piquil4; by year prpo plot bcat1 aspect hydrn soileb; run;
-/* proc freq data=piquil4; tables soileb; run; *301 sand, 136 gravel;
-   proc contents data=piquil4; run; */
+ 	keep aspect bcat covm elev heig hydrn nilvox npitax nquma3 nqumax plot year prpo slope soileb;
+run;  * N = 1753;
+proc sort data=piquil4; by year prpo plot bcat aspect hydrn soileb; run;
+/* proc freq data=piquil4; tables soileb; run; *1395 sand, 358 gravel;
+   proc contents data=piquil4; run; 
+   proc print data=piquil4; title 'piquil4'; run; */
 
 * Contents:
  				   	   #    Variable    Type    Len    Format     Informat
                        10   aspect      Num       8
-                       3    bcat1       Num       8
+                       3    bcat       Num       8
                        5    covm        Num       8
                        8    elev        Num       8    BEST12.    BEST32.
                        6    heig        Num       8    BEST12.    BEST32.
@@ -24,12 +25,12 @@ proc sort data=piquil4; by year prpo plot bcat1 aspect hydrn soileb; run;
                        2    year        Num       8    BEST12.    BEST32
 ;
 
-proc means data=piquil4 mean noprint; by year plot bcat1 aspect hydrn soileb;
+proc means data=piquil4 mean noprint; by year plot bcat aspect hydrn soileb;
   var nilvox npitax nquma3 nqumax covm elev slope heig;
   output out=piquil5 mean = milvox mpitax mquma3 mqumax mcov elev slope mhgt;
 run;
 data piquil6; set piquil5; drop _TYPE_; 
-*proc print data=piquil6; title 'piquil6'; run; *N=191;
+*proc print data=piquil6; title 'piquil6'; run; *N=202;
 
 /* 
 *Just messing around with dataset;
@@ -51,7 +52,7 @@ use piquil6; read all into mat1;
 
 nrecords = nrow(mat1);   *print nrecords; *N = 191;
 
-mat2 = j(nrecords,25,.); * create mat2 has 191 rows, 25 columns, each element=0;
+mat2 = j(nrecords,23,.); * create mat2 has 191 rows, 25 columns, each element=0;
 do i = 1 to nrecords;    * record by record loop;
   do j = 1 to nyrs;      * yr by yr loop;
     if (mat1[i,1] = inputyrs[j]) then mat2[i,1] = j;  * pref in col 1;
@@ -68,7 +69,7 @@ end;
 nyr1obs = sum(mattemp[,1]); *print nyr1obs;  * how many year1? (3);
 nyr2obs = sum(mattemp[,2]); *print nyr2obs;  * how many year2? (43);
 
-* variables the same each year: aspect, bcat1, elev, hydrn, plot, slope, soileb, 
+* variables the same each year: aspect, bcat, elev, hydrn, plot, slope, soileb, 
   variables that change each year: _FREQ_, covm, mhgt, year, milvox, mpitax, mqumax,
 								mquma3;
 
@@ -82,7 +83,7 @@ do i = 1 to nrecords;    * record by record loop;
   mat2[i,2] = time2;	
   mat2[i,3] = mat1[i,1];   * year1;
   mat2[i,5] = mat1[i,2];   * plot;
-  mat2[i,6] = mat1[i,3];   * bcat1;
+  mat2[i,6] = mat1[i,3];   * bcat;
   mat2[i,7] = mat1[i,4];   * aspect;
   mat2[i,8] = mat1[i,5];   * hydrn;
   mat2[i,9] = mat1[i,6];   * soileb;
@@ -94,7 +95,6 @@ do i = 1 to nrecords;    * record by record loop;
   mat2[i,18] = mat1[i,11]; * mqumx1;
   mat2[i,20] = mat1[i,12]; * covm1;
   mat2[i,22] = mat1[i,15]; * mhgt1;
-  mat2[i,24] = mat1[i,7];  * _FREQ_1;
 end;
 * print mat2;
 
@@ -110,23 +110,86 @@ do i = 1 to nrecords;
   	  mat2[i,19] = mat2[j,18]; * mqumx2;
 	  mat2[i,21] = mat2[j,20]; * covm2;
 	  mat2[i,23] = mat2[j,22]; * mhgt2;
-	  mat2[i,25] = mat2[j,24]; * _FREQ_2;
 	                                                  end;
   end;  * end j loop;
 end;    * end i loop;
 * print mat2;
 
-cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat1', 'aspect', 'hydr', 'soil', 'elev', 
-			'slope', 'ilvo1', 'ilvo2', 'pita1', 'pita2', 'boak1', 'boak2', 'poak1', 'poak2', 
-			'covm1', 'covm2', 'mhgt1', 'mhgt2', 'freq1', 'freq2'}; *boak = blackjack oak (QUMA3), poak = sand post oak (QUMAx);
+cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat', 'aspect', 'hydr', 'soil', 'elev', 
+			'slope', 'ilvo1', 'ilvo2', 'pita1', 'pita2', 'qum31', 'qum32', 'quma1', 'quma2', 
+			'covm1', 'covm2', 'mhgt1', 'mhgt2'};
 create seedpairs from mat2 [colname = cnames1];
 append from mat2;
  
 quit; run;
 
 /* 
-proc print data=seedpairs; title 'seedpairs'; run; *N=191;
-proc freq data=seedpairs; tables soil; run; 	   * 145 sand, 46 gravel;
+proc print data=seedpairs; title 'seedpairs'; run; *N=202;
+proc freq data=seedpairs; tables soil; run; 	   * 156 sand, 46 gravel;
 */
+*******Need to fix height---right now, just one mean height for all species/plot/year;
 
-*to get y = 201x, x = pre-fire means--split into 2 datasets? could split into pre- and post-, proc means on pre-, re-merge with 9999 as year for pre?;
+
+*reorganizing seedpairs;
+data seedpairspp; set seedpairs;
+	if (year1<2011)  then yrcat='pref'; 
+	if (year1>=2011) then yrcat='post';	
+	drop time1 time2 year2 ilvo2 pita2 qum32 quma2 covm2 mhgt2; 
+	rename year1=year covm1=caco ilvo1=ilvo pita1=pita qum31=qum3 quma1=quma mhgt1=heig;
+run;
+data seedspref;  set seedpairspp;
+	if yrcat='pref';
+run; *N=78;
+data seedspost; set seedpairspp;
+	if yrcat='post'; 
+run; *N=124;
+*pooling data in seedspre;
+proc sort  data=seedspref; by plot bcat elev hydr slope soil aspect;
+proc means data=seedspref n mean noprint; by plot bcat elev hydr slope soil aspect;
+	var ilvo pita qum3 quma caco heig;
+	output out=mseedspref n=nilv npit nqm3 nqma ncov nhgt 
+		   			  mean=milv mpit mqm3 mqma mcov mhgt;
+run;
+*proc print data=mseedspref; title 'mseedspref'; run; *N=40;
+
+*structure 1;
+proc sort data=seedspost; by plot bcat elev hydr slope soil aspect;
+proc sort data=mseedspref; by plot bcat elev hydr slope soil aspect; run;
+data seedsmerge1; merge seedspost mseedspref; by plot bcat elev hydr slope soil aspect; 	
+	drop _TYPE_ _FREQ_ yrcat; 
+run;
+proc print data=seedsmerge1; title 'seedsmerge1'; run;
+proc contents data=seedsmerge1; run;
+proc print data=seedspost; run;
+
+*structure 2;
+proc sort data=seedspost; by plot year;	run;
+data dat2011; set seedspost; if year=2011;
+	 rename pita=pita11 quma=quma11 ilvo=ilvo11 qum3=qum311;  
+data dat2012; set seedspost; if year=2012; 
+	 rename pita=pita12 quma=quma12 ilvo=ilvo12 qum3=qum312;  
+data dat2013; set seedspost; if year=2013; 
+	 rename pita=pita13 quma=quma13 ilvo=ilvo13 qum3=qum313; 
+data dat2014; set seedspost; if year=2014; 
+	 rename pita=pita14 quma=quma14 ilvo=ilvo14 qum3=qum314; 
+data prefavg; set mseedspref; 
+	 rename nilv=nilvopre npit=npitapre nqm3=nquma3pre nqma=nqumapre ncov=ncovpre nhgt=nhgtpre 
+		   	milv=milvopre mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtpre;
+run;
+data seedsmerge2; merge prefavg dat2011 dat2012 dat2013 dat2014; by plot; drop year; run;
+proc print data=seedsmerge2; run; *N=55;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

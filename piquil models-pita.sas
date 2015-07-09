@@ -1,15 +1,15 @@
 *use dataset seedpairs: piquil 2002-2014
 	 and seedpairspost: 2011-2014;
 
-proc glm data=seedpairs; title 'seedpairs glm2'; 
+proc glm data=seedsmerge; title 'seedpairs glm2'; 
 	*model pita2 = covm2 pita1 covm2*pita1;
 	*model pita2 = covm2 pita1;
-	*model pita2 = bcat1 pita1 pita1*bcat1;
-	model pita2 = bcat1 pita1;
+	*model pita2 = bcat pita1 pita1*bcat;
+	model pita = bcat soil bcat*soil*year year caco;
 	*model pita2 = covm2;
 	output out=glmout2 r=ehat;
 run;
-proc univariate data=glmout2 plot normal; var ehat pita2; run;
+proc univariate data=glmout2 plot normal; var ehat pita; run;
 
 /*
 ods html;
@@ -20,21 +20,21 @@ run;
 ods html close;
 */
    
-*BCAT1 models;
-proc glimmix data=seedpairspost; title 'seedpairspost bcat1';
-  class plot bcat1;
-  model pita2 = pita1 bcat1 pita1*bcat1 / distribution=normal link=identity solution; *DDFM=bw; *DDFM=KR;
-  *model pita2 = pita1 bcat1 / distribution=negbin link=log solution; *DDFM=bw; *DDFM=KR;
-  random plot(bcat1) / subject=plot;
-  lsmeans bcat1 / ilink cl;
+*BCAT models;
+proc glimmix data=seedpairspost; title 'seedpairspost bcat';
+  class plot bcat;
+  model pita2 = pita1 bcat pita1*bcat / distribution=normal link=identity solution; *DDFM=bw; *DDFM=KR;
+  *model pita2 = pita1 bcat / distribution=negbin link=log solution; *DDFM=bw; *DDFM=KR;
+  random plot(bcat) / subject=plot;
+  lsmeans bcat / ilink cl;
   output out=glmout2 resid=ehat;
 run;  
 
-*can cover cover be predicted by bcat1?;
+*can cover cover be predicted by bcat?;
 proc glimmix data=seedpairspost; title 'seedpairspost covm/bcat';
-  class bcat1;
-  model covm2 = bcat1 covm1 bcat1*covm1/ distribution=negbin link=log solution;
-  random plot(bcat1);
+  class bcat;
+  model covm2 = bcat covm1 bcat*covm1/ distribution=negbin link=log solution;
+  random plot(bcat);
   output out=glmout2 resid=ehat;
 run;  
 
@@ -50,10 +50,20 @@ run;
 
 *COVM1 models;
 proc glimmix data=seedpairs; title 'seedpairs glimmix';
-  class plot bcat1;
+  class plot bcat;
   *model pita2 = pita1 covm2 pita1*covm2 / distribution=normal link=identity solution; *DDFM=bw; *DDFM=KR;
   model pita2 = pita1 covm2 / distribution=negbin link=log solution; *DDFM=bw; *DDFM=KR;
-  random plot(bcat1) / subject=plot;
-  lsmeans bcat1 / ilink cl;
+  random plot(bcat) / subject=plot;
+  lsmeans bcat / ilink cl;
+  output out=glmout2 resid=ehat;
+run;  
+
+
+proc glimmix data=seedsmerge2; title 'seedsmerge2';
+  class plot soil bcat;
+  model pita14 = soil bcat soil*bcat/ distribution=normal link=identity solution DDFM=bw; 
+  *model pita2 = pita1 soil / distribution=normal link=identity solution; 
+  random plot(soil*bcat) / subject=plot;
+  lsmeans soil / ilink cl;
   output out=glmout2 resid=ehat;
 run;  
