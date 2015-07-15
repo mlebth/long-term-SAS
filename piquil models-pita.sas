@@ -17,7 +17,6 @@ proc sgplot data=seedpairs;
 	scatter y=covm2 x=pita2 /group=soil name="data";
 	keylegend "data"/ title="group";
 run;
-ods html close;
 */
    
 *BCAT models;
@@ -61,9 +60,29 @@ run;
 
 proc glimmix data=seedsmerge2; title 'seedsmerge2';
   class plot soil bcat;
-  model pita14 = soil bcat soil*bcat/ distribution=normal link=identity solution DDFM=bw; 
+  model pita14 = caco soil bcat soil*bcat*caco/ distribution=normal link=identity solution DDFM=bw; 
   *model pita2 = pita1 soil / distribution=normal link=identity solution; 
   random plot(soil*bcat) / subject=plot;
   lsmeans soil / ilink cl;
   output out=glmout2 resid=ehat;
 run;  
+
+proc glimmix data=seedsmerge2; title 'seedsmerge2';
+  class plot soil bcat;
+  model pita14 = pita13 soil bcat/ distribution=normal link=identity solution DDFM=bw; 
+  *model pita2 = pita1 soil / distribution=normal link=identity solution; 
+  random plot(soil*bcat) / subject=plot;
+  *lsmeans soil / ilink cl;
+  output out=mout2 predicted=pred resid=ehat;
+run;  
+
+proc plot data=mout2; 
+  plot pita14*pita13; 
+run;
+
+data modifiedpredp; set mout2;
+	predp=1/
+
+*on iml piquil--remove all seedling data for 2011, there isn't any;
+proc freq data=seedsmerge2; tables pita11*plot; run;
+proc print data=seedsmerge2; var plot mpitapre pita11 pita12 pita13 pita14; run;

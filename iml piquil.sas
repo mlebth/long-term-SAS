@@ -158,14 +158,12 @@ proc sort data=mseedspref; by plot bcat elev hydr slope soil aspect; run;
 data seedsmerge1; merge seedspost mseedspref; by plot bcat elev hydr slope soil aspect; 	
 	drop _TYPE_ _FREQ_ yrcat; 
 run;
-proc print data=seedsmerge1; title 'seedsmerge1'; run;
-proc contents data=seedsmerge1; run;
-proc print data=seedspost; run;
+*proc print data=seedsmerge1; title 'seedsmerge1'; run;	*N=133;
+*proc contents data=seedsmerge1; run;
+
 
 *structure 2;
 proc sort data=seedspost; by plot year;	run;
-data dat2011; set seedspost; if year=2011;
-	 rename pita=pita11 quma=quma11 ilvo=ilvo11 qum3=qum311;  
 data dat2012; set seedspost; if year=2012; 
 	 rename pita=pita12 quma=quma12 ilvo=ilvo12 qum3=qum312;  
 data dat2013; set seedspost; if year=2013; 
@@ -176,8 +174,8 @@ data prefavg; set mseedspref;
 	 rename nilv=nilvopre npit=npitapre nqm3=nquma3pre nqma=nqumapre ncov=ncovpre nhgt=nhgtpre 
 		   	milv=milvopre mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtpre;
 run;
-data seedsmerge2; merge prefavg dat2011 dat2012 dat2013 dat2014; by plot; drop year; run;
-proc print data=seedsmerge2; run; *N=55;
+data seedsmerge2; merge prefavg dat2012 dat2013 dat2014; by plot; drop year; run;
+*proc print data=seedsmerge2; title 'seedsmerge2'; run; *N=55;
 
 
 

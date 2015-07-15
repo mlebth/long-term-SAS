@@ -849,38 +849,41 @@ quit;
 */
 
 * relative abundance;
-proc sort data=piquil2; by plot burn prpo;
-proc means data=piquil2 noprint sum; by plot burn prpo; var nperspp; 
-	output out=numperplot sum=nperplot;
-/* proc print data=numperplot; title 'totals per plot'; var plot burn prpo nperplot; run;    
+proc sort data=piquil2; by plot bcat prpo;
+proc means data=piquil2 noprint sum; by plot bcat prpo; var nperspp; 
+	output out=numperplot sum=nperplot;	run;
+/* proc print data=numperplot; title 'totals per plot'; var plot bcat prpo nperplot; run;    
 * N = 84 plot-prpo combinations;
 * numperplot contains: obs, plot, burn, prpo, nperplot
   nperplot = # of all sdlngs in the plot; */
 
 *merging to get both nperspp and nperplot in same dataset;
-proc sort data = numperplot; by plot burn prpo;
-data numperplot2; merge piquil2 numperplot; by plot burn prpo; run;
+proc sort data = numperplot; by plot bcat prpo;
+data numperplot2; merge piquil2 numperplot; by plot bcat prpo; run;
 /* proc print data = numperplot2; title 'numperplot2'; run;  
 *back to N=342;
 *numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot; */
 
+/*
 *calculting relative abundance of each species in each plot/yr combo;
 data relabund; set numperplot2;	
 	relabun = nperspp / nperplot; 
-/* proc print data = relabund; title 'relative abundance'; run;
-*numperplot3 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot, relabun; */
+proc print data = relabund; title 'relative abundance'; run;
+*numperplot3 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot, relabun; 
 
 * which are the most common spp?;
 proc sort data=relabund; by sspp;
 proc means data=relabund sum noprint; by sspp; var nperspp;
   output out=spptotals sum=spptot; title 'species counts'; 
-/* proc univariate data=relabund plot normal; run;
+proc univariate data=relabund plot normal; run;
 *Shapiro-Wilk: 0.825349, P < 0.0001. 
-Lognormally distributed, create new variable with transformed data;	*/
+Lognormally distributed, create new variable with transformed data;
 
 data logpiquil; set relabund;
 	logabund = log(relabun);
 run;
+
+*/
 
 /* proc print data=spptotals; run;
 * SPECIES: count (in # of plot-year-burn combos):
