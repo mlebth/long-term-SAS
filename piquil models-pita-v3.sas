@@ -40,13 +40,19 @@ proc univariate data=glmout2 plot normal; var ehat; run;
       include pita13*caco, let their SS be pooled with residual;
 
 *backwards;
+* not enough df for three-way, due to imbalance in design;
+* plot is lowest level of the design (for this variable), so defaults to being the residual
+       - assuming each plot has a unique id and/or its own data line;
 proc glimmix data=seedsmerge2; title 'model';
-  class plot bcat soil;  * caco is continuous; * mpitapre is pre-fire;
-  *model1; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil  pita13*bcat*soil caco*bcat*soil
+  class bcat soil;  * caco is continuous; * mpitapre is pre-fire;
+  * model1; * model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil
        / distribution=negbin link=log solution DDFM=bw; 
+  * model nlf11a;  model pita14 = pita13 bcat soil caco bcat*soil
+       / distribution=negbin link=log solution DDFM=residual; 
+
   *model2; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil  caco*bcat*soil
        / distribution=normal link=identity solution DDFM=bw; 
-  *model3; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil  pita13*bcat*soil 
+  * model3; * model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil  pita13*bcat*soil 
        / distribution=normal link=identity solution DDFM=bw;    
   *model4; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil 
   		/ distribution=negbin solution DDFM=bw;  *-2LL--166, X2/df=.71;
@@ -60,10 +66,19 @@ proc glimmix data=seedsmerge2; title 'model';
 		/ distribution=negbin solution DDFM=bw;  *162, .73;
   *model9; *model pita14 = pita13 bcat soil caco pita13*bcat pita13*soil caco*bcat caco*soil 
 		/ distribution=poisson solution DDFM=bw;  *171, .70;
-  random plot(bcat*soil);
-  lsmeans bcat soil / ilink cl;
+  * lsmeans bcat soil bcat*soil / ilink cl;
   output out=glmout2 resid=ehat;
 run;
+
+proc glm data=seedsmerge2; title 'glm';
+  class plot bcat soil;
+  model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil  pita13*bcat*soil;
+  lsmeans bcat soil /  cl;
+  output out=glmout2 r=ehat;
+run;
+proc univariate data=glmout2 plot normal; * var ehat; var pita14; run;
+
+ proc freq data=seedsmerge2; table soil*bcat; run;
 
 *forward;
 *variables of interest: caco, bcat, soil, prev. year;
@@ -88,18 +103,27 @@ proc glimmix data=seedsmerge2; title 'model';
   output out=glmout2 resid=ehat;
 run;
 
+
+
+*pita13;
+*forward;
+*variables of interest: caco, bcat, soil, prev. year;
+proc glimmix data=seedsmerge2; title 'model';
+  class plot bcat soil;  * caco is continuous; * mpitapre is pre-fire;  
+  model pita13 = pita12 bcat soil/ distribution=negbin solution DDFM=residual; 
+  random plot(bcat*soil);
+  lsmeans bcat soil / ilink cl;
+  output out=glmout2 resid=ehat;
+run;
+
 *pita12;
 *forward;
 *variables of interest: caco, bcat, soil, prev. year;
 proc glimmix data=seedsmerge2; title 'model';
-  class plot soil bcat;  * caco is continuous; * mpitapre is pre-fire;  
-  model pita12 = soil bcat soil*bcat/ distribution=normal solution DDFM=bw; 
-  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=residual;  
-  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=contain;  
-  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=kr;   
-  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=satterth;  
-  random plot(soil*bcat);
-  lsmeans soil bcat soil*bcat/ ilink cl;
+  class plot  soil;  * caco is continuous; * mpitapre is pre-fire;  
+  model pita12 = soil / distribution=normal solution DDFM=residual; 
+  random plot(soil);
+  lsmeans  soil / ilink cl;
   output out=glmout2 resid=ehat;
 run;
 
@@ -109,8 +133,7 @@ run;
 
 
 
-
-
+*------------------------------------------------------------------------------------------------;
 
 * nlf pretend:  nothing is signficant except caco*soil, and we want the slopes and intercepts;
 proc glimmix data=seedsmerge1; title 'seedsmerge1';

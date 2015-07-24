@@ -26,22 +26,23 @@ proc contents data=seedsmerge2; run;
 *forward 2014;
 *variables of interest: caco, bcat, soil, prev. year;
 proc glimmix data=seedsmerge2; title 'model';
-  class plot bcat;  
-  model quma14 = quma13 bcat / distribution=negbin solution DDFM=residual;
+  class plot bcat soil;  
+  model quma14 = quma13 bcat soil quma13*soil bcat*soil quma13*bcat*soil/ distribution=normal solution DDFM=residual;
   	*caco and soil are not significant in any model;
-  random plot(bcat);
-  lsmeans bcat / ilink cl;
+  random plot(bcat*soil);
+  lsmeans bcat soil bcat*soil / ilink cl;
   output out=glmout2 resid=ehat;
 run;
 
 *forward 2013;
 *variables of interest: caco, bcat, soil, prev. year;
 proc glimmix data=seedsmerge2; title 'model';
-  class plot soil;  
-  model quma13 = soil / distribution=normal solution DDFM=bw;
+  class plot bcat;  
+  model quma13 = bcat quma12 
+		/ distribution=normal solution DDFM=residual;
   	*caco and soil are not significant in any model;
-  random plot(soil);
-  lsmeans soil / ilink cl;
+  random plot(bcat);
+  lsmeans bcat / ilink cl;
   output out=glmout2 resid=ehat; 
 run; 
 

@@ -224,9 +224,9 @@ data plothistx (drop=_TYPE_ _FREQ_); set plothist1;
     if burnsev = 'm' then burn = 3;
     if burnsev = 'h' then burn = 4;
 	* poolingA - scorch, light, moderate;
-    if (burnsev = 'h' | burnsev = 'm') then bcat1 = 2;
-    if (burnsev = 'l' | burnsev = 's') then bcat1 = 1;
-    if (burnsev = 'u') then bcat1 = 0;
+    if (burnsev = 'h' | burnsev = 'm') then bcat = 2;
+    if (burnsev = 'l' | burnsev = 's') then bcat = 1;
+    if (burnsev = 'u') then bcat = 0;
     * poolingB - combine scorch + light;
     if (burnsev = 'h') then bcat2 = 3;
     if (burnsev = 'm') then bcat2 = 2;
@@ -243,7 +243,7 @@ proc freq data=plothist; tables soileb*plot; run;
 
 *making a printout for EK;
 proc export data=plothist
-   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\plothist.csv'
+   outfile='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothist.csv'
    dbms=csv
    replace;
 run;
@@ -733,32 +733,40 @@ proc sort data=alld; by plot year subp; run;
 
 /* proc contents data=alld; title 'all'; run;
 *Variables:			   #    Variable    Type    Len    Format     Informat
-					  26    agec        Char      1    $1.        $1.
-                      18    aspect      Char      4
-                      22    bcat1       Char      1
-                      23    bcat2       Char      1
-                      21    burn        Num       8
+					  32    agec        Char      1    $1.        $1.
+                      24    aspect      Num       8
+                      28    bcat       Num       8
+                      29    bcat2       Num       8
+                      27    burn        Num       8
                       10    burnsev     Char      1    $1.        $1.
-                       4    coun        Num       8    BEST12.    BEST32.
-                       8    covm        Num       8
-                      25    crwn        Num       8    BEST12.    BEST32.
-                      24    diam        Num       8    BEST12.    BEST32.
-                      15    elev        Num       8    BEST12.    BEST32.
+                       3    coun        Num       8    BEST12.    BEST32.
+                       7    covm        Num       8
+                      31    crwn        Num       8    BEST12.    BEST32.
+                      30    diam        Num       8    BEST12.    BEST32.
+                      17    elev        Num       8    BEST12.    BEST32.
                        2    heig        Num       8    BEST12.    BEST32.
-                       9    hydr        Char      1    $1.        $1.
+                       8    hydr        Char      1    $1.        $1.
+                      20    hydrn       Num       8
+                       9    hyyr        Num       8    BEST12.    BEST32.
                       11    lastrx      Num       8    BEST12.    BEST32.
-                      20    meansev     Num       8
+                      26    meansev     Num       8
+                      19    notes       Char      1    $1.        $1.
                        1    plot        Num       8    BEST12.    BEST32.
- 					  27    prpo        Char      4
-                      16    slope       Num       8    BEST12.    BEST32.
-                      17    soil        Char      4
-                       7    sspp        Char      5
-                       6    subp        Char      4
-                      19    typecat     Char      1
-                       5    year        Num       8    BEST12.    BEST32.
+ 					  33    prpo        Num       8
+                      18    slope       Num       8    BEST12.    BEST32.
+                      21    soil        Char      4
+                      15    soile       Num       8    BEST12.    BEST32.
+                      16    soileb      Num       8    BEST12.    BEST32.
+                      22    soiln       Num       8
+                      23    soilt       Num       8
+                       6    sspp        Char      5
+                       5    subp        Char      4
+                      25    typecat     Char      1
+                       4    year        Num       8    BEST12.    BEST32.
                       12    yrrx1       Num       8    BEST12.    BEST32.
                       13    yrrx2       Num       8    BEST12.    BEST32.
                       14    yrrx3       Num       8    BEST12.    BEST32.
+
 
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
 
@@ -778,32 +786,22 @@ PROC PRINTTO PRINT='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\all
 RUN; 
 */
 
+/*
 *set of just post-fire data;
 data post; set alld; if year > 2010; run; 
 *set of just pre-fire data;
 data pre; set alld; if year < 2010; run;
+*/
 
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
-* pulling just the important species--pines, ilvo, and quma, quma3 ('pi-qu-il');
 data piquil; set alld;
-	if (subp = 'seed') & (sspp = "PITAx" |sspp = "QUMAx" | sspp = "QUMA3") |
-	   (subp = 'shrp') & (sspp = "PITAx" |sspp = "QUMAx" | sspp = "QUMA3") |
-	   (subp = 'shru') & (sspp = "ILVOx") |
-	   (subp = 'seep') & (sspp = "ILVOx");
+	if (subp = 'seed') | (subp = 'shrp') | (subp = 'shru') | (subp = 'seep');
+	keep aspect bcat coun covm elev heig hydrn plot slope soileb sspp subp year prpo; 
 run;  
-proc sort data=piquil; by plot year; run;
-/* proc print data=piquil; run;
-proc freq data=piquil; tables soilt*plot; run; */
-
-
-*--------------------------PIQUIL (Pinus-Quercus-Ilvo): relative abundances------------------------;
-* getting number of individuals per species, per year and plot.
-  ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
-  no transect data. ;
-proc sort data=piquil; by plot sspp year burn bcat1 prpo covm heig soiln soilt soileb elev slope aspect hydrn; run;
-proc means data=piquil noprint sum; by plot sspp year burn bcat1 prpo covm heig soiln soilt soileb elev slope aspect hydrn; var coun; 
-  output out=piquil2 sum=nperspp; run;
-/* proc print data=piquil2; title 'pi-qu-il numplantdata'; 
+proc sort data=piquil; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo; run;
+proc means data=piquil noprint sum; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo; var coun; 
+  output out=piquil2 sum=nperspp; run; *N=1753;
+/* proc print data=piquil2; title 'pi-qu-il numplantdata';   run;
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * N = 442 species-plot-year combinations;
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
@@ -811,18 +809,22 @@ proc means data=piquil noprint sum; by plot sspp year burn bcat1 prpo covm heig 
 
 *reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
 has its own variable for count;
-data holdquma3; set piquil2; if sspp = 'QUMA3'; nquma3 = nperspp; 
-data holdqumax; set piquil2; if sspp = 'QUMAx'; nqumax = nperspp;
-data holdpitax; set piquil2; if sspp = 'PITAx'; npitax = nperspp; 
-data holdilvox; set piquil2; if sspp = 'ILVOx'; nilvox = nperspp; 
+data holdquma3; set piquil2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'QUMA3'); nquma3 = nperspp; 
+	proc sort data=holdquma3; by plot bcat year; 
+data holdqumax; set piquil2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'QUMAx'); nqumax = nperspp;
+	proc sort data=holdqumax; by plot bcat year; 
+data holdpitax; set piquil2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'PITAx'); npitax = nperspp; 
+	proc sort data=holdpitax; by plot bcat year; 
+data holdilvox; set piquil2; if (subp = 'seep' | subp = 'shru') & (sspp = 'ILVOx'); nilvox = nperspp; 
 run;
-/* proc print data=holdquma3; run; 
-proc print data=holdqumax; run; 	
-proc print data=holdpitax; run; 	
-proc print data=holdilvox; run; */
+/* proc print data=holdquma3; run; 	*N=231;
+   proc print data=holdqumax; run; 	*N=170;	
+   proc print data=holdpitax; run; 	*N=166;
+   proc print data=holdilvox; run; 	*N=207; */
 
+proc sort data=piquil2; by plot bcat year; run;
 *n(spp) is count, pa(spp) is presence/absence;
-data piquil3; merge holdquma3 holdqumax holdpitax holdilvox; by plot bcat1 year;
+data piquil3; merge holdquma3 holdqumax holdpitax holdilvox piquil2; by plot bcat year;
   if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
@@ -830,8 +832,9 @@ data piquil3; merge holdquma3 holdqumax holdpitax holdilvox; by plot bcat1 year;
   drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
 run;
 
-/* proc print data=piquil3; title 'piquil'; var plot subp sspp year; run;  * N = 878; 
+/* proc print data=piquil3; title 'piquil'; run;  * N = 1753; 
 proc contents data = piquil3; run;
+proc freq data=piquil3; tables soileb*npitax; title 'piquil'; run;
 proc freq data=piquil3; tables soileb*npitax; title 'piquil'; run;
 
 *finding whether each is counted more than once
@@ -846,38 +849,41 @@ quit;
 */
 
 * relative abundance;
-proc sort data=piquil2; by plot burn prpo;
-proc means data=piquil2 noprint sum; by plot burn prpo; var nperspp; 
-	output out=numperplot sum=nperplot;
-/* proc print data=numperplot; title 'totals per plot'; var plot burn prpo nperplot; run;    
+proc sort data=piquil2; by plot bcat prpo;
+proc means data=piquil2 noprint sum; by plot bcat prpo; var nperspp; 
+	output out=numperplot sum=nperplot;	run;
+/* proc print data=numperplot; title 'totals per plot'; var plot bcat prpo nperplot; run;    
 * N = 84 plot-prpo combinations;
 * numperplot contains: obs, plot, burn, prpo, nperplot
   nperplot = # of all sdlngs in the plot; */
 
 *merging to get both nperspp and nperplot in same dataset;
-proc sort data = numperplot; by plot burn prpo;
-data numperplot2; merge piquil2 numperplot; by plot burn prpo; run;
+proc sort data = numperplot; by plot bcat prpo;
+data numperplot2; merge piquil2 numperplot; by plot bcat prpo; run;
 /* proc print data = numperplot2; title 'numperplot2'; run;  
 *back to N=342;
 *numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot; */
 
+/*
 *calculting relative abundance of each species in each plot/yr combo;
 data relabund; set numperplot2;	
 	relabun = nperspp / nperplot; 
-/* proc print data = relabund; title 'relative abundance'; run;
-*numperplot3 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot, relabun; */
+proc print data = relabund; title 'relative abundance'; run;
+*numperplot3 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot, relabun; 
 
 * which are the most common spp?;
 proc sort data=relabund; by sspp;
 proc means data=relabund sum noprint; by sspp; var nperspp;
   output out=spptotals sum=spptot; title 'species counts'; 
-/* proc univariate data=relabund plot normal; run;
+proc univariate data=relabund plot normal; run;
 *Shapiro-Wilk: 0.825349, P < 0.0001. 
-Lognormally distributed, create new variable with transformed data;	*/
+Lognormally distributed, create new variable with transformed data;
 
 data logpiquil; set relabund;
 	logabund = log(relabun);
 run;
+
+*/
 
 /* proc print data=spptotals; run;
 * SPECIES: count (in # of plot-year-burn combos):
