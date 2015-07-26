@@ -224,9 +224,9 @@ data plothistx (drop=_TYPE_ _FREQ_); set plothist1;
     if burnsev = 'm' then burn = 3;
     if burnsev = 'h' then burn = 4;
 	* poolingA - scorch, light, moderate;
-    if (burnsev = 'h' | burnsev = 'm') then bcat = 2;
-    if (burnsev = 'l' | burnsev = 's') then bcat = 1;
-    if (burnsev = 'u') then bcat = 0;
+    if (burnsev = 'h' | burnsev = 'm') then bcat1 = 2;
+    if (burnsev = 'l' | burnsev = 's') then bcat1 = 1;
+    if (burnsev = 'u') then bcat1 = 0;
     * poolingB - combine scorch + light;
     if (burnsev = 'h') then bcat2 = 3;
     if (burnsev = 'm') then bcat2 = 2;
@@ -243,7 +243,7 @@ proc freq data=plothist; tables soileb*plot; run;
 
 *making a printout for EK;
 proc export data=plothist
-   outfile='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothist.csv'
+   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\plothist.csv'
    dbms=csv
    replace;
 run;
@@ -732,10 +732,10 @@ run; *N = 59195;
 proc sort data=alld; by plot year subp; run;
 
 /* proc contents data=alld; title 'all'; run;
-*Variables:			   #    Variable    Type    Len    Format     Informat
+*Variables:			    #    Variable    Type    Len    Format     Informat
 					  32    agec        Char      1    $1.        $1.
                       24    aspect      Num       8
-                      28    bcat       Num       8
+                      28    bcat        Num       8
                       29    bcat2       Num       8
                       27    burn        Num       8
                       10    burnsev     Char      1    $1.        $1.
@@ -766,7 +766,6 @@ proc sort data=alld; by plot year subp; run;
                       12    yrrx1       Num       8    BEST12.    BEST32.
                       13    yrrx2       Num       8    BEST12.    BEST32.
                       14    yrrx3       Num       8    BEST12.    BEST32.
-
 
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
 

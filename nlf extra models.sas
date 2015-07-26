@@ -1,4 +1,4 @@
-proc glimmix data=seedsmerge2; title 'model';
+proc glimmix data=seedsmerge2; title 'pita bcat soil caco bcat*soil';
   class bcat soil; 
   model pita14 = pita13 bcat soil caco bcat*soil
        / distribution=negbin link=log solution DDFM=residual; 
@@ -6,8 +6,7 @@ proc glimmix data=seedsmerge2; title 'model';
   output out=glmout2 resid=ehat;
 run;
 
-
-proc glimmix data=seedsmerge2; title 'model';
+proc glimmix data=seedsmerge2; title 'pita13 bcat soil bcat*soil';
   class bcat soil; 
   model pita14 = pita13 bcat soil bcat*soil
        / distribution=negbin link=log solution DDFM=residual;  * this works, scale = 0.2, xX2 = 1.14;
@@ -24,7 +23,12 @@ proc glimmix data=seedsmerge2; title 'model';
   output out=glmout2 resid=ehat;
 run;
 
-proc plot data=seedsmerge2; plot pita13*caco; run;
+proc plot data=seedsmerge2; title 'pita*caco'; 
+	plot pita14*caco; 
+	plot pita13*caco; 
+	plot pita12*caco; 
+	plot mpitapre*caco; 
+run;
 
 proc glimmix data=seedsmerge2; title 'model';
   * class bcat soil; 

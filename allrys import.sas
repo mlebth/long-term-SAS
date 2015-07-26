@@ -735,7 +735,7 @@ proc sort data=alld; by plot year subp; run;
 *Variables:			   #    Variable    Type    Len    Format     Informat
 					  32    agec        Char      1    $1.        $1.
                       24    aspect      Num       8
-                      28    bcat       Num       8
+                      28    bcat        Num       8
                       29    bcat2       Num       8
                       27    burn        Num       8
                       10    burnsev     Char      1    $1.        $1.
@@ -766,7 +766,6 @@ proc sort data=alld; by plot year subp; run;
                       12    yrrx1       Num       8    BEST12.    BEST32.
                       13    yrrx2       Num       8    BEST12.    BEST32.
                       14    yrrx3       Num       8    BEST12.    BEST32.
-
 
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
 
