@@ -95,7 +95,7 @@ proc glimmix data=seedsmerge2; title 'ilvo models';
   		* this works, scale=3.9, X2=.63, -2LL=75.21, AIC=85.21;
 	    * pita13    df=13, F=1.07, p=0.3195
           bcat*soil df=13, F=.63,  p=0.5497;
-  contrast 'bcat1 vs bcat2' bcat 1 -1;
+  contrast 'bcat*soil' bcat*soil 1 -1;	
   output out=glmout2 resid=ehat;
 run;
 
