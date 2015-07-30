@@ -165,11 +165,11 @@ run;
 *structure 2;
 proc sort data=seedspost; by plot year;	run;
 data dat2012; set seedspost; if year=2012; 
-	 rename pita=pita12 quma=quma12 ilvo=ilvo12 qum3=qum312;  
+	 rename pita=pita12 quma=quma12 ilvo=ilvo12 qum3=qum312 caco=cov12;  
 data dat2013; set seedspost; if year=2013; 
-	 rename pita=pita13 quma=quma13 ilvo=ilvo13 qum3=qum313; 
+	 rename pita=pita13 quma=quma13 ilvo=ilvo13 qum3=qum313 caco=cov13; 
 data dat2014; set seedspost; if year=2014; 
-	 rename pita=pita14 quma=quma14 ilvo=ilvo14 qum3=qum314; 
+	 rename pita=pita14 quma=quma14 ilvo=ilvo14 qum3=qum314 caco=cov14; 
 data prefavg; set mseedspref; 
 	 rename nilv=nilvopre npit=npitapre nqm3=nquma3pre nqma=nqumapre ncov=ncovpre nhgt=nhgtpre 
 		   	milv=milvopre mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtpre;
@@ -177,8 +177,13 @@ run;
 data seedsmerge2; merge prefavg dat2012 dat2013 dat2014; by plot; drop year; run;
 *proc print data=seedsmerge2; title 'seedsmerge2'; run; *N=55;
 
-
-
+/*
+proc export data=seedsmerge2
+   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\seedsmerge2.csv'
+   dbms=csv
+   replace;
+run;
+*/
 
 
 
