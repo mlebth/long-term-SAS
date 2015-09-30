@@ -11,6 +11,22 @@ proc means data=piquilsap noprint sum; by subp plot sspp year bcat covm coun dia
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
   nperspp = # of sdlngs/stems per species per plot/year;  */
 
+/* checking slope for problem plot. slope = 3;
+proc sql;
+	select plot, slope
+	from alld
+    where plot eq 1217;
+quit;
+*/
+
+/* *ILVO never counted as a sapling;
+proc sql;
+	select plot, sspp
+	from piquilsap
+    where sspp = 'ILVOx';
+quit;
+*/
+
 *reassigning nperspp to nquma3, nqumax, npitax. This gives num per species where each species
 has its own variable for count;
 data holdquma3; set piquilsap2; if (subp = 'sapl' | subp = 'shrp') & (sspp = 'QUMA3'); nquma3 = nperspp; 
@@ -60,7 +76,7 @@ proc freq data=piquilsap3; tables soileb*npitax; title 'piquil'; run;
 data piquilsap4; set piquilsap3; 		
 	keep aspect bcat covm elev diam heig hydrn npitax nquma3 nqumax plot year prpo slope soileb;
 run;  * N = 2736;
-proc sort data=piquilsap4; by year prpo plot bcat aspect hydrn soileb; run;
+proc sort data=piquilsap4; by year prpo plot bcat aspect slope hydrn soileb; run;
 /* proc freq data=piquilsap4; tables soileb; run; *1233 sand, 441 gravel;
    proc contents data=piquilsap4; run; 
    proc print data=piquilsap4; title 'piquil4'; run; */
@@ -125,8 +141,8 @@ nyr2obs = sum(mattemp[,2]); *print nyr2obs;  * how many year2? (46);
   variables that change each year: _FREQ_, covm, mdbh, mhgt, year, mpitax, mqumax,
 								mquma3;
 
-*order of variables in mat1: year, plot, bcat, aspect, hydr, soileb, _FREQ_, pita, quma3, qumax, 
-	mcov, elev, slope, mhgt, mdbh;
+*order of variables in mat1: year, plot, bcat, aspect, hydrn, soileb, _FREQ_, mpitax,
+	mquma3, mqumax, mcov, elev, slope, mhgt, mdbh;
 
 * fill mat2; * col1 already has first yr;
 do i = 1 to nrecords;    * record by record loop;
@@ -136,16 +152,16 @@ do i = 1 to nrecords;    * record by record loop;
   mat2[i,3] = mat1[i,1];   * year1;
   mat2[i,5] = mat1[i,2];   * plot;
   mat2[i,6] = mat1[i,3];   * bcat;
-  mat2[i,7] = mat1[i,4];   * aspect;
+  mat2[i,7] = mat1[i,2];   * aspect;
   mat2[i,8] = mat1[i,5];   * hydrn;
   mat2[i,9] = mat1[i,6];   * soileb;
-  mat2[i,10] = mat1[i,13]; * elev;
-  mat2[i,11] = mat1[i,14]; * slope;
+  mat2[i,10] = mat1[i,12]; * elev;
+  mat2[i,11] = mat1[i,13]; * slope;
   mat2[i,12] = mat1[i,8];  * mpita1;
   mat2[i,14] = mat1[i,9];  * mqum31;
   mat2[i,16] = mat1[i,10]; * mqumx1;
   mat2[i,18] = mat1[i,11]; * covm1;
-  mat2[i,20] = mat1[i,12]; * mhgt1;
+  mat2[i,20] = mat1[i,14]; * mhgt1;
   mat2[i,22] = mat1[i,15]; * mdbh1;
 end;
 * print mat2;
@@ -177,7 +193,7 @@ quit; run;
 
 /* 
 proc print data=sappairs; title 'sappairs'; run; *N=246;
-proc freq data=sappairs; tables soil; run; 	   * 206 sand, 63 gravel;
+proc freq data=sappairs; tables soil; run; 	     *N=206 sand, 63 gravel;
 */
 
 
@@ -194,14 +210,16 @@ run; *N=76;
 data sappost; set sappairsspp;
 	if yrcat='post'; 
 run; *N=170;
+*proc print data=sappost; title 'sappost'; run;
+
 *pooling data in sappre;
 proc sort  data=sappref; by plot bcat elev hydr slope soil aspect;
 proc means data=sappref n mean noprint; by plot bcat elev hydr slope soil aspect;
-	var pita qum3 quma caco heig;
+	var pita qum3 quma caco heig diam;
 	output out=msappref n= npit nqm3 nqma ncov nhgt ndbh
 		   			  mean= mpit mqm3 mqma mcov mhgt mdbh;
 run;
-*proc print data=msappref; title 'mseedspref'; run; *N=73;
+*proc print data=msappref; title 'mseedspref'; run; *N=41;
 
 *structure 1;
 proc sort data=sappost; by plot bcat elev hydr slope soil aspect;
@@ -209,24 +227,26 @@ proc sort data=msappref; by plot bcat elev hydr slope soil aspect; run;
 data sapmerge1; merge sappost msappref; by plot bcat elev hydr slope soil aspect; 	
 	drop _TYPE_ _FREQ_ yrcat; 
 run;
-*proc print data=sapmerge1; title 'sapmerge1'; run;	*N=242;
+*proc print data=sapmerge1; title 'sapmerge1'; run;	*N=180;
 *proc contents data=sapmerge1; run;
 
 
 *structure 2;
 proc sort data=sappost; by plot year;	run;
 data dat2012; set sappost; if year=2012; 
-	 rename pita=pita12 quma=quma12 qum3=qum312 caco=cov12;  
+	 rename pita=pita12 quma=quma12 qum3=qum312 caco=cov12;   
 data dat2013; set sappost; if year=2013; 
-	 rename pita=pita13 quma=quma13 qum3=qum313 caco=cov13; 
+	 rename pita=pita13 quma=quma13 qum3=qum313 caco=cov13;   
 data dat2014; set sappost; if year=2014; 
-	 rename pita=pita14 quma=quma14 qum3=qum314 caco=cov14; 
+	 rename pita=pita14 quma=quma14 qum3=qum314 caco=cov14;  
+data dat2015; set sappost; if year=2015; 
+	 rename pita=pita15 quma=quma15 ilvo=ilvo15 qum3=qum315 caco=cov15;  
 data prefavg; set msappref; 
 	 rename npit=npitapre nqm3=nquma3pre nqma=nqumapre ncov=ncovpre nhgt=nhgtpre ndbh=ndbhpre
 		   	mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtpre mdbh=mdhbpre;
-run;
-data sapmerge2; merge prefavg dat2012 dat2013 dat2014; by plot; drop year; run;
-*proc print data=sapmerge2; title 'sapmerge2'; run; *N=88;
+run; 														  
+data sapmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
+*proc print data=sapmerge2; title 'sapmerge2'; run; 	 	  *N=56;
 
 /*
 proc export data=sapmerge2

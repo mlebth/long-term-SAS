@@ -308,6 +308,16 @@ out=seedlings dbms=csv replace; getnames=yes;
 run;  * N = 1285;
 *proc print data=seedlings; title 'seedlings'; run;
 
+/* 
+*checking where seedlings were planted: 5300, 1236, 1222, 1188, 1235,
+	1221, 1237;
+proc sql;
+	select MacroPlot_Name
+	from seedlings
+    where Comment = 'p';
+quit;
+*/
+
 * cleanup;
 data seedlings1; set seedlings;
  	year = year(date);
@@ -321,9 +331,15 @@ data dat2; set seedlings1;
 *proc print data=dat2; run;
 
 data seedlings2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp) 
-				 rename=(SizeClHt=heig) rename=(Count=coun) rename=(Comment=comm));
+				 rename=(SizeClHt=heig) rename=(Count=coun) rename=(Comment=pltd));
 	set dat2; 
-data seedlings3 (keep=plot year sspp heig coun subp comm); set seedlings2; run;
+data seedlings3 (keep=plot year sspp heig coun subp pltd); set seedlings2; 
+	if (sspp = 'PITAx') & (pltd = 'p') then pltd = '1';
+	if (sspp = 'PITAx') & (pltd = '' ) then pltd = '0';
+	newpltd = input(pltd,1.);
+	drop pltd;
+	rename newpltd=pltd;
+run;
 proc sort data = seedlings3; by plot year; run;
 
 *merging with canopy cover;
@@ -377,6 +393,14 @@ quit;
 proc freq data=seedlings4; tables sspp*plot; title 'seedlings4'; run; * N = 1022;
 proc freq data=seedlingprobspp; tables sspp; title 'seedlingprobspp'; run; * N = 11; 
 * all ilvo and caam are from 1999.;	 */
+
+/*
+proc sql;
+	select plot, bcat, sspp, coun
+	from seedlings4
+    where pltd = 'y';
+quit;
+*/
 
 ******POLE TREES (SAPLINGS, DBH >=2.5 and < 15.1);
 proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Saplings-allyrs.csv"
@@ -807,18 +831,21 @@ data pre; set alld; if year < 2010; run;
 */
 
 
-* relative abundance;
+/* *relative abundance;
 proc sort data=piquil2; by plot bcat prpo;
 proc means data=piquil2 noprint sum; by plot bcat prpo; var nperspp; 
 	output out=numperplot sum=nperplot;	run;
+*/
 /* proc print data=numperplot; title 'totals per plot'; var plot bcat prpo nperplot; run;    
 * N = 84 plot-prpo combinations;
 * numperplot contains: obs, plot, burn, prpo, nperplot
   nperplot = # of all sdlngs in the plot; */
-
+/*
 *merging to get both nperspp and nperplot in same dataset;
 proc sort data = numperplot; by plot bcat prpo;
 data numperplot2; merge piquil2 numperplot; by plot bcat prpo; run;
+*/
+
 /* proc print data = numperplot2; title 'numperplot2'; run;  
 *back to N=342;
 *numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot; */

@@ -806,19 +806,25 @@ data post; set alld; if year > 2010; run;
 data pre; set alld; if year < 2010; run;
 */
 
-
-* relative abundance;
+/*
+* **************relative abundance;
 proc sort data=piquil2; by plot bcat prpo;
 proc means data=piquil2 noprint sum; by plot bcat prpo; var nperspp; 
 	output out=numperplot sum=nperplot;	run;
+*/
+
 /* proc print data=numperplot; title 'totals per plot'; var plot bcat prpo nperplot; run;    
 * N = 84 plot-prpo combinations;
 * numperplot contains: obs, plot, burn, prpo, nperplot
   nperplot = # of all sdlngs in the plot; */
 
+/*
 *merging to get both nperspp and nperplot in same dataset;
 proc sort data = numperplot; by plot bcat prpo;
 data numperplot2; merge piquil2 numperplot; by plot bcat prpo; run;
+******************end relabund; */
+
+
 /* proc print data = numperplot2; title 'numperplot2'; run;  
 *back to N=342;
 *numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot; */

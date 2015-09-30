@@ -1,16 +1,24 @@
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
 data piquilseed; set alld;
 	if (subp = 'seed') | (subp = 'shrp') | (subp = 'shru') | (subp = 'seep');
-	keep aspect bcat coun covm elev heig hydrn plot slope soileb sspp subp year prpo; 
+	keep aspect pltd bcat coun covm elev heig hydrn plot slope soileb sspp subp year prpo; 
 run;  
-proc sort data=piquilseed; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo; run;
-proc means data=piquilseed noprint sum; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo; var coun; 
-  output out=piquilseed2 sum=nperspp; run; *N=1753;
+proc sort data=piquilseed; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo pltd; run;
+proc means data=piquilseed noprint sum; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo pltd; var coun; 
+  output out=piquilseed2 sum=nperspp; run; *N=2247;
 /* proc print data=piquil2; title 'pi-qu-il numplantdata';   run;
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * N = 442 species-plot-year combinations;
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
   nperspp = # of sdlngs/stems per species per plot/year;  */
+
+/*
+proc sql;
+	select plot, year, sspp, coun, pltd
+	from piquilseed2
+    where plot eq 1236;
+quit;
+*/
 
 *reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
 has its own variable for count;
@@ -21,15 +29,21 @@ data holdqumax; set piquilseed2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'Q
 data holdpitax; set piquilseed2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'PITAx'); npitax = nperspp; 
 	proc sort data=holdpitax; by plot bcat year; 
 data holdilvox; set piquilseed2; if (subp = 'seep' | subp = 'shru') & (sspp = 'ILVOx'); nilvox = nperspp; 
+data holdxxxxx; set piquilseed2; if (subp = 'seed') 				& (sspp = 'XXXXx'); nquma3 = nperspp; 
+data holdxxxxx; set piquilseed2; if (subp = 'seed') 				& (sspp = 'XXXXx'); nqumax = nperspp; 
+data holdxxxxx; set piquilseed2; if (subp = 'seed') 				& (sspp = 'XXXXx'); npitax = nperspp; 
+data holdxxxxx; set piquilseed2; if (subp = 'shru') 				& (sspp = 'XXXXx'); nilvox = nperspp; 
+	proc sort data=holdxxxxx; by plot bcat year; 
 run;
-/* proc print data=holdquma3; run; 	*N=231;
-   proc print data=holdqumax; run; 	*N=170;	
-   proc print data=holdpitax; run; 	*N=166;
-   proc print data=holdilvox; run; 	*N=207; */
+/* proc print data=holdquma3; run; 	*N=299;
+   proc print data=holdqumax; run; 	*N=216;	
+   proc print data=holdpitax; run; 	*N=231;
+   proc print data=holdilvox; run; 	*N=252;    
+   proc print data=holdxxxxx; run; 	*N=17; */
 
-proc sort data=piquilseed2; by plot bcat year; run;
+proc sort data=piquilseed2; by plot bcat year pltd; run;
 *n(spp) is count, pa(spp) is presence/absence;
-data piquilseed3; merge holdquma3 holdqumax holdpitax holdilvox piquilseed2; by plot bcat year;
+data piquilseed3; merge holdquma3 holdqumax holdpitax holdilvox holdxxxxx piquilseed2; by plot bcat year pltd;
   if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
@@ -37,7 +51,7 @@ data piquilseed3; merge holdquma3 holdqumax holdpitax holdilvox piquilseed2; by 
   drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
 run;
 
-/* proc print data=piquilseed3; title 'piquil'; run;  * N = 1753; 
+/* proc print data=piquilseed3; title 'piquil'; run;  * N = 2247; 
 proc contents data = piquilseed3; run;
 proc freq data=piquilseed3; tables soileb*npitax; title 'piquil'; run;
 proc freq data=piquilseed3; tables soileb*npitax; title 'piquil'; run;
@@ -51,20 +65,23 @@ proc sql;
 quit;
 *A: NO, they are not counted twice. Won't affect abundance.
 
+*checking for missing values. NONE;
+
 */
 
 data piquilseed4; set piquilseed3; 	
- 	keep aspect bcat covm elev heig hydrn nilvox npitax nquma3 nqumax plot year prpo slope soileb;
-run;  * N = 1753;
-proc sort data=piquilseed4; by year prpo plot bcat aspect hydrn soileb; run;
-/* proc freq data=piquilseed4; tables soileb; run; *1395 sand, 358 gravel;
+ 	keep aspect bcat covm elev heig hydrn nilvox npitax nquma3 nqumax plot year prpo slope soileb pltd;
+run;  * N = 2247;
+proc sort data=piquilseed4; by year prpo plot bcat aspect hydrn soileb pltd; run;
+
+/* proc freq data=piquilseed4; tables pltd; run; *1776 sand, 471 gravel;
    proc contents data=piquilseed4; run; 
    proc print data=piquilseed4; title 'piquil4'; run; */
 
 * Contents:
  				   	   #    Variable    Type    Len    Format     Informat
-                       10   aspect      Num       8
-                       3    bcat       Num       8
+                      10    aspect      Num       8
+                       3    bcat        Num       8
                        5    covm        Num       8
                        8    elev        Num       8    BEST12.    BEST32.
                        6    heig        Num       8    BEST12.    BEST32.
@@ -73,19 +90,20 @@ proc sort data=piquilseed4; by year prpo plot bcat aspect hydrn soileb; run;
                       14    npitax      Num       8
                       12    nquma3      Num       8
                       13    nqumax      Num       8
-                       1    plot        Num       8    BEST12.    BEST32.
+                       1    plot        Num       8    BEST12.    BEST32. 
+					  12    pltd        Num       8
                        4    prpo        Num       8
                        9    slope       Num       8    BEST12.    BEST32.
                        7    soileb      Num       8    BEST12.    BEST32.
                        2    year        Num       8    BEST12.    BEST32
 ;
 
-proc means data=piquilseed4 mean noprint; by year plot bcat aspect hydrn soileb;
+proc means data=piquilseed4 mean noprint; by year plot bcat aspect hydrn soileb pltd;
   var nilvox npitax nquma3 nqumax covm elev slope heig;
   output out=piquilseed5 mean = milvox mpitax mquma3 mqumax mcov elev slope mhgt;
 run;
 data piquilseed6; set piquilseed5; drop _TYPE_; 
-*proc print data=piquilseed6; title 'piquil6'; run; *N=202;
+*proc print data=piquilseed6; title 'piquil6'; run; *N=394;
 
 /* 
 *Just messing around with dataset;
@@ -105,9 +123,9 @@ nyrs = nrow(inputyrs);  * print nyrs; *10 yrs;
 use piquilseed6; read all into mat1;
 * print mat1;
 
-nrecords = nrow(mat1);   *print nrecords; *N = 191;
+nrecords = nrow(mat1);   *print nrecords; *N = 274;
 
-mat2 = j(nrecords,23,.); * create mat2 has 191 rows, 25 columns, each element=0;
+mat2 = j(nrecords,24,.); * create mat2 has 274 rows, 24 columns, each element=0;
 do i = 1 to nrecords;    * record by record loop;
   do j = 1 to nyrs;      * yr by yr loop;
     if (mat1[i,1] = inputyrs[j]) then mat2[i,1] = j;  * pref in col 1;
@@ -128,7 +146,7 @@ nyr2obs = sum(mattemp[,2]); *print nyr2obs;  * how many year2? (43);
   variables that change each year: _FREQ_, covm, mhgt, year, milvox, mpitax, mqumax,
 								mquma3;
 
-*order of variables in mat1: year, prpo, plot, bcat,  aspect, hydr, soileb, _FREQ_, ilvo, pita, quma3, qumax, 
+*order of variables in mat1: year, plot, bcat, aspect, hydr, soileb, pltd, _FREQ_, ilvo, pita, quma3, qumax, 
 	mcov, elev, slope, mhgt	;
 
 * fill mat2; * col1 already has first yr;
@@ -142,14 +160,15 @@ do i = 1 to nrecords;    * record by record loop;
   mat2[i,7] = mat1[i,4];   * aspect;
   mat2[i,8] = mat1[i,5];   * hydrn;
   mat2[i,9] = mat1[i,6];   * soileb;
-  mat2[i,10] = mat1[i,13]; * elev;
-  mat2[i,11] = mat1[i,14]; * slope;
-  mat2[i,12] = mat1[i,8];  * milvo1;
-  mat2[i,14] = mat1[i,9];  * mpita1;
-  mat2[i,16] = mat1[i,10]; * mqum31;
-  mat2[i,18] = mat1[i,11]; * mqumx1;
-  mat2[i,20] = mat1[i,12]; * covm1;
-  mat2[i,22] = mat1[i,15]; * mhgt1;
+  mat2[i,10] = mat1[i,7];  * pltd;
+  mat2[i,11] = mat1[i,14]; * elev;
+  mat2[i,12] = mat1[i,15]; * slope;
+  mat2[i,13] = mat1[i,9];  * milvo1;
+  mat2[i,15] = mat1[i,10]; * mpita1;
+  mat2[i,17] = mat1[i,11]; * mqum31;
+  mat2[i,19] = mat1[i,12]; * mqumx1;
+  mat2[i,21] = mat1[i,13]; * covm1;
+  mat2[i,23] = mat1[i,16]; * mhgt1;
 end;
 * print mat2;
 
@@ -170,8 +189,8 @@ do i = 1 to nrecords;
 end;    * end i loop;
 * print mat2;
 
-cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat', 'aspect', 'hydr', 'soil', 'elev', 
-			'slope', 'ilvo1', 'ilvo2', 'pita1', 'pita2', 'qum31', 'qum32', 'quma1', 'quma2', 
+cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat', 'aspect', 'hydr', 'soil', 'pltd', 
+			'elev', 'slope', 'ilvo1', 'ilvo2', 'pita1', 'pita2', 'qum31', 'qum32', 'quma1', 'quma2', 
 			'covm1', 'covm2', 'mhgt1', 'mhgt2'};
 create seedpairs from mat2 [colname = cnames1];
 append from mat2;
@@ -179,8 +198,8 @@ append from mat2;
 quit; run;
 
 /* 
-proc print data=seedpairs; title 'seedpairs'; run; *N=202;
-proc freq data=seedpairs; tables soil; run; 	   * 156 sand, 46 gravel;
+proc print data=seedpairs; title 'seedpairs'; run; *N=274;
+proc freq data=seedpairs; tables soil; run; 	   * 207 sand, 67 gravel;
 */
 *******Need to fix height---right now, just one mean height for all species/plot/year;
 
@@ -194,10 +213,10 @@ data seedpairspp; set seedpairs;
 run;
 data seedspref;  set seedpairspp;
 	if yrcat='pref';
-run; *N=78;
+run; *N=94;
 data seedspost; set seedpairspp;
 	if yrcat='post'; 
-run; *N=124;
+run; *N=180;
 *pooling data in seedspre;
 proc sort  data=seedspref; by plot bcat elev hydr slope soil aspect;
 proc means data=seedspref n mean noprint; by plot bcat elev hydr slope soil aspect;
@@ -205,7 +224,7 @@ proc means data=seedspref n mean noprint; by plot bcat elev hydr slope soil aspe
 	output out=mseedspref n=nilv npit nqm3 nqma ncov nhgt 
 		   			  mean=milv mpit mqm3 mqma mcov mhgt;
 run;
-*proc print data=mseedspref; title 'mseedspref'; run; *N=40;
+*proc print data=mseedspref; title 'mseedspref'; run; *N=51;
 
 *structure 1;
 proc sort data=seedspost; by plot bcat elev hydr slope soil aspect;
@@ -213,7 +232,7 @@ proc sort data=mseedspref; by plot bcat elev hydr slope soil aspect; run;
 data seedsmerge1; merge seedspost mseedspref; by plot bcat elev hydr slope soil aspect; 	
 	drop _TYPE_ _FREQ_ yrcat; 
 run;
-*proc print data=seedsmerge1; title 'seedsmerge1'; run;	*N=133;
+*proc print data=seedsmerge1; title 'seedsmerge1'; run;	*N=186;
 *proc contents data=seedsmerge1; run;
 
 
@@ -224,13 +243,15 @@ data dat2012; set seedspost; if year=2012;
 data dat2013; set seedspost; if year=2013; 
 	 rename pita=pita13 quma=quma13 ilvo=ilvo13 qum3=qum313 caco=cov13; 
 data dat2014; set seedspost; if year=2014; 
-	 rename pita=pita14 quma=quma14 ilvo=ilvo14 qum3=qum314 caco=cov14; 
+	 rename pita=pita14 quma=quma14 ilvo=ilvo14 qum3=qum314 caco=cov14;  
+data dat2015; set seedspost; if year=2015; 
+	 rename pita=pita15 quma=quma15 ilvo=ilvo15 qum3=qum315 caco=cov15; 
 data prefavg; set mseedspref; 
 	 rename nilv=nilvopre npit=npitapre nqm3=nquma3pre nqma=nqumapre ncov=ncovpre nhgt=nhgtpre 
 		   	milv=milvopre mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtpre;
 run;
-data seedsmerge2; merge prefavg dat2012 dat2013 dat2014; by plot; drop year; run;
-*proc print data=seedsmerge2; title 'seedsmerge2'; run; *N=55;
+data seedsmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
+*proc print data=seedsmerge2; title 'seedsmerge2'; run; *N=62;
 
 /*
 proc export data=seedsmerge2
@@ -239,15 +260,3 @@ proc export data=seedsmerge2
    replace;
 run;
 */
-
-
-
-
-
-
-
-
-
-
-
-
