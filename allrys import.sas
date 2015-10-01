@@ -334,13 +334,10 @@ data seedlings2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 				 rename=(SizeClHt=heig) rename=(Count=coun) rename=(Comment=pltd));
 	set dat2; 
 data seedlings3 (keep=plot year sspp heig coun subp pltd); set seedlings2; 
-	if (sspp = 'PITAx') & (pltd = 'p') then pltd = '1';
-	if (sspp = 'PITAx') & (pltd = '' ) then pltd = '0';
-	newpltd = input(pltd,1.);
-	drop pltd;
-	rename newpltd=pltd;
-run;
 proc sort data = seedlings3; by plot year; run;
+*proc print data=seedlings3; title 'seedlings3'; run;
+*proc contents data=seedlings3; run;
+
 
 *merging with canopy cover;
 data seedlings3x; merge seedlings3 canopy3; by plot year; 
@@ -689,10 +686,11 @@ RUBUS and SMILA2 are shrubs
 5 UNSE1	(Unknown seedling) (2003, plot 1195)
 1 XXXX -- 2005, plot 1203. Nothing in herbaceous quadrats.;
 
-/*proc sql;
-	select *
-	from herb2
-	where sspp eq 'XXXX';
+/*
+proc sql;
+	select plot, year, sspp
+	from herb3xx
+	where sspp eq 'LEMUx';
 quit;
 */
 
@@ -761,12 +759,13 @@ data alld; set seedlings4 seedlingprobspp saplings5 saplingprobspp
 			   overstory4 shrubs5 shrubsprobspp herb5 herbprobspp trans3; 
 	*dropping all data from 1999. useless sfa data;
 	if year = 1999 then delete;
+	if (plot = 1242 | plot = 1244 |plot = 1245 |plot = 1246 |plot = 1247) then delete;
 	*splitting to into pre/post fire variable 'prpo';
 	if year < 2011  then prpo = 1;
    	if year >= 2011 then prpo = 2;
 	* 12 'missing' years that come from postburn severity metric, all come from 2011;
 	if year = '.' 	then year = 2011;
-run; *N = 59195;
+run; *N = 60109;
 proc sort data=alld; by plot year subp; run;
 
 /* proc contents data=alld; title 'all'; run;
