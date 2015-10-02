@@ -10,7 +10,6 @@ data piquilseedx; set alld;
 	drop pltd;
 	rename newpltd=pltd;
 run;  
-
 data piquilseed; set piquilseedx;
 	keep aspect pltd bcat coun covm elev heig hydrn plot slope soileb sspp subp year prpo; 
 run;
@@ -264,6 +263,7 @@ run;
 data seedsmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
 *proc print data=seedsmerge2; title 'seedsmerge2'; run; 
 	*N=55----not 56 like all the others b/c 1226 was never surveyed for seedlings or shrubs;
+
 
 /*
 proc export data=seedsmerge2

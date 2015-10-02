@@ -497,16 +497,19 @@ data overstory1; set overstory;
 	if Status = 'D' then delete;
 	if Species_Symbol='' then delete; 
 	subp = 'tree';
+	coun = .;
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set overstory1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data overstory2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 				 rename=(DBH=diam) rename=(CrwnRto=crwn));
-	set dat2;
-data overstory3 (keep=plot year sspp diam crwn subp);	
+	set dat2; run;
+data overstory3 (keep=plot year sspp diam crwn coun subp);	
 	year = year(date); 
 	if year = '.' then year = 1999;
+	if sspp =  'XXXXx' then coun=0;
+	if sspp NE 'XXXXx' then coun=1;
 	set overstory2;
 run;
 proc sort data=overstory3; by plot year; run;  *N=5278;
@@ -516,6 +519,10 @@ run;  *N=5312;
 *merging with plothist;
 data overstory3xx; merge overstory3x plothist; by plot; run;
 proc sort data=overstory3xx; by plot year;	run;
+proc sql;
+	select sspp, coun
+	from overstory3xx;
+quit;
 /*proc contents data=overstory3xx; title 'overstory3xx'; run;  * N =5316;
 proc print data=overstory3xx; title 'overstory3xx'; run;
 proc freq data=overstory3xx; tables sspp; run;  */

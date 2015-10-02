@@ -1,50 +1,44 @@
-*---- # of obs of each plot -------------------;
-proc sort data=seedlings4; by hydr bcat plot;
-proc means data=seedlings4 noprint n; by hydr bcat plot;
-  output out=mout1 n=n;
-proc print data=mout1; title 'mout1'; * N = 25 plots;
-run;
-
+/*
 *---- subset the data by species and reorg-------------;
 proc sort data=seedlings4; by plot;
 
-data pita; set seedlings4; if sspp="pita"; 
+data pita; set seedlings4; if sspp="PITAx"; 
   if heig=1 then npita1 = num; if heig=2 then npita2 = num;
   if heig=3 then npita3 = num; if heig=4 then npita4 = num;
   if heig=5 then npita5 = num; 
-proc print data=pita; title 'pita';  * N = 19 obs;
+proc print data=pita; title 'pita';  * N = 185 obs;
 run;
 proc means data=pita sum noprint; by plot bcat hydr; 
  var npita1-npita5;
  output out=pita2 sum = spita1-spita5;
-proc print data=pita2; title 'pita2';  * N = 12 non-zero plots;
+proc print data=pita2; title 'pita2';  * N = 36 non-zero plots;
 run;
 proc freq data=pita2; tables bcat*hydr;
 run;
 
-data quma; set seedlings4; if sspp="quma"; 
+data quma; set seedlings4; if sspp="QUMAx"; 
   if heig=1 then nquma1 = num; if heig=2 then nquma2 = num;
   if heig=3 then nquma3 = num; if heig=4 then nquma4 = num;
   if heig=5 then nquma5 = num; 
-proc print data=quma; title 'quma';  * N = 19 obs;
+proc print data=quma; title 'quma';  * N = 181 obs;
 run;
 proc means data=quma sum noprint; by plot bcat hydr; 
  var nquma1-nquma5;
  output out=quma2 sum = squma1-squma5;
-proc print data=quma2; title 'quma2';  * N = 13 plots;
+proc print data=quma2; title 'quma2';  * N = 31 plots;
 run;
 proc freq data=quma2; tables bcat*hydr;
 run;
 
-data empty; set seedlings4; if sspp="x";
- holder = 0; * N = 5;
+data empty; set seedlings4; if sspp="XXXXx";
+ holder = 0; * N = 10;
 proc print data=empty; title 'empty';
 run;
 
 data datreorg; merge pita2 quma2 empty; by plot;
   drop num heig;
 proc print data=datreorg; title 'datreorg';
-run;
+run; *N=47;
 
 *---- analysis of total number --------------;
 data dattotn; set datreorg;
@@ -56,12 +50,14 @@ data dattotn; set datreorg;
   if (squma5=.) then squma5=0;
   totpita = spita1 + spita2 + spita3 + spita4 + spita5;
   totquma = squma1 + squma2 + squma3 + squma4 + squma5;
-
+*/
 
 * --- analyze only plots without mulch, no pooling----;
-data nomulch; set dattotn; if hydr = 'n';  * N = 14;
+data nomulch; set seedsmerge2; if hydr = '0';  
 proc print data=nomulch; title 'nomulch';
-run;
+run; * N = 44;
+
+/* *old models from orig. analyses;
 * pita - ols;
 proc glm data=nomulch; class bcat;
   model totpita = bcat;
@@ -78,32 +74,73 @@ run;
 proc genmod data=nomulch; class bcat;
   model totquma = bcat/ dist = negbin link=log type1 type3;
 run; * NS;
+*/
 
-* ---- analyze only plots without mulch, with pooling;
+proc glimmix data=nomulch; title 'effect of bcat w/ no mulch';
+  class bcat;
+  model pita12 =  bcat / distribution=negbin link=log solution DDFM=bw; 
+  *model quma15 = pltd / distribution=negbin link=log solution DDFM=bw;
+  *model qum315 = pltd / distribution=negbin link=log solution DDFM=bw;
+  *model ilvo15 = pltd / distribution=negbin link=log solution DDFM=bw;
+  *lsmeans pltd / ilink cl; 
+  output out=glmout2 resid=ehat;
+run;
+proc freq data=nomulch; tables hydr*bcat; run;
+
+* ---- analyze only plots without mulch, pooling unburned/scorch/light;
 data nomulchpool; set nomulch;
-  if (bcat='u'|bcat='s') then burn='L1';
-  if (bcat='l') then burn='L2';
+  if (bcat=0|bcat=1) then burn='L1';
+*  if (bcat='l') then burn='L2';
 *  if (bcat='m'|bcat='h') then burn='L3'; * not used;
-  if (bcat='m') then burn='L3';
-  if (bcat='h') then burn='L4';
+  if (bcat=2) then burn='L2';
+*  if (bcat='h') then burn='L4';
+run;
+proc freq data=nomulchpool; tables hydr*burn; run; *L1:21, L2:23;
 
+/*
 * pita - genmod;
 proc genmod data=nomulchpool; class burn;
-  model totpita = burn/ dist = negbin link=log type1 type3;
+  model pita12 = burn/ dist = negbin link=log type1 type3;
 run;
 * dispersion =  2.7647;
 * burn df=3 X2 = 7.17  P = 0.0666;
+*/
 
+proc glimmix data=nomulchpool; title 'effect of bcat w/ no mulch';
+  class burn;
+  model pita12 =  burn / distribution=negbin link=log solution DDFM=bw; 
+  *model quma15 = pltd / distribution=negbin link=log solution DDFM=bw;
+  *model qum315 = pltd / distribution=negbin link=log solution DDFM=bw;
+  *model ilvo15 = pltd / distribution=negbin link=log solution DDFM=bw;
+  *lsmeans pltd / ilink cl; 
+  output out=glmout2 resid=ehat;
+run;
+
+/*
 proc genmod data=nomulchpool; class burn;
   model totquma = burn/ dist = negbin link=log type1 type3;
 run; * NS;
-
+*/
 
 * ---- analyze only burned plots ------;
-data allburn; set dattotn;
-  if (bcat='l'|bcat='m'|bcat='h'); * N = 19;
-proc print data=allburn; title 'allburn';
+data burnplots; set seedsmerge2;
+  if (bcat=1|bcat=2); 
+proc print data=burnplots; title 'burnplots';
+run; * N = 53;
+
+proc glimmix data=burnplots; title 'effect of bcat & hydr in burned plots only';
+  class bcat hydr;
+  *model pita12 =  bcat / distribution=negbin link=log solution DDFM=bw;  
+  *model pita12 =  bcat hydr/ distribution=negbin link=log solution DDFM=bw; 
+  model pita12 =  bcat hydr bcat*hydr/ distribution=negbin link=log solution DDFM=bw; 
+  *model quma15 = pltd / distribution=negbin link=log solution DDFM=bw;
+  *model qum315 = pltd / distribution=negbin link=log solution DDFM=bw;
+  *model ilvo15 = pltd / distribution=negbin link=log solution DDFM=bw;
+  lsmeans bcat*hydr / ilink cl; 
+  output out=glmout2 resid=ehat;
 run;
+
+/*
 * pita;
 proc genmod data=allburn; class bcat hydr;
   model totpita = bcat hydr / dist = negbin link=log type1 type3;
@@ -138,4 +175,4 @@ run;
 * type 1 bcat df=2 X2=3.66 P = 0.1603
          hydr  df=2  X2=10.91 P=0.0043
          int df=3 X2=17.59 P = 0.0005;
-
+*/

@@ -1,5 +1,5 @@
-*10/1/2015;
-proc glimmix data=seedsmerge2; title 'bcat models';
+*10/1/2015: pltd models;
+proc glimmix data=seedsmerge2; title 'pltd models';
   *class pltd;
   model pita15 =  cov14 / distribution=negbin link=log solution DDFM=bw; 
   *model quma15 = pltd / distribution=negbin link=log solution DDFM=bw;
@@ -8,6 +8,7 @@ proc glimmix data=seedsmerge2; title 'bcat models';
   *lsmeans pltd / ilink cl; 
   output out=glmout2 resid=ehat;
 run;
+**********;
 
 proc glimmix data=seedsmerge2; title 'bcat models';
   class bcat;
