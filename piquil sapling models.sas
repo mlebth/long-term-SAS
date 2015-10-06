@@ -26,10 +26,10 @@ proc glimmix data=sapmerge2 method=laplace; title 'bcat models';
 run;
 
 *canopy cover models;
-proc glimmix data=sapmerge2 method=laplace; title 'bcat models';
-  model pita12 = cov12 / distribution=negbin link=log solution DDFM=bw;
-  *model quma15 = caco / distribution=negbin link=log solution DDFM=bw;
-  *model qum315 = caco / distribution=negbin link=log solution DDFM=bw;
+proc glimmix data=sapmerge2 ;  title 'bcat models';
+  *model pita15 = cov15 / distribution=negbin link=log solution DDFM=bw;
+  model quma14 = cov14 / distribution=negbin link=log solution DDFM=bw;
+  *model mquma3pre = mcovpre / distribution=negbin link=log solution DDFM=bw;
   output out=glmout2 resid=ehat;
 run;
 

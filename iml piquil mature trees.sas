@@ -1,6 +1,8 @@
 ****************putting saplings and shrubs together to have pines, oaks, and ilex in the same set;
 data piquiltrees; set alld;
-	if (subp = 'tree');
+	if (subp = 'tree');		
+	if sspp =  'XXXXx' then coun=0;
+					   else coun=1;
 	keep aspect bcat covm coun elev diam crwn hydrn plot slope soileb sspp subp year prpo; 
 run; 
 proc sort data=piquiltrees; by subp plot sspp year bcat covm coun diam crwn soileb elev slope aspect hydrn prpo; run;
@@ -44,7 +46,7 @@ data holdqustx; set piquiltrees2; if (sspp = 'QUSTx'); nqustx = nperspp;
 data holdjuvix; set piquiltrees2; if (sspp = 'JUVIx'); njuvix = nperspp; 
 	proc sort data=holdjuvix; by plot bcat year;  
 data holdxxxxx; set piquiltrees2; if (sspp = 'XXXXx'); 
-	nquma3 = nperspp & nqumax = nperspp & npitax = nperspp & nqustx = nperspp & njuvix = nperspp; 
+	nquma3 = nperspp; nqumax = nperspp; npitax = nperspp; nqustx = nperspp; njuvix = nperspp; 
 	proc sort data=holdxxxxx; by plot bcat year; 
 run;
 /* proc print data=holdquma3; run; 	*N=261;
@@ -253,15 +255,3 @@ proc export data=treemerge2
    replace;
 run;
 */
-
-
-
-
-
-
-
-
-
-
-
-

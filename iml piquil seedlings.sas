@@ -39,17 +39,15 @@ data holdqumax; set piquilseed2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'Q
 data holdpitax; set piquilseed2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'PITAx'); npitax = nperspp; 
 	proc sort data=holdpitax; by plot bcat year; 
 data holdilvox; set piquilseed2; if (subp = 'seep' | subp = 'shru') & (sspp = 'ILVOx'); nilvox = nperspp; 
-data holdxxxxx; set piquilseed2; if (subp = 'seed') 				& (sspp = 'XXXXx'); nquma3 = nperspp; 
-data holdxxxxx; set piquilseed2; if (subp = 'seed') 				& (sspp = 'XXXXx'); nqumax = nperspp; 
-data holdxxxxx; set piquilseed2; if (subp = 'seed') 				& (sspp = 'XXXXx'); npitax = nperspp; 
-data holdxxxxx; set piquilseed2; if (subp = 'shru') 				& (sspp = 'XXXXx'); nilvox = nperspp; 
+data holdxxxxx; set piquilseed2; if (subp = 'seed' | subp = 'shru') & (sspp = 'XXXXx'); 
+	nquma3 = nperspp; nqumax = nperspp;	npitax = nperspp; nilvox = nperspp; 
 	proc sort data=holdxxxxx; by plot bcat year; 
 run;
 /* proc print data=holdquma3; run; 	*N=299;
    proc print data=holdqumax; run; 	*N=216;	
    proc print data=holdpitax; run; 	*N=231;
    proc print data=holdilvox; run; 	*N=252;    
-   proc print data=holdxxxxx; run; 	*N=17; */
+   proc print data=holdxxxxx; run; 	*N=24; */
 
 proc sort data=piquilseed2; by plot bcat year pltd; run;
 *n(spp) is count, pa(spp) is presence/absence;
