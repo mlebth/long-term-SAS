@@ -117,7 +117,7 @@ proc print data=hist; run;  * N = 56; */
 * variables: 
    burnsev (u, s, l, m, h) = wildfire severity
    hydr (n, l, h) = post-wildfire (2012) hydromulch [n = none, l = light, h = heavy]
-   hydrn = 2012 hydromulch given numbers for iml [n = 0, l = 0, h = 2]--'l' category eliminated
+   hydrn = 2012 hydromulch given numbers for iml [n = 1, l = 2, h = 2] --combining light and heavy;
    hyyr = year of hydromulch application. Variable added when more was applied in 2014.
 		NOTE that 2012 hydro was a different mix:
 		2012 (Triticale, Leptochloa dubia), 2014 (Schizachryium scoparium)
@@ -134,9 +134,9 @@ proc print data=hist; run;  * N = 56; */
                                                               
 *plot history cleanup;
 data hist2; set hist (rename=(aspect=oldaspect));
-   if hydr = 'n' then hydrn = 0;
-   if hydr = 'l' then hydrn = 0;
-   if hydr = 'h' then hydrn = 1;
+   if hydr = 'n' then hydrn = 1;
+   if hydr = 'l' then hydrn = 2;
+   if hydr = 'h' then hydrn = 2;
    drop soil1;
    soil = soil2;
    drop soil2;
@@ -218,20 +218,20 @@ data plothistx (drop=_TYPE_ _FREQ_); set plothist1;
 	if meansev = 5     then burnsev = 'u';
 	if meansev = 9 	   then delete;
 	* makes new set of treatment names with natural ordering for graphs and constrasts;
-    if burnsev = 'u' then burn = 0;
-    if burnsev = 's' then burn = 1;
-    if burnsev = 'l' then burn = 2;
-    if burnsev = 'm' then burn = 3;
-    if burnsev = 'h' then burn = 4;
+    if burnsev = 'u' then burn = 1;
+    if burnsev = 's' then burn = 2;
+    if burnsev = 'l' then burn = 3;
+    if burnsev = 'm' then burn = 4;
+    if burnsev = 'h' then burn = 5;
 	* poolingA - scorch, light, moderate;
-    if (burnsev = 'h' | burnsev = 'm') then bcat = 2;
-    if (burnsev = 'l' | burnsev = 's') then bcat = 1;
-    if (burnsev = 'u') then bcat = 0;
+    if (burnsev = 'h' | burnsev = 'm') then bcat = 3;
+    if (burnsev = 'l' | burnsev = 's') then bcat = 2;
+    if (burnsev = 'u') then bcat = 1;
     * poolingB - combine scorch + light;
-    if (burnsev = 'h') then bcat2 = 3;
-    if (burnsev = 'm') then bcat2 = 2;
-    if (burnsev = 's' | burnsev = 'l') then bcat2 = 1;	
-    if (burnsev = 'u') then bcat2 = 0;
+    if (burnsev = 'h') then bcat2 = 4;
+    if (burnsev = 'm') then bcat2 = 3;
+    if (burnsev = 's' | burnsev = 'l') then bcat2 = 2;	
+    if (burnsev = 'u') then bcat2 = 1;
 	*typecat for new plots--all forest;
 	if typecat = '' then typecat = 'f';
 run;
@@ -259,7 +259,8 @@ proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long
 out=canopy dbms=csv replace; getnames=yes;
 run;  
 proc sort data = canopy; by plot year; run;	
-/* proc contents data = canopy; title 'canopy'; run; * N = 243;
+
+/* proc contents data = canopy; title 'canopy'; run; * N = 242;
 proc print data = canopy; title 'canopy'; run;  
 
 *Variables: 
@@ -296,7 +297,7 @@ run;
 
 data canopy3 (keep = year plot covm); set canopy;
 proc sort data=canopy3; by plot year; run;
-/* proc print data=canopy3; title 'plothist'; run; *N = 243; 
+/* proc print data=canopy3; title 'plothist'; run; *N = 242; 
 proc contents data=canopy3; run;*/
 
 *----------------------------------------- TREES --------------------------------------------------;
@@ -305,7 +306,7 @@ proc contents data=canopy3; run;*/
 
 proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\seedlings-allyrs.csv"
 out=seedlings dbms=csv replace; getnames=yes;
-run;  * N = 1285;
+run;  * N = 1555;
 *proc print data=seedlings; title 'seedlings'; run;
 
 /* 
@@ -341,7 +342,7 @@ proc sort data = seedlings3; by plot year; run;
 
 *merging with canopy cover;
 data seedlings3x; merge seedlings3 canopy3; by plot year; 
-run;  *N=1310;
+run;  *N=1459;
 *merging with plothist;
 data seedlings3xx; merge seedlings3x plothist; by plot; run;
 proc sort data=seedlings3xx; by plot year;	run;
@@ -351,9 +352,9 @@ proc contents data=seedlings3xx; run;  * N = 1310;
 proc freq data=seedlings3xx; tables year*covm; run; 
 
 proc sql;
-	select plot, year, sspp, subp, covm, slope, elev
+	select plot, year, sspp, subp, covm
 	from seedlings3x
-	where covm = '.';
+	where covm eq .;
 quit;
 
 *variables:

@@ -1,16 +1,16 @@
-proc freq data=seedsmerge2; tables hydr; run; *44 plots with 0 mulch, 11 with mulch;
+proc freq data=seedsmerge2; tables hydr; run; *40 plots with 0 mulch, 15 with mulch;
 
 * --- subset of data, no mulch only----;
-data nomulch; set seedsmerge2; if hydr = '0';  
+data nomulch; set seedsmerge2; if hydr = '1';  
 proc print data=nomulch; title 'nomulch';
-run; * N = 44;
+run; * N = 40;
 
 * ---- pooling unburned/scorch/light;
 data nomulchpool; set nomulch;
-  if (bcat=0|bcat=1) then burn='L1';
-  if (bcat=2) then burn='L2';
+  if (bcat=1|bcat=2) then burn='L1';
+  if (bcat=3) then burn='L2';
 run;
-proc freq data=nomulchpool; tables hydr*burn; run; *L1:21, L2:23;
+proc freq data=nomulchpool; tables hydr*burn; run; *L1:20, L2:20;
 
 proc glimmix data=nomulchpool; title 'effect of bcat w/ no mulch';
   class burn;
@@ -30,7 +30,7 @@ run; * NS;
 
 * ---- analyze only burned plots ------;
 data burnplots; set seedsmerge2;
-  if (bcat=1|bcat=2); 
+  if (bcat=2|bcat=3); 
 proc print data=burnplots; title 'burnplots';
 run; * N = 53;
 proc freq data=burnplots; tables bcat; run;	*level 1: 19, level 2: 	34;

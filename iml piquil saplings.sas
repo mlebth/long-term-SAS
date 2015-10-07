@@ -5,11 +5,28 @@ data piquilsap; set alld;
 run; 
 proc sort data=piquilsap; by subp plot sspp year bcat covm coun diam heig soileb elev slope aspect hydrn prpo; run;
 proc means data=piquilsap noprint sum; by subp plot sspp year bcat covm coun diam heig soileb elev slope aspect hydrn prpo; var coun; 
-  output out=piquilsap2 sum=nperspp; run; *N=1674;
+  output out=piquilsap2 sum=nperspp; run; *N=1673;
 /* proc print data=piquilsap2; title 'pi-qu-il numplantdata';    run;
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
   nperspp = # of sdlngs/stems per species per plot/year;  */
+
+  /*
+proc sort data=piquilsap2; by sspp year; run;
+proc means data=piquilsap2 noprint n nmiss; by sspp year; var covm;
+	output out=piquilsapnum n=ncover nmiss=ncovmiss; run;
+proc print data=piquilsapnum; run;
+
+proc sql;
+	select sspp, year, plot, covm
+	from piquilsap
+	where sspp = 'PITAx' & year eq 2014;
+quit;
+
+proc glm data=piquilsap2; by sspp year;
+	model coun = covm / solution;
+run;
+*/
 
 /* checking slope for problem plot. slope = 3;
 proc sql;
@@ -36,6 +53,7 @@ quit;
   			  JUVI--123
   next most common, PODE--41, QUST--37
    Include JUVI and others?;
+*/
 
 *reassigning nperspp to nquma3, nqumax, npitax. This gives num per species where each species
 has its own variable for count;
@@ -255,7 +273,7 @@ data prefavg; set msappref;
 		   	mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtpre mdbh=mdhbpre;
 run; 														  
 data sapmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
-*proc print data=sapmerge2; title 'sapmerge2'; run; 	 	  *N=56;
+* proc print data=sapmerge2; title 'sapmerge2'; run; 	 	  *N=56;
 
 /*
 proc export data=sapmerge2
@@ -264,3 +282,5 @@ proc export data=sapmerge2
    replace;
 run;
 */
+
+
