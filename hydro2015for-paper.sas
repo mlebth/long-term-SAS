@@ -22,6 +22,10 @@ proc glimmix data=nomulchpool; title 'effect of bcat w/ no mulch';
   output out=glmout2 resid=ehat;
 run;
 
+proc genmod data=nomulchpool; title 'effect of bcat w/ no mulch';
+  class burn;
+  model pita12 =  burn / distribution=negbin link=log type1 type3; 
+run;
 /*
 proc genmod data=nomulchpool; class burn;
   model totquma = burn/ dist = negbin link=log type1 type3;

@@ -506,10 +506,9 @@ data dat2; set overstory1;
 data overstory2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 				 rename=(DBH=diam) rename=(CrwnRto=crwn));
 	set dat2; run;
-data overstory3 (keep=plot year sspp diam crwn coun subp);	
+data overstory3 (keep=plot year sspp diam crwn coun subp); set overstory2;	
 	year = year(date); 
-	if year = '.' then year = 1999;
-	set overstory2;
+	if year = '.' then year = 1999;	
 run;
 proc sort data=overstory3; by plot year; run;  *N=5278;
 *merging with canopy cover;
@@ -546,7 +545,7 @@ run;
 /* proc freq data = overstory4; tables sspp; run;  *N = 5316; */
 
 *--------------------------------------- SHRUBS -----------------------------------------------------;
-proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\shrubs-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Shrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
@@ -564,19 +563,18 @@ data shrubs1; set shrubs;
 	if Species_Symbol='' then delete; 
 	if Status = 'D' then delete;
 	subp = 'shru';
-	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything; run;
 data dat2; set shrubs1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data shrubs2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)	
 			  rename=(AgeCl=agec) rename=(Count=coun));
-	set dat2;
-data shrubs3 (keep=plot year sspp agec coun subp);
-	year = year(date);
+	set dat2; run;
+data shrubs3 (keep=plot year sspp agec coun subp); set shrubs2;
+	year = year(Date);
 	if year = '.' then year = 1999;
-	set shrubs2;
 run;
-proc sort data=shrubs3; by plot year; run; 
+proc sort data=shrubs3; by plot year; run; 	
 *merging with canopy cover;
 data shrubs3x; merge shrubs3 canopy3; by plot year; 
 run;  *N=1147;
@@ -662,9 +660,8 @@ data dat2; set herb1;
 	char3 = char2; run;
 data herb2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp) rename=(Count=coun));
 	set dat2;
-data herb3 (keep=plot year sspp coun subp);
-	year = year(date);
-	set herb2;
+data herb3 (keep=plot year sspp coun subp);	set herb2;
+	year = year(date);	
 run;
 proc sort data = herb3; by plot year; run; 
 *merging with canopy cover;
@@ -740,10 +737,9 @@ data dat2; set trans1;
 data trans1x (rename=(MacroPlot_Name=plot) 
 			rename=(char3=sspp) rename=(Height=heig));
 	set dat2;
-data trans2 (keep=plot year sspp heig subp);
+data trans2 (keep=plot year sspp heig subp); set trans1x;
 	year = year(date);
-	if year = '.' then year = 1999;
-	set trans1x;
+	if year = '.' then year = 1999;	
 run;
 proc sort data = trans2; by plot year; run;	
 *merging with canopy cover;
@@ -883,8 +879,8 @@ proc freq data=relabund; tables sspp*burn; run;
 proc freq data=relabund; tables sspp*prpo; run;
 */
 
-/**--------------------------------demographic data;
-proc import datafile="G:\Research\Demography\demogdata3.csv"
+/**--------------------------------demographic data; 
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 
 proc print data=demog; run;

@@ -14,10 +14,10 @@ run;
 
 proc glimmix data=seedsmerge2; title 'bcat models';
   class bcat;
-  *model pita14 = bcat / distribution=negbin link=log solution DDFM=residual;
-  model quma13 = bcat / distribution=negbin link=log solution DDFM=residual;
-  *model qum314 = bcat / distribution=negbin link=log solution DDFM=residual;
-  *model ilvo12 = bcat / distribution=negbin link=log solution DDFM=residual;
+  model pita14 = bcat / distribution=negbin link=log solution DDFM=residual;
+  *model quma15 = bcat / distribution=negbin link=log solution DDFM=residual;
+  *model qum315 = bcat / distribution=negbin link=log solution DDFM=residual;
+  *model ilvo15 = bcat / distribution=negbin link=log solution DDFM=residual;
   lsmeans bcat / ilink cl;
   output out=glmout2 resid=ehat;
 run;
@@ -54,8 +54,9 @@ proc glimmix data=seedsmerge2; title 'pita models';
   lsmeans bcat*soil/ ilink cl;
   output out=glmout2 resid=ehat;
 run;
+
 proc glimmix data=seedsmerge2; title 'pita models';
-  model pita14 = pita13 
+  model pita15 = pita14
        / distribution=negbin link=log solution DDFM=residual; 
   *model pita13 = pita12 
        / distribution=negbin link=log solution DDFM=residual;  
@@ -88,11 +89,11 @@ output out=glmout2 resid=ehat;
 run; 
 
 proc glimmix data=seedsmerge2; title 'quma models';
-  *model quma14 =  quma13
+  model quma15 =  quma14
        / distribution=negbin link=log solution DDFM=residual;  
   *model quma13 =  quma12
        / distribution=negbin link=log solution DDFM=residual;  
-  model quma12 =  mqumapre
+  *model quma12 =  mqumapre
        / distribution=negbin link=log solution DDFM=residual;
 output out=glmout2 resid=ehat;
 run; *
@@ -127,7 +128,7 @@ proc glimmix data=seedsmerge2; title 'quma3 models';
 run;
 
 proc glimmix data=seedsmerge2; title 'quma3 models';
-  model qum314 = qum313 
+  model qum315 = qum314 
        / distribution=negbin link=log solution DDFM=residual;  
   *model qum313 = qum312 
        / distribution=negbin link=log solution DDFM=residual;  
@@ -168,11 +169,11 @@ proc glimmix data=seedsmerge2; title 'ilvo models';
 run;
 
 proc glimmix data=seedsmerge2; title 'ilvo models';
-  *model ilvo14 = ilvo13 
+  model ilvo15 = ilvo14
        / distribution=negbin link=log solution DDFM=residual;  
   *model ilvo13 = ilvo12 
        / distribution=negbin link=log solution DDFM=residual;  
-  model ilvo12 = milvopre 
+  *model ilvo12 = milvopre 
        / distribution=negbin link=log solution DDFM=residual; 
   output out=glmout2 resid=ehat;
 run;
@@ -181,10 +182,10 @@ run;
 *****************bcat models;
 proc glimmix data=seedsmerge2; title 'bcat models';
   class bcat;  
-  *model pita14 = bcat / distribution=negbin link=log solution DDFM=residual; 
-  *model quma13 = bcat / distribution=negbin link=log solution DDFM=residual; 
-  *model qum314 = bcat / distribution=negbin link=log solution DDFM=residual; 
-  model ilvo12 = bcat / distribution=negbin link=log solution DDFM=residual;  	
+  model pita15 = bcat / distribution=negbin link=log solution DDFM=residual; 
+  *model quma15 = bcat / distribution=negbin link=log solution DDFM=residual; 
+  *model qum315 = bcat / distribution=negbin link=log solution DDFM=residual; 
+  *model ilvo15 = bcat / distribution=negbin link=log solution DDFM=residual;  	
   lsmeans bcat / ilink cl;
   output out=glmout2 resid=ehat;
 run;
@@ -192,10 +193,10 @@ run;
 *****************soil models;
 proc glimmix data=seedsmerge2; title 'soil models'; 
   class soil;  
-  *model mpitapre = soil / distribution=negbin link=log solution DDFM=residual; 
-  *model mqumapre = soil / distribution=negbin link=log solution DDFM=residual; 
-  *model mqumapre = soil / distribution=negbin link=log solution DDFM=residual; 
-  model milvopre = soil / distribution=negbin link=log solution DDFM=residual;  
+  model pita15 = soil / distribution=negbin link=log solution DDFM=residual; 
+  *model quma15 = soil / distribution=negbin link=log solution DDFM=residual; 
+  *model qum315 = soil / distribution=negbin link=log solution DDFM=residual; 
+  *model ilvo15 = soil / distribution=negbin link=log solution DDFM=residual;  
   lsmeans soil/ ilink cl;
   output out=glmout2 resid=ehat;
 run; 
