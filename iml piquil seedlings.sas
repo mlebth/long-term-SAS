@@ -1,10 +1,10 @@
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
 data piquilseedx; set alld;
 	if (subp = 'seed') | (subp = 'shrp') | (subp = 'shru') | (subp = 'seep'); 
-	*assigning 'planted' to entire plots where pines were planted and all else in 2015 '0';
+	*assigning 'planted' to entire plots where pines were planted (1=not planted, 2=planted);
 	if (plot = 1188 | plot = 1221 | plot = 1222 | plot = 1235 | plot = 1236 | plot = 1237 | plot = 5300)
-		& (year = 2015) then pltd = 1;
-	if (year = 2015) & pltd = . then pltd = 0;
+		& (year = 2015) then pltd = 2;
+	if (year = 2015) & pltd = . then pltd = 1;
 	*making pltd numeric;
 	newpltd = input(pltd,1.);
 	drop pltd;

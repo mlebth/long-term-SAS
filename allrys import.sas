@@ -426,7 +426,7 @@ data saplings1;	set saplings;
  	year = year(date);
 	subp = 'sapl';
 	if Status = 'D' then delete;
-	if Species_Symbol='' then delete;
+	if Species_Symbol='' then delete; 
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set saplings1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
