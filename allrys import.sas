@@ -117,7 +117,7 @@ proc print data=hist; run;  * N = 56; */
 * variables: 
    burnsev (u, s, l, m, h) = wildfire severity
    hydr (n, l, h) = post-wildfire (2012) hydromulch [n = none, l = light, h = heavy]
-   hydrn = 2012 hydromulch given numbers for iml [n = 1, l = 2, h = 2] --combining light and heavy;
+   hydrn = 2012 hydromulch given numbers for iml [n = 1, l = 2, h = 2] --combining light and heavy
    hyyr = year of hydromulch application. Variable added when more was applied in 2014.
 		NOTE that 2012 hydro was a different mix:
 		2012 (Triticale, Leptochloa dubia), 2014 (Schizachryium scoparium)

@@ -117,7 +117,7 @@ proc print data=hist; run;  * N = 56; */
 * variables: 
    burnsev (u, s, l, m, h) = wildfire severity
    hydr (n, l, h) = post-wildfire (2012) hydromulch [n = none, l = light, h = heavy]
-   hydrn = 2012 hydromulch given numbers for iml [n = 0, l = 0, h = 2]--'l' category eliminated
+   hydrn = 2012 hydromulch given numbers for iml [n = 1, l = 2, h = 2] --combining light and heavy;
    hyyr = year of hydromulch application. Variable added when more was applied in 2014.
 		NOTE that 2012 hydro was a different mix:
 		2012 (Triticale, Leptochloa dubia), 2014 (Schizachryium scoparium)
@@ -134,9 +134,9 @@ proc print data=hist; run;  * N = 56; */
                                                               
 *plot history cleanup;
 data hist2; set hist (rename=(aspect=oldaspect));
-   if hydr = 'n' then hydrn = 0;
-   if hydr = 'l' then hydrn = 0;
-   if hydr = 'h' then hydrn = 1;
+   if hydr = 'n' then hydrn = 1;
+   if hydr = 'l' then hydrn = 2;
+   if hydr = 'h' then hydrn = 2;
    drop soil1;
    soil = soil2;
    drop soil2;
@@ -218,20 +218,20 @@ data plothistx (drop=_TYPE_ _FREQ_); set plothist1;
 	if meansev = 5     then burnsev = 'u';
 	if meansev = 9 	   then delete;
 	* makes new set of treatment names with natural ordering for graphs and constrasts;
-    if burnsev = 'u' then burn = 0;
-    if burnsev = 's' then burn = 1;
-    if burnsev = 'l' then burn = 2;
-    if burnsev = 'm' then burn = 3;
-    if burnsev = 'h' then burn = 4;
+    if burnsev = 'u' then burn = 1;
+    if burnsev = 's' then burn = 2;
+    if burnsev = 'l' then burn = 3;
+    if burnsev = 'm' then burn = 4;
+    if burnsev = 'h' then burn = 5;
 	* poolingA - scorch, light, moderate;
-    if (burnsev = 'h' | burnsev = 'm') then bcat = 2;
-    if (burnsev = 'l' | burnsev = 's') then bcat = 1;
-    if (burnsev = 'u') then bcat = 0;
+    if (burnsev = 'h' | burnsev = 'm') then bcat = 3;
+    if (burnsev = 'l' | burnsev = 's') then bcat = 2;
+    if (burnsev = 'u') then bcat = 1;
     * poolingB - combine scorch + light;
-    if (burnsev = 'h') then bcat2 = 3;
-    if (burnsev = 'm') then bcat2 = 2;
-    if (burnsev = 's' | burnsev = 'l') then bcat2 = 1;	
-    if (burnsev = 'u') then bcat2 = 0;
+    if (burnsev = 'h') then bcat2 = 4;
+    if (burnsev = 'm') then bcat2 = 3;
+    if (burnsev = 's' | burnsev = 'l') then bcat2 = 2;	
+    if (burnsev = 'u') then bcat2 = 1;
 	*typecat for new plots--all forest;
 	if typecat = '' then typecat = 'f';
 run;
@@ -243,7 +243,7 @@ proc freq data=plothist; tables soileb*plot; run;
 
 *making a printout for EK;
 proc export data=plothist
-   outfile='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothist.csv'
+   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\plothist.csv'
    dbms=csv
    replace;
 run;
@@ -259,7 +259,8 @@ proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\C
 out=canopy dbms=csv replace; getnames=yes;
 run;  
 proc sort data = canopy; by plot year; run;	
-/* proc contents data = canopy; title 'canopy'; run; * N = 243;
+
+/* proc contents data = canopy; title 'canopy'; run; * N = 242;
 proc print data = canopy; title 'canopy'; run;  
 
 *Variables: 
@@ -296,7 +297,7 @@ run;
 
 data canopy3 (keep = year plot covm); set canopy;
 proc sort data=canopy3; by plot year; run;
-/* proc print data=canopy3; title 'plothist'; run; *N = 243; 
+/* proc print data=canopy3; title 'plothist'; run; *N = 242; 
 proc contents data=canopy3; run;*/
 
 *----------------------------------------- TREES --------------------------------------------------;
@@ -305,7 +306,7 @@ proc contents data=canopy3; run;*/
 
 proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings-allyrs.csv"
 out=seedlings dbms=csv replace; getnames=yes;
-run;  * N = 1285;
+run;  * N = 1555;
 *proc print data=seedlings; title 'seedlings'; run;
 
 /* 
@@ -341,7 +342,7 @@ proc sort data = seedlings3; by plot year; run;
 
 *merging with canopy cover;
 data seedlings3x; merge seedlings3 canopy3; by plot year; 
-run;  *N=1310;
+run;  *N=1459;
 *merging with plothist;
 data seedlings3xx; merge seedlings3x plothist; by plot; run;
 proc sort data=seedlings3xx; by plot year;	run;
@@ -351,9 +352,9 @@ proc contents data=seedlings3xx; run;  * N = 1310;
 proc freq data=seedlings3xx; tables year*covm; run; 
 
 proc sql;
-	select plot, year, sspp, subp, covm, slope, elev
+	select plot, year, sspp, subp, covm
 	from seedlings3x
-	where covm = '.';
+	where covm eq .;
 quit;
 
 *variables:
@@ -425,7 +426,7 @@ data saplings1;	set saplings;
  	year = year(date);
 	subp = 'sapl';
 	if Status = 'D' then delete;
-	if Species_Symbol='' then delete;
+	if Species_Symbol='' then delete; 
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set saplings1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
@@ -505,10 +506,9 @@ data dat2; set overstory1;
 data overstory2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 				 rename=(DBH=diam) rename=(CrwnRto=crwn));
 	set dat2; run;
-data overstory3 (keep=plot year sspp diam crwn coun subp);	
+data overstory3 (keep=plot year sspp diam crwn coun subp); set overstory2;	
 	year = year(date); 
-	if year = '.' then year = 1999;
-	set overstory2;
+	if year = '.' then year = 1999;	
 run;
 proc sort data=overstory3; by plot year; run;  *N=5278;
 *merging with canopy cover;
@@ -545,7 +545,7 @@ run;
 /* proc freq data = overstory4; tables sspp; run;  *N = 5316; */
 
 *--------------------------------------- SHRUBS -----------------------------------------------------;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\shrubs-allyrs.csv"
+proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Shrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
@@ -563,19 +563,18 @@ data shrubs1; set shrubs;
 	if Species_Symbol='' then delete; 
 	if Status = 'D' then delete;
 	subp = 'shru';
-	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything; run;
 data dat2; set shrubs1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data shrubs2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)	
 			  rename=(AgeCl=agec) rename=(Count=coun));
-	set dat2;
-data shrubs3 (keep=plot year sspp agec coun subp);
-	year = year(date);
+	set dat2; run;
+data shrubs3 (keep=plot year sspp agec coun subp); set shrubs2;
+	year = year(Date);
 	if year = '.' then year = 1999;
-	set shrubs2;
 run;
-proc sort data=shrubs3; by plot year; run; 
+proc sort data=shrubs3; by plot year; run; 	
 *merging with canopy cover;
 data shrubs3x; merge shrubs3 canopy3; by plot year; 
 run;  *N=1147;
@@ -661,9 +660,8 @@ data dat2; set herb1;
 	char3 = char2; run;
 data herb2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp) rename=(Count=coun));
 	set dat2;
-data herb3 (keep=plot year sspp coun subp);
-	year = year(date);
-	set herb2;
+data herb3 (keep=plot year sspp coun subp);	set herb2;
+	year = year(date);	
 run;
 proc sort data = herb3; by plot year; run; 
 *merging with canopy cover;
@@ -739,10 +737,9 @@ data dat2; set trans1;
 data trans1x (rename=(MacroPlot_Name=plot) 
 			rename=(char3=sspp) rename=(Height=heig));
 	set dat2;
-data trans2 (keep=plot year sspp heig subp);
+data trans2 (keep=plot year sspp heig subp); set trans1x;
 	year = year(date);
-	if year = '.' then year = 1999;
-	set trans1x;
+	if year = '.' then year = 1999;	
 run;
 proc sort data = trans2; by plot year; run;	
 *merging with canopy cover;
@@ -820,7 +817,7 @@ proc sql;
 	where sspp = 'CAAMx';
 quit; 
 
-PROC PRINTTO PRINT='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\alld.csv' NEW;
+PROC PRINTTO PRINT='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\alld.csv' NEW;
 RUN; 
 */
 
@@ -882,8 +879,8 @@ proc freq data=relabund; tables sspp*burn; run;
 proc freq data=relabund; tables sspp*prpo; run;
 */
 
-/**--------------------------------demographic data;
-proc import datafile="G:\Research\Demography\demogdata3.csv"
+/**--------------------------------demographic data; 
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 
 proc print data=demog; run;

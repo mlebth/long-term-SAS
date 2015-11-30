@@ -1,6 +1,6 @@
 ****************extracting saplings only to get pines and oaks in same set;
 data piquilsap; set alld;
-	if (subp = 'sapl') | (subp = 'shrp');
+	if (subp = 'sapl');	*currently only including sapling spp, not yaupon (shrp);
 	keep aspect bcat coun covm elev diam heig hydrn plot slope soileb sspp subp year prpo; 
 run; 
 proc sort data=piquilsap; by subp plot sspp year bcat covm coun diam heig soileb elev slope aspect hydrn prpo; run;
@@ -273,7 +273,8 @@ data prefavg; set msappref;
 		   	mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtpre mdbh=mdhbpre;
 run; 														  
 data sapmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
-* proc print data=sapmerge2; title 'sapmerge2'; run; 	 	  *N=56;
+* proc print data=sapmerge2; title 'sapmerge2'; run; 	 	  
+	*N=52 -- no data for plots 1211, 1212, 1218, 1219 b/c they are brush plots;
 
 /*
 proc export data=sapmerge2

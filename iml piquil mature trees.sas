@@ -234,23 +234,29 @@ run;
 *structure 2;
 proc sort data=treepost; by plot year;	run;
 data dat2012; set treepost; if year=2012; 
-	 rename pita=pita12 quma=quma12 qum3=qum312 qust=qust12 juvi=juvi12 caco=cov12;  
+	 rename pita=pita12tr quma=quma12tr qum3=qum312tr qust=qust12tr juvi=juvi12tr caco=cov12;  
 data dat2013; set treepost; if year=2013; 
-	 rename pita=pita13 quma=quma13 qum3=qum313 qust=qust13 juvi=juvi13 caco=cov13; 
+	 rename pita=pita13tr quma=quma13tr qum3=qum313tr qust=qust13tr juvi=juvi13tr caco=cov13; 
 data dat2014; set treepost; if year=2014; 
-	 rename pita=pita14 quma=quma14 qum3=qum314 qust=qust14 juvi=juvi14 caco=cov14;  
+	 rename pita=pita14tr quma=quma14tr qum3=qum314tr qust=qust14tr juvi=juvi14tr caco=cov14;  
 data dat2015; set treepost; if year=2015; 
-	 rename pita=pita15 quma=quma15 qum3=qum315 qust=qust15 juvi=juvi15 caco=cov15; 
+	 rename pita=pita15tr quma=quma15tr qum3=qum315tr qust=qust15tr juvi=juvi15tr caco=cov15; 
 data prefavg; set mtreepref; 
-	 rename npit=npitapre nqm3=nquma3pre nqma=nqumapre nqst=nqustpre njuv=njuvipre ncov=ncovpre ncrn=ncrnpre ndbh=ndbhpre
-		   	mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mqst=mqustpre mjuv=mjuvipre mcov=mcovpre mcrn=mcrnpre mdbh=mdhbpre;
+	 rename npit=npitapretr nqm3=nquma3pretr nqma=nqumapretr nqst=nqustpretr njuv=njuvipretr ncov=ncovpre ncrn=ncrnpre ndbh=ndbhpre
+		   	mpit=mpitapretr mqm3=mquma3pretr mqma=mqumapretr mqst=mqustpretr mjuv=mjuvipretr mcov=mcovpre mcrn=mcrnpre mdbh=mdhbpre;
 run;
 data treemerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
-*proc print data=treemerge2; title 'sapmerge2'; run; *N=52;
+*proc print data=treemerge2; title 'sapmerge2'; run; 
+	*N=52 -- no data for plots 1211, 1212, 1218, 1219 b/c they are brush plots;
+
+/*
+proc freq data=treemerge2; tables bcat*pita15; run;
+proc plot data=treemerge2; plot pita15*bcat; run;
+*/
 
 /*
 proc export data=treemerge2
-   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\seedsmerge2.csv'
+   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\treemerge2.csv'
    dbms=csv
    replace;
 run;
