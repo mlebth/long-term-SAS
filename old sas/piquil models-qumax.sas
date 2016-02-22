@@ -1,55 +1,146 @@
-*copied from iml piquil;
-proc glm data=seedpairs; title 'seedpairs glm'; 
-	model pita2 = covm2 covm2*pita1;
+
+proc glimmix data=seedsmerge2; title 'model';
+  class plot bcat;  * caco is continuous; * mpitapre is pre-fire;
+  *model12; model pita14 = pita13  bcat / distribution=negbin link=log solution DDFM=kw;
+  random plot(bcat);
+  *lsmeans bcat / ilink cl;
+  output out=glmout2 resid=ehat;
+run;
+proc print data=seedsmerge1; run;
+proc print data=seedsmerge2; run;
+proc freq data=seedsmerge2; tables pita11*plot; run; *no data for 2011 (seedlings);
+proc freq data=seedsmerge2; tables bcat; run; 
+
+*-----------------testing collinearity and correlation between burn severity and canopy cover;
+proc plot data=seedsnozero;  plot caco*bcat; run;
+
+ods graphics on; 
+* exploration of relationship between caco & bcat;
+proc corr spearman data=seedsmerge2 sscp cov plots; title 'caco/bcat correlation'; 
+var caco; with bcat;  * canopy cover with burn severity;  * bcat is ordinal;
+run;
+ods graphics off;
+* Pearson correlation coefficient = -0.71846, p <.0001, N=46
+Negative correlation (higher burn severity, lower canopy cover);
+
+* more exploration of relationship between caco & bcat;
+proc glm data=seedsmerge2; title 'caco/bcat'; 
+	class bcat;
+	model caco=bcat / tolerance;
+	lsmeans bcat / stderr cl;  * expected mean of each level of the variable bcat, with std error & conf limits;
+	contrast 'level0 v level1' bcat  1 -1 0;  * compare first and second levels;
+	* regular output compares each level with last-in-alphabet-numeric level;
 	output out=glmout2 r=ehat;
 run;
-proc univariate data=glmout2 plot normal; var ehat pita2; run; *not even close to normal;
-proc freq data=seedpairs; tables bcat1 *plot; run;
+proc univariate data=glmout2 plot normal; var ehat; run;
 
-/*
-ods html;
-proc sgplot data=seedpairs;
-	scatter y=covm2 x=pita2 /group=soil name="data";
-	keylegend "data"/ title="group";
-run;
-ods html close;
-*/
+*---------------------------------------------------------------------------;
+* nlf recommended;  
+* 2way interaction: bcat*soil - does the effect of soil depend on bcat level, does the effect of bcat depend on the soil level?;
+* slope differences: pita13*bcat pita13*soil caco*bcat caco*soil - does the pita13 slope differ among bcat levels? etc;
+* slope differences: pita13*bcat*soil caco*bcat*soil - does the pita13 slope differ among bcat-soil combinations? etc.;
+* start with almost-complete model and drop terms from the highest order backwards;
+* if the 3rd order is kept, then keep the 2nd order terms that "compose" it;
+* example: if caco*bcat*soil is sig, then keep caco*bcat, caco*soil, & bcat*soil - but not pita terms; 
+* also if 2nd order is signficant, keep the 1st order than compose it;
+* we do this so the P values are interpretable;
+* nlf suggests ignore all "interactions" of continuous*continuous variable  - ignore pita13*caco, ignore all terms that
+      include pita13*caco, let their SS be pooled with residual;
 
-proc glimmix data=seedpairs; title 'seedpairs glimmix';
-  class plot bcat1;
-  model pita2 =  covm1 bcat1 / distribution=normal DDFM=bw; *removed DDFM=KR;
-  random plot(bcat1) / subject=plot;
-  *lsmeans bcat1 / ilink cl;
+*backwards;
+proc glimmix data=seedsmerge2; title 'model';
+  class plot bcat soil;  * caco is continuous; * mpitapre is pre-fire;
+  *model1; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil  pita13*bcat*soil caco*bcat*soil
+       / distribution=negbin link=log solution DDFM=bw; 
+  *model2; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil  caco*bcat*soil
+       / distribution=normal link=identity solution DDFM=bw; 
+  *model3; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil  pita13*bcat*soil 
+       / distribution=normal link=identity solution DDFM=bw;    
+  *model4; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat caco*soil 
+  		/ distribution=negbin solution DDFM=bw;  *-2LL--166, X2/df=.71;
+  *model5; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*bcat 
+		/ distribution=negbin solution DDFM=bw;  * 163, .69;
+  *model6; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat pita13*soil caco*soil 
+		/ distribution=negbin solution DDFM=bw;  *163, .69;
+  *model7; *model pita14 = pita13 bcat soil caco bcat*soil pita13*bcat caco*bcat caco*soil 
+		/ distribution=poisson solution DDFM=bw;  *163, .67, negbin did not converge;
+  *model8; *model pita14 = pita13 bcat soil caco bcat*soil pita13*soil caco*bcat caco*soil 
+		/ distribution=negbin solution DDFM=bw;  *162, .73;
+  *model9; *model pita14 = pita13 bcat soil caco pita13*bcat pita13*soil caco*bcat caco*soil 
+		/ distribution=poisson solution DDFM=bw;  *171, .70;
+  random plot(bcat*soil);
+  lsmeans bcat soil / ilink cl;
   output out=glmout2 resid=ehat;
-run;  
-
-*copied from  piquil models;
-proc glimmix data=seedpairs; title 'nilvox';
-  class bcat1 soil plot;
-  model pita2 = plot pita1 soil bcat1 soil*bcat1/ dist=normal link=identity solution; *-2LL=1152.89, AIC=1162.89.59, X2/df=0.84;
-  random plot(bcat1);
 run;
 
-*------------------n models (stem count);
-proc glimmix data=piquil2; title 'nquma3/burn';
-  class burn;
-  * model nquma3 = burn / dist=poisson link=log solution; * bad fit;
-  model nquma3 = burn / dist=negbin link=log solution; 
-  lsmeans burn / cl ilink;
-run;
-* poisson: X2/df = 57.63 very bad fit, -2LL = 2892.86, AIC = 2900.86; * N = 60, 1 obs not used;
-* negbin: X2/df = 0.44. -2LL = 363.39, AIC = 373.39;
-*  burn1: log(#) = 3.1499 - 4.1307 = -.9808, estimated value = exp(.9808) = .375
-   burn2: log(#) = 3.1499 + .08599 = 3.23189, estimated value = 25.327;
+*forward;
+*variables of interest: caco, bcat, soil, prev. year;
+proc glimmix data=seedsmerge2; title 'model';
+  class plot bcat;  * caco is continuous; * mpitapre is pre-fire;  
+  *model pita14 = pita13 bcat / distribution=negbin solution DDFM=bw;  	*154, .82; *dendf=0;
+  	*caco and soil are not significant in any model;
+  model pita14 = pita13 bcat / distribution=negbin solution DDFM=residual;  	
+  	*154, .82; *pita 1/43/41.93/<0.00001    bcat 1/43/.62/.4364;
+  	*this one's better, df makes more sense;
+  *model pita14 = pita13 bcat / distribution=negbin solution DDFM=kr;  	
+  	*154, .82; *pita 1/12.36/41.08/<0.0001  bcat 1/30.85/.6/.4446;
+  *model pita14 = pita13 bcat / distribution=negbin solution DDFM=satterth;  	
+  	*154, .82; *pita 1/12.36/41.93/<0.0001 bcat 1/30.85/.62/.4381;
 
-proc glimmix data=piquil2; title 'nquma3/soil';
-  class soil;
-  *model nquma3 = covm soil covm*soil/ dist=poisson link=log solution; 	*-2LL=2262.07, AIC=2274, X2/df=18.85;
-  model nquma3 = covm soil/ dist=negbin link=log solution;  *-2LL=712.44, AIC=722.44, X2/df=0.82;
-  *model nquma3 = covm soil covm*soil/ dist=negbin link=log solution;  *-2LL=712.44, AIC=726.44, X2/df=0.84;
-  lsmeans soil/ cl ilink;
-run; 
-*  fslo: log(#) = 1.522 - 15.82 = -14.298, estimated value = exp(-14.298) > 0.0001
-   gfsl: log(#) = 1.522 + 1.0276 = 2.549, estimated value = 12.794
-   sand (int): log(#) = 1.522 estimated value = 4.58
-   cover: log(#) = 1.522 - 0.00655 = 1.515 estimated value = 4.549;
+  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=residual;  
+  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=contain;  
+  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=kr;   
+  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=satterth;  
+  random plot(bcat);
+  lsmeans bcat / ilink cl;
+  output out=glmout2 resid=ehat;
+run;
+
+*forward;
+*variables of interest: caco, bcat, soil, prev. year;
+proc glimmix data=seedsmerge2; title 'model';
+  class plot soil bcat;  * caco is continuous; * mpitapre is pre-fire;  
+  model pita12 = soil bcat soil*bcat/ distribution=normal solution DDFM=bw; 
+  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=residual;  
+  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=contain;  
+  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=kr;   
+  *model pita14 = pita13 bcat pita13*bcat/ distribution=poisson solution DDFM=satterth;  
+  random plot(soil*bcat);
+  lsmeans soil bcat soil*bcat/ ilink cl;
+  output out=glmout2 resid=ehat;
+run;
+
+
+
+
+
+
+
+
+
+
+* nlf pretend:  nothing is signficant except caco*soil, and we want the slopes and intercepts;
+proc glimmix data=seedsmerge1; title 'seedsmerge1';
+  class plot soil;  * caco is continuous; * mpit is pre-fire;
+  * model pita14 = soil caco caco*soil
+       / distribution=normal link=identity solution DDFM=bw;        * final model;
+  model pita14 = soil soil*caco
+       / noint distribution=normal link=identity solution DDFM=bw;  * model ONLY for getting intercepts and slopes, IGNORE p-values;
+  * by making it noint, betas of soil will be true intercepts;
+  * by taking out caco, betas of caco*soil will be true slopes;
+  * you could find these beta with appropriate addition of the solution betas of full model;
+  random plot(bcat*soil) / subject=plot;
+run;
+
+* nlf pretend: nothing is signficant except caco*bcat*soil, and we want the slopes and intercepts
+proc glimmix data=seedsmerge1; title 'seedsmerge1';
+  class plot soil;  * caco is continuous; * mpit is pre-fire;
+  * model pita14 = soil caco bcat soil*caco soil*bcat caco*bcat soil*bcat*caco
+       / distribution=normal link=identity solution DDFM=bw;        * final model;
+  model pita14 = soil*bcat soil*bcat*caco
+       / noint distribution=normal link=identity solution DDFM=bw;  * model ONLY for getting intercepts and slopes, IGNORE p-values;
+  random plot(bcat*soil) / subject=plot;
+run;
+
+* general rule: if a higher order interaction is present, component lower-order interactions must also be 
+   present (among other reasons) so that the higher-order interaction is interpretable; 

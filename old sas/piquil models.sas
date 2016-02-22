@@ -1,46 +1,18 @@
-proc glm data=seedpairs; title 'seedpairs glm';  * N = 15 because only 15 plots have pre/post combos; 
-	class bcat1;
-	model pita2 = bcat1 bcat1*pita1;
-	output out=glmout2 r=ehat;
-run;
-proc univariate data=glmout2 plot normal; var ehat pita2; run;
-proc freq data=seedpairs; tables bcat1 *plot; run;
-
-ods html;
-proc sgplot data=seedpairs;
-	scatter y=pita2 x=pita1 /group=group name="data";
-	keylegend "data"/ title="group";
-run;
-ods html close;
-
-proc glm data=seedpairs; title 'post';  
-	class bcat1;
-	model coun2 = covm2 covm2*coun1;
-	output out=glmout2 r=ehat;
-run;
-proc univariate data=glmout2 plot normal; var ehat coun2; run;
-
-proc glimmix data=seedpairs method=laplace; title 'seedpairs glimmix';
-  class plot bcat1;
-  model pita2 = bcat1 pita1 bcat1*pita1 / distribution=poisson or; *DDFM = KR; *removed DDFM=KR;
-  random plot(bcat1) / subject=plot;
-  random _residual_ / subject=plot type=ar(1);
-  lsmeans bcat1 / ilink cl ;
-  output out=glmout2 resid=ehat;
-run; 
-
-proc glimmix data=seedpairs; title 'nilvox';
-  class bcat1 soiln plot;
-  model nqumax = soiln bcat1 soiln*bcat1/ dist=normal link=identity solution; *-2LL=1152.89, AIC=1162.89.59, X2/df=0.84;
-  random plot(bcat1);
-run;
 *----------------PIQUIL MODELS;
+*cover = burn year burn*year;
+proc glm data=alld;	title 'cover';
+	class burn;
+	model covm = burn year burn*year;
+	output out=glmout2 r=ehat;
+run;
+proc univariate data=glmout2 plot normal; var ehat; run;
+*9df, R-sq 0.700, p<0.0001;
 
-proc univariate data=seedpairs plot; var nquma3 nqumax npitax nilvox;
-run; 
+/* proc univariate data=piquil2 plot; var nquma3 nqumax npitax nilvox;
+run; */
 
 *------------------pa models (presence/absence);
-proc glimmix data=seedpairs; title 'paquma3';
+proc glimmix data=piquil2; title 'paquma3';
   class burn;
   model paquma3 = burn / dist = binomial solution;  * default to link=logit; 
   * plot is the replication; 
@@ -135,13 +107,6 @@ proc glimmix data=piquil2; title 'nilvox';
   model nilvox= covm soil/ dist=negbin link=log solution; *-2LL=1152.89, AIC=1162.89.59, X2/df=0.84;
   lsmeans soil/ cl ilink;
 run;
-
-proc glimmix data=piquil2; title 'nilvox';
-  class bcat1 soiln plot;
-  model nqumax = bcat1 / dist=normal link=identity solution;
-  random plot(bcat1);
-run;
-proc contents data=piquil2; run;
 
 
 *-----------------relabund models;

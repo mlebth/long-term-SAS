@@ -1,6 +1,3 @@
-data post; set alld; if year > 2010; run;
-proc print data=post (firstobs=10108 obs=10110); run;
-
 proc glm data=alld;
 	class burn;
 	model covm = burn year burn*year;
@@ -11,7 +8,6 @@ proc univariate data=glmout2 plot normal; var ehat; run;
 
 proc glm data=piquil2; 
 	class soil;
-	*model nquma3 = covm soil covm*soil;
 	model nquma3 = covm soil covm*soil;
 	output out=glmout2 r=ehat;
 run; 

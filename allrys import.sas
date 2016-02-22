@@ -697,6 +697,8 @@ quit;
 *Removing UNSE1 observations--seedlings shouldn't be in this dataset anyway;
 data herb4; set herb3xx;
 	if sspp = 'ACGRx' then sspp = 'ACGR2'; 
+	*11/10/15: note from EK, all Galactia volubilis should be G. regularis instead;	
+	if sspp = 'GAVOx' then sspp = 'GAREx'; 
 run;
 data herb5; set herb4;
 	if (sspp NE 'UNSE1' & sspp NE 'RUBUS' & sspp NE 'SMILA' & sspp NE ' x');	*N=8665;
@@ -804,6 +806,14 @@ proc sort data=alld; by plot year subp; run;
                       14    yrrx3       Num       8    BEST12.    BEST32.
 
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
+
+proc sort data=alld; by plot burn; run;
+proc means data=alld mean noprint; by plot burn;
+  var burn;
+  output out=alld2 mean = mburn;
+run;
+proc print data=alld2; title 'piquil6'; run; 
+
 
 proc sql;
 	select subp, sspp, soil

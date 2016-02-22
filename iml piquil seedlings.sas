@@ -1,22 +1,14 @@
 ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
-data piquilseedx; set alld;
-	if (subp = 'seed') | (subp = 'shrp') | (subp = 'shru') | (subp = 'seep'); 
-	*assigning 'planted' to entire plots where pines were planted (1=not planted, 2=planted);
-	if (plot = 1188 | plot = 1221 | plot = 1222 | plot = 1235 | plot = 1236 | plot = 1237 | plot = 5300)
-		& (year = 2015) then pltd = 2;
-	if (year = 2015) & pltd = . then pltd = 1;
-	*making pltd numeric;
-	newpltd = input(pltd,1.);
-	drop pltd;
-	rename newpltd=pltd;
-run;  
-data piquilseed; set piquilseedx;
-	keep aspect pltd bcat coun covm elev heig hydrn plot slope soileb sspp subp year prpo; 
+data herbx; set alld;
+	if (subp = 'herb'); 
+run;  *N=12545;
+data herb1; set herbx;
+	keep aspect bcat coun covm elev hydrn plot slope soileb sspp subp year prpo; *check TRURx;
 run;
-proc sort data=piquilseed; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo pltd; run;
-proc means data=piquilseed noprint sum; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo pltd; var coun; 
-  output out=piquilseed2 sum=nperspp; run; *N=2247;
-/* proc print data=piquilseed2; title 'pi-qu-il numplantdata';   run;
+proc sort data=herb1; by subp plot sspp year bcat covm coun soileb elev slope aspect hydrn prpo; run;
+proc means data=herb1 noprint sum; by subp plot sspp year bcat covm coun soileb elev slope aspect hydrn prpo; var coun; 
+  output out=herb2 sum=nperspp; run; *N=11100;
+/* proc print data=herb2; title 'herb numplantdata';   run;
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * N = 442 species-plot-year combinations;
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
@@ -262,6 +254,7 @@ data seedsmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop y
 *proc print data=seedsmerge2; title 'seedsmerge2'; run; 
 	*N=55----not 56 like all the others b/c 1226 was never surveyed for seedlings or shrubs;
 
+proc freq data=seedsmerge2; tables bcat; run;
 
 /*
 proc export data=seedsmerge2

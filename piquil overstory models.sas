@@ -29,6 +29,7 @@ run;
 proc print data=mout2; run;	
 ***********************;
 
+
 *11/29/15--merging seedling+overstory;
 proc sort data=seedsmerge2; by plot aspect bcat elev hydr; run;
 proc sort data=treemerge2;	by plot aspect bcat elev hydr; run;
@@ -37,6 +38,14 @@ run;
 proc print data=seedtree; title 'seedtree'; run;
 proc contents data=seedtree; run;
 
+/*
+proc export data=seedtree
+   outfile='E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Tables not used in SAS--results, sas exports, etc\seedtree.csv'
+   dbms=csv
+   replace;
+run;
+*/
+
 proc plot data=seedtree; plot pita15sd*mpitapretr; run;
 
 proc glimmix data=seedtree; title 'seed v tree';
@@ -44,13 +53,26 @@ proc glimmix data=seedtree; title 'seed v tree';
 	output out=glmout resid=ehat;
 run;
 
+proc glimmix data=seedtree; title 'seed v tree';
+	model quma12sd = quma12tr / distribution=negbin link=log solution DDFM=bw;
+	output out=glmout resid=ehat;
+run;
+
 *soil models;
 proc glimmix data=treemerge2; title 'bcat models';
   class soil ;
-  *model mpitapre = soil  / distribution=poisson link=log solution DDFM=bw;
-  model quma15 = soil / distribution=poisson link=log solution DDFM=bw;
-  *model qum315 = soil / distribution=poisson link=log solution DDFM=bw;
+  *model pita15tr = soil  / distribution=poisson link=log solution DDFM=bw;
+  model qum15tr = soil / distribution=poisson link=log solution DDFM=bw;
   lsmeans soil  / ilink cl;
+  output out=glmout2 resid=ehat;
+run;
+
+*bcat models;
+proc glimmix data=treemerge2; title 'bcat models';
+  class bcat ;
+  *model pita13tr = bcat  / distribution=poisson link=log solution DDFM=bw;
+  model quma12tr = bcat / distribution=poisson link=log solution DDFM=bw;
+  lsmeans bcat  / ilink cl;
   output out=glmout2 resid=ehat;
 run;
 

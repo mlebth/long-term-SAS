@@ -1,41 +1,4 @@
-*--------------------------PIQUIL (Pinus-Quercus-Ilvo): relative abundances------------------------;
-* getting number of individuals per species, per year and plot.
-  ilvo from shrubs and problem seedlings. qu, pi from seedlings and problem shrubs. none are measured 2 ways in any given plot/year. 
-  no transect data. ;
-proc sort data=piquil; by plot sspp year burn prpo covm soil elev slope aspect hydr; run;
-proc means data=piquil noprint sum; by plot sspp year burn prpo covm soil elev slope aspect hydr; var coun; 
-  output out=numplantdata sum=nperspp;
-/* proc print data=numplantdata; title 'pi-qu-il numplantdata'; 
-  var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
-* N = 442 species-plot-year combinations;
-* numplantdata contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
-  nperspp = # of sdlngs/stems per species per plot/year;  */
-
-*reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
-has its own variable for count;
-data holdquma3; set numplantdata; if sspp = 'QUMA3'; nquma3 = nperspp; 
-data holdqumax; set numplantdata; if sspp = 'QUMAx'; nqumax = nperspp;
-data holdpitax; set numplantdata; if sspp = 'PITAx'; npitax = nperspp; 
-data holdilvox; set numplantdata; if sspp = 'ILVOx'; nilvox = nperspp; 
-run;
-/* proc print data=holdquma3; run; 
-proc print data=holdqumax; run; 	
-proc print data=holdpitax; run; 	
-proc print data=holdilvox; run; */
-
-*n(spp) is count, pa(spp) is presence/absence;
-data piquil2; merge holdquma3 holdqumax holdpitax holdilvox; by plot year;
-  if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
-  if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
-  if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
-  if (nilvox = .) then nilvox=0; if (nilvox=0) then pailvox=0; if (nilvox ^= 0) then pailvox=1; 
-  drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
-run;
-/* proc print data=piquil2; run; *N = 208; */
-
-/* *This was done before above reorganization of data to eliminate need for sspp and nperspp;
-*getting to relative abundances;
-
+* relative abundance;
 proc sort data=numplantdata; by plot burn prpo;
 proc means data=numplantdata noprint sum; by plot burn prpo; var nperspp; 
 	output out=numperplot sum=nperplot;
@@ -52,7 +15,6 @@ proc print data = numperplot2; title 'numperplot2'; run;
 *numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot;
 
 *calculting relative abundance of each species in each plot/yr combo;
-
 data relabund; set numperplot2;	
 	relabun = nperspp / nperplot; 
 proc print data = relabund; title 'relative abundance'; run;
@@ -94,11 +56,6 @@ run;
 * negbin: X2/df = 0.44. -2LL = 363.39, AIC = 373.39;
 *  burn1: log(#) = 3.1499 - 4.1307 = -.9808, estimated value = exp(.9808) = .375
    burn2: log(#) = 3.1499 + .08599 = 3.23189, estimated value = 25.327;
-
-
-
-
-
 
 proc univariate data=relabund plot normal; run;
 *Shapiro-Wilk: 0.825349, P < 0.0001. 
