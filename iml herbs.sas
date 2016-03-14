@@ -3,10 +3,13 @@ data herbx; set alld;
 	if (subp = 'herb'); 
 run;  *N=12545;
 data herb1; set herbx;
-	keep aspect bcat coun covm elev hydrn plot slope soileb sspp year prpo; *check TRURx;
+	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year prpo; *check TRURx;
 run;
-proc sort data=herb1; by plot sspp year bcat covm coun soileb elev slope aspect hydrn prpo; run;
-proc means data=herb1 noprint sum; by plot sspp year bcat covm coun soileb elev slope aspect hydrn prpo; var coun; 
+proc sort data=herb1; by plot sspp year bcat covm coun quad soileb elev slope aspect hydrn prpo; run;
+
+
+
+proc means data=herb1 noprint sum; by plot sspp year bcat covm coun quad soileb elev slope aspect hydrn prpo; var coun; 
   output out=herb2 sum=nperspp; run; *N=11100;
 
 /* *checking for out of place sspp;
@@ -84,8 +87,15 @@ proc means data=herb5 mean noprint; by sspp year;
   output out=herb5x mean = mcnt2;
 run;
 proc sort data=herb5x; by year mcnt2; run;
+
+proc sort data=herb5; by sspp; run;
+proc means data=herb5 mean noprint; by sspp;
+  var plot;
+  output out=herb5x mean = mplot;
+run;
+proc sort data=herb5x; by sspp; run;
 proc sql;
-	select sspp, year, mcnt2
+	select sspp
 	from herb5x;
 quit;
 
