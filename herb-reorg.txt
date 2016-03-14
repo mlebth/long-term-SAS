@@ -1,0 +1,29 @@
+dat1N; set dat1; keep plot quad coun;
+dat1c; set dat1; keep sspp;
+
+proc iml;
+	nquads = 10*56; *10=#of quads/plot, 56=#of plots;
+	nsp = 350; 		  *total number of species;
+	matcount = j(nquads, nsp, 9999); spid = 'warn';
+	nobs = nrow(mat1n);
+	do i = 1 to nobs;
+		uniquequadid = 10*(dat1n[i,1]-1)+dat1n[1,2];
+		if (dat1c[i,1]='dich') then spid=1; *do this for all species codes;
+		*......;
+		matcount[uniquequadid,spid]=dat1n[i,3];
+	end;
+	datids=dat1n;
+	do i=1 to nquads;
+		datids[i,3]=10*[datids[i,1]-1)*datids[i,2];
+	end;
+	mat3 = datids//matcount; *gluing 2 together;
+	matpa = mat3;
+		do i = 1 to nquads;
+			do j = i to nsp;
+				colno = j + 3;
+				matpa[i,colno]=99;
+				if (mat3[i,colno]=0) then
+					matpa[i,colno]=0;
+				if (mat3[i,colno]=0) then
+					matpa[i,colno]=1;
+				end; end;

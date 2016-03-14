@@ -1,4 +1,4 @@
-****************getting just herbaceous data in one dataset;
+****************pulling herbaceous data from the megaset;
 data herbx; set alld;
 	if (subp = 'herb'); 
 run;  *N=12545;
@@ -21,7 +21,7 @@ proc freq data=herb2x; tables sspp; run;
 * N = 442 species-plot-year combinations;
 * herb2 contains: obs, plot, sspp, year, bcat, prpo, covm, coun, soileb, elev, slope, aspect, hydrn, nperspp,
   				_TYPE_, _FREQ_
-  nperspp = # of sdlngs/stems per species per plot/year;  */
+  nperspp = # of sdlngs or stems per species per plot-year;  */
 
 /*
 proc sql;
@@ -58,16 +58,18 @@ proc sort data=herb3; by year prpo plot bcat aspect hydrn soileb; run;
 ;
 
 *what am i looking for?
-effects of {burn severity, light, soil type, time since fire} on herbs (stem density, species diversity--
-	species richness/evenness)
+effects of {burn severity, light, soil type, time since fire, hydromulch, pre-fire veg} 
+	on herbs (stem density, diversity--species richness/evenness, composition [native vs non, hydro])
 
 i can use iml to reorganize if i: 
-	--organize the same way as piquil data, but using only a small number of most common species
-	--ignore species altogether and use yearly diversity metrics as a variable
+	--organize the same way as piquil data (stem count each year is the DV), but using only a small number of most common species
+	--ignore species altogether and use other year-by-year metrics (diversity, density) as the dependent variable
 
-what can i do quickly?
+otherwise:
+	--nonparametric tests (ordination/PERMANOVA)
 ;
 
+*getting mean stem count/year;
 proc means data=herb3 mean noprint; by year plot sspp bcat aspect hydrn soileb;
   var coun covm elev slope;
   output out=herb4 mean = mcnt mcov elev slope;
@@ -75,6 +77,21 @@ run;
 data herb5; set herb4; drop _TYPE_; 
 *proc print data=herb5; title 'herb5'; run; *N=4812;
 
+
+proc sort data=herb5; by sspp year mcnt; run;
+proc means data=herb5 mean noprint; by sspp year;
+  var mcnt;
+  output out=herb5x mean = mcnt2;
+run;
+proc sort data=herb5x; by year mcnt2; run;
+proc sql;
+	select sspp, year, mcnt2
+	from herb5x;
+quit;
+
+
+
+/*
 proc iml;
 
 inputyrs = {2002, 2003, 2005, 2006, 2008, 2010, 2011, 2012, 2013, 2014, 2015};
@@ -163,6 +180,7 @@ proc freq data=seedpairs; tables soil; run; 	   * 204 sand, 63 gravel;
 *******Need to fix height---right now, just one mean height for all species/plot/year;
 
 
+/*
 *reorganizing seedpairs;
 data seedpairspp; set seedpairs;
 	if (year1<2011)  then yrcat='pref'; 

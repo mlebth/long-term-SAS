@@ -28,7 +28,7 @@ out=spcomp dbms=csv replace; getnames=yes;run;
 
 *--------------------------------------- POST-BURN SEVERITY ASSESSMENT AND PLOT HISTORY -----------------------------------------------------;
 *Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\postburnsev.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\postburnsev.csv"
 out=postsev dbms=csv replace; getnames=yes; run;  * N = 1227;
 /* proc print data = postsev; run;
 proc contents data = postsev; run;
@@ -107,7 +107,7 @@ proc contents data=postsev2x5; run;
 * Plot history: This comes from my own document, not FFI;
 * Includes hydromulch, rx burn history, and burn severity variables. Burn severity is only for plots 1227-5300--these are the new plots
 that were not included in the initial post-burn assessment. Qualitative assessment was done in summer 2012.;
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothistory.csv"  
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\plothistory.csv"  
 out=hist dbms=csv replace; getnames=yes; 
 run;  * N = 56;
 /*proc contents data=hist; title 'plot history'; run;
@@ -243,7 +243,7 @@ proc freq data=plothist; tables soileb*plot; run;
 
 *making a printout for EK;
 proc export data=plothist
-   outfile='E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothist.csv'
+   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\plothist.csv'
    dbms=csv
    replace;
 run;
@@ -255,7 +255,7 @@ Burnsev for all other plots was calculated from veg and subs values in the post-
 
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\CanopyCover.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\CanopyCover.csv"
 out=canopy dbms=csv replace; getnames=yes;
 run;  
 proc sort data = canopy; by plot year; run;	
@@ -304,7 +304,7 @@ proc contents data=canopy3; run;*/
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
 /*proc import datafile="D:\FFI CSV files\seedlings-allyrs.csv" */
 
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\seedlings-allyrs.csv"
 out=seedlings dbms=csv replace; getnames=yes;
 run;  * N = 1555;
 *proc print data=seedlings; title 'seedlings'; run;
@@ -401,7 +401,7 @@ quit;
 */
 
 ******POLE TREES (SAPLINGS, DBH >=2.5 and < 15.1);
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Saplings-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Saplings-allyrs.csv"
 out=saplings dbms=csv replace; getnames=yes;
 run;
 /*proc print data=saplings; title 'saplings'; run; *N=2560;
@@ -478,7 +478,7 @@ proc freq data=saplingprobspp; tables sspp; title 'saplingprobspp'; run; * N = 3
 proc print data=saplingprobspp; run;*/
 
 ******OVERSTORY (MATURE TREES, DBH >= 15.1);
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Overstory-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Overstory-allyrs.csv"
 out=overstory dbms=csv replace; getnames=yes;
 run;  
 
@@ -545,7 +545,7 @@ run;
 /* proc freq data = overstory4; tables sspp; run;  *N = 5316; */
 
 *--------------------------------------- SHRUBS -----------------------------------------------------;
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Shrubs-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\Shrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
@@ -637,7 +637,7 @@ SILA2: 5, 2002;
 /*proc print data=shrubs5; run; */
 
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbaceous-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\herbaceous-allyrs.csv"
 out=herbaceous dbms=csv replace; getnames=yes;
 run;  * N = 12878;
 
@@ -714,7 +714,7 @@ proc print data=herbprobspp; title 'herb prob spp'; run; *N = 4;*/
 	
 
 *--------------------------------------- POINT INTERCEPT -----------------------------------------------------;
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\PointIntercept-allyrs.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\PointIntercept-allyrs.csv"
 out=transect dbms=csv replace; getnames=yes;
 run;  
 
@@ -807,6 +807,13 @@ proc sort data=alld; by plot year subp; run;
 
 proc print data=alld (firstobs=60000 obs=60500); title 'alld'; run;
 
+proc sort data=alld; by plot burn; run;
+proc means data=alld mean noprint; by plot burn;
+  var burn;
+  output out=alld2 mean = mburn;
+run;
+proc print data=alld2; title 'piquil6'; run; 
+
 proc sql;
 	select subp, sspp, soil
 	from  alld
@@ -819,7 +826,7 @@ proc sql;
 	where sspp = 'CAAMx';
 quit; 
 
-PROC PRINTTO PRINT='E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\alld.csv' NEW;
+PROC PRINTTO PRINT='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\alld.csv' NEW;
 RUN; 
 */
 
@@ -882,7 +889,7 @@ proc freq data=relabund; tables sspp*prpo; run;
 */
 
 /**--------------------------------demographic data; 
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\demogdata3.csv"
+proc import datafile="\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\FFI long-term data and SAS\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 
 proc print data=demog; run;
