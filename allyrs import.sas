@@ -3,7 +3,7 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
 * if processes get too slow, run this to free up memory, then rerun relevant 
 	sections;
-* proc datasets library=work kill; run; 
+* proc datasets library=work kill noprint; run; 
 
 /*
 *--------------------------------------- FUELS AND SPECIES COMP -----------------------------------------------------;
@@ -697,6 +697,7 @@ quit;
 *Removing UNSE1 observations--seedlings shouldn't be in this dataset anyway;
 data herb4; set herb3xx;
 	if sspp = 'ACGRx' then sspp = 'ACGR2'; 
+	if sspp = 'TRURx' then sspp = 'TRUR2';
 	*11/10/15: note from EK, all Galactia volubilis should be G. regularis instead;	
 	if sspp = 'GAVOx' then sspp = 'GAREx'; 
 run;

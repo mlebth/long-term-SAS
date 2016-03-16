@@ -16,7 +16,7 @@ proc means data=herb1 noprint sum; by plot sspp year bcat covm coun quad soileb 
   proc sort data=herb2; by sspp;
   proc means data=herb2; by sspp; output out=herb2x; run;
   proc print data=herb2x; run;
-proc freq data=herb2x; tables sspp; run;
+proc freq data=herb1; tables plot; run;
 */
 
 /* proc print data=herb2; title 'herb numplantdata';   run;
@@ -28,7 +28,7 @@ proc freq data=herb2x; tables sspp; run;
 
 /*
 proc sql;
-	select plot, year, sspp, coun
+	select plot
 	from herb2;
 quit;
 */
