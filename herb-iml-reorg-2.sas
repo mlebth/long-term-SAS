@@ -21,22 +21,90 @@ proc sort data=herb1; by plot quad year sspp bcat covm coun soileb elev slope as
 
 proc iml;
 
+inputyrs = {2002, 2003, 2005, 2006, 2008, 2010, 2011, 2012, 2013, 2014, 2015};
+nyrs = nrow(inputyrs);  * print nyrs; *11 yrs;
+
 *reading in numeric data;
 use dat1n; read all into matnum;				*print (matnum[1:20,]);	 *12 columns, 12548 rows (150,576 cells);
-nrecords = nrow(matnum);
+nrecords = nrow(matnum);						*print nrecords; *12548;
 
 *reading in character data;
 use dat1c; read all var _char_ into matchar;	*print matchar;	 *1 column, 12548 rows (12,548 cells);
 
-nquads=10*56; 	*number of quadrats (10/plot, 56 plots);
 nsp=315;	  	*number of species;
+matcount=j(nrecords,nsp,9999); 					*print matcount; *315 columns, 12548 rows (3,952,620 cells);
+do i = 1 to nrecords;    * record by record loop;
+  do j = 1 to nyrs;      * yr by yr loop;
+    if (matnum[i,1] = inputyrs[j]) then matcount[i,1] = j;  * pref in col 1;
+  end;                   * end yr by yr loop;
+end;                     * end record by record loop;
+* print (matcount[1:20,]);
+nobs=nrow(matcount);							*print nobs; *12548;
 
-matcount=j(nquads,nsp,9999); 					*print matcount; *315 columns, 560 rows (176,400 cells);
-nobs=nrow(matcount);							*print nobs; 	 *N=560;
+
+* fill mat2; * col1 already has first yr;
+do i = 1 to nrecords;    * record by record loop;
+  time1 = matcount[i,1];
+  time2 = time1 + 1;
+  matcount[i,2] = time2;	
+  matcount[i,3] = matnum[i,1];   * year1;
+  matcount[i,5] = matnum[i,2];   * plot;
+  matcount[i,6] = matnum[i,3];   * bcat;
+  matcount[i,7] = matnum[i,4];   * aspect;
+  matcount[i,8] = matnum[i,5];   * hydrn;
+  matcount[i,9] = matnum[i,6];   * soileb;
+  matcount[i,10] = matnum[i,7];  * pltd;
+  matcount[i,11] = matnum[i,14]; * elev;
+  matcount[i,12] = matnum[i,15]; * slope;
+  matcount[i,13] = matnum[i,9];  * milvo1;
+  matcount[i,15] = matnum[i,10]; * mpita1;
+  matcount[i,17] = matnum[i,11]; * mqum31;
+  matcount[i,19] = matnum[i,12]; * mqumx1;
+  matcount[i,21] = matnum[i,13]; * covm1;
+  matcount[i,23] = matnum[i,16]; * mhgt1;
+end;
+* print matcount;
+
+do i = 1 to nrecords;
+  plot = matcount[i,5]; time2 = matcount[i,2];
+  do j = 1 to nrecords;
+    if (matcount[j,5] = plot & matcount[j,1] = time2) then do;
+	  *print i,j;
+  	  matcount[i,4]  = matcount[j,3];  * year2;
+	  matcount[i,14] = matcount[j,13]; * milvo2;
+  	  matcount[i,16] = matcount[j,15]; * mpita2;
+  	  matcount[i,18] = matcount[j,17]; * mqum32;
+  	  matcount[i,20] = matcount[j,19]; * mqumx2;
+	  matcount[i,22] = matcount[j,21]; * covm2;
+	  matcount[i,24] = matcount[j,23]; * mhgt2;
+	                                                  end;
+  end;  * end j loop;
+end;    * end i loop;
+* print mat2;
+
+cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat', 'aspect', 'hydr', 'soil', 'pltd', 
+			'elev', 'slope', 'ilvo1', 'ilvo2', 'pita1', 'pita2', 'qum31', 'qum32', 'quma1', 'quma2', 
+			'covm1', 'covm2', 'mhgt1', 'mhgt2'};
+create seedpairs from mat2 [colname = cnames1];
+append from mat2;
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 do i=1 to nobs;
 	*assigning a numeric id to each species;
-	uniquad=10*(matnum[i,1]-1)+ matnum[i,2];	*unique quadrat id;
+	*uniquad=10*(matnum[i,1]-1)+ matnum[i,2];	*unique quadrat id;
     if (matchar[i,1]='ACGR2') then spid=1;        
     if (matchar[i,1]='AGFA2') then spid=2;
     if (matchar[i,1]='AGHYx') then spid=3;
@@ -352,8 +420,9 @@ do i=1 to nobs;
     if (matchar[i,1]='VUOCx') then spid=313;
     if (matchar[i,1]='WAMAx') then spid=314;
     if (matchar[i,1]='XXXXx') then spid=315;
-	matcount[uniquad,spid]=matnum[i,3];
+	matcount[quad,spid]=matnum[i,3];
 end;
+print (matnum[1:20,]);
 
 datids=matnum;
 do i=1 to nquads;						*why are we doing this?;
