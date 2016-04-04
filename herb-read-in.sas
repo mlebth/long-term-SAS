@@ -368,3 +368,5 @@ data herbx; set herb5;
 	* 12 'missing' years that come from postburn severity metric, all come from 2011;
 	if year = '.' 	then year = 2011;
 run;
+
+*proc print data=herbx (firstobs=1 obs=20); title 'herbx'; run;

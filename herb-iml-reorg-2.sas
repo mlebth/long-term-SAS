@@ -41,27 +41,27 @@ end;                     * end record by record loop;
 * print (matcount[1:20,]);
 nobs=nrow(matcount);							*print nobs; *12548;
 
+*order of variables in matnum: plot, quad, coun, year, covm, soileb, elev, slope, hydrn, aspect, bcat, prpo;
 
 * fill mat2; * col1 already has first yr;
 do i = 1 to nrecords;    * record by record loop;
   time1 = matcount[i,1];
   time2 = time1 + 1;
   matcount[i,2] = time2;	
-  matcount[i,3] = matnum[i,1];   * year1;
-  matcount[i,5] = matnum[i,2];   * plot;
-  matcount[i,6] = matnum[i,3];   * bcat;
-  matcount[i,7] = matnum[i,4];   * aspect;
-  matcount[i,8] = matnum[i,5];   * hydrn;
-  matcount[i,9] = matnum[i,6];   * soileb;
-  matcount[i,10] = matnum[i,7];  * pltd;
-  matcount[i,11] = matnum[i,14]; * elev;
-  matcount[i,12] = matnum[i,15]; * slope;
-  matcount[i,13] = matnum[i,9];  * milvo1;
-  matcount[i,15] = matnum[i,10]; * mpita1;
-  matcount[i,17] = matnum[i,11]; * mqum31;
-  matcount[i,19] = matnum[i,12]; * mqumx1;
-  matcount[i,21] = matnum[i,13]; * covm1;
-  matcount[i,23] = matnum[i,16]; * mhgt1;
+  matcount[i,3]  = matnum[i,4];  * year1;
+  matcount[i,5]  = matnum[i,1];  * plot;
+  matcount[i,6]  = matnum[i,11]; * bcat;
+  matcount[i,7]  = matnum[i,10]; * aspect;
+  matcount[i,8]  = matnum[i,9];  * hydrn;
+  matcount[i,9]  = matnum[i,6];  * soileb;
+  matcount[i,10] = matnum[i,7];  * elev;
+  matcount[i,11] = matnum[i,8];  * slope;
+  matcount[i,12] = matnum[i,5];  * covm1;
+*example, taken from piquil reorg: ;
+  matcount[i,14] = matnum[i,9];  * milvo1;
+  matcount[i,16] = matnum[i,10]; * mpita1;
+  matcount[i,18] = matnum[i,11]; * mqum31;
+  matcount[i,20] = matnum[i,12]; * mqumx1;
 end;
 * print matcount;
 
@@ -71,37 +71,23 @@ do i = 1 to nrecords;
     if (matcount[j,5] = plot & matcount[j,1] = time2) then do;
 	  *print i,j;
   	  matcount[i,4]  = matcount[j,3];  * year2;
-	  matcount[i,14] = matcount[j,13]; * milvo2;
-  	  matcount[i,16] = matcount[j,15]; * mpita2;
-  	  matcount[i,18] = matcount[j,17]; * mqum32;
-  	  matcount[i,20] = matcount[j,19]; * mqumx2;
-	  matcount[i,22] = matcount[j,21]; * covm2;
-	  matcount[i,24] = matcount[j,23]; * mhgt2;
+	  matcount[i,13] = matcount[j,12]; * covm2;
+	  matcount[i,15] = matcount[j,14]; * milvo2;
+  	  matcount[i,16] = matcount[j,16]; * mpita2;
+  	  matcount[i,19] = matcount[j,18]; * mqum32;
+  	  matcount[i,21] = matcount[j,20]; * mqumx2;
 	                                                  end;
   end;  * end j loop;
 end;    * end i loop;
-* print mat2;
+* print matcount;
 
-cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat', 'aspect', 'hydr', 'soil', 'pltd', 
+*naming, taken from piquil reorg;
+*cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat', 'aspect', 'hydr', 'soil', 'pltd', 
 			'elev', 'slope', 'ilvo1', 'ilvo2', 'pita1', 'pita2', 'qum31', 'qum32', 'quma1', 'quma2', 
 			'covm1', 'covm2', 'mhgt1', 'mhgt2'};
-create seedpairs from mat2 [colname = cnames1];
-append from mat2;
+*create seedpairs from matcount [colname = cnames1];
+*append from matcount;
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 do i=1 to nobs;
 	*assigning a numeric id to each species;
 	*uniquad=10*(matnum[i,1]-1)+ matnum[i,2];	*unique quadrat id;

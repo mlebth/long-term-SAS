@@ -1,4 +1,4 @@
-****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
+  ****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
 data herbx; set alld;
 	if (subp = 'herb'); 
 run;  *N=12545;
