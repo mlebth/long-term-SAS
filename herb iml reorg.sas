@@ -12,7 +12,7 @@ proc sort data=herb1; by plot quad year sspp bcat covm coun soileb elev slope as
 *proc print data=herb1 (firstobs=1 obs=20); title 'herb1'; run;
 
 *numeric dataset;   data dat1n; set herb1; keep aspect bcat plot quad coun covm elev hydrn slope soileb year prpo; 
-*character dataset; data dat1c; set herb1; keep sspp;			
+*character dataset; data dat1c; set herb1; keep sspp;	run;		
 
 *proc contents data=dat1n; run;
 *proc print    data=dat1n (firstobs=1 obs=20); title 'dat1n'; run;
