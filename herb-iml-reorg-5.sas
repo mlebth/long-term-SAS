@@ -54,16 +54,9 @@ data rowcount3; set rowcount2; newplotid = _n_; keep plot newplotid;
 proc print data=rowcount3; title 'rowcount3';
 run;
 
-/*
-export rowcount3 to iml;   iml code:
-  plotid=0; 
-  * have a data matrix datxxx, and you have a new matrix that you are filling, using plotid to calculate rowid;
-  do i = 1 to 56; if datxxxx[<of the row >] = plotnum3[i,1] then plotid = plotnum3[i,2]; end; 
-if plotid = 0 then do; print 'plotid missing!'; end;
-*/
 *end norma code;
 
-data herb3; set herb2;
+data herb2; set herb1;
 	if (sspp='ACGR2') then spid=1;  if (sspp='CHTE1') then spid=46;	if (sspp='DILI5') then spid=91;		if (sspp='GAPE2') then spid=136;	if (sspp='LERE2') then spid=181;	if (sspp='PHCI4') then spid=226;	if (sspp='SOCA6') then spid=271;
 	if (sspp='AGFA2') then spid=2;	if (sspp='CIHO2') then spid=47;	if (sspp='DIOLS') then spid=92;		if (sspp='GAPI2') then spid=137;	if (sspp='LESPE') then spid=182;	if (sspp='PHHE4') then spid=227;	if (sspp='SOEL3') then spid=272;
 	if (sspp='AGHYx') then spid=3;	if (sspp='CITE2') then spid=48;	if (sspp='DIOLx') then spid=93;		if (sspp='GAPU3') then spid=138;	if (sspp='LEST4') then spid=183;	if (sspp='PHHE5') then spid=228;	if (sspp='SONU2') then spid=273;
@@ -109,15 +102,9 @@ data herb3; set herb2;
 	if (sspp='CHMA1') then spid=43;	if (sspp='DICO6') then spid=88;	if (sspp='GAAR1') then spid=133;	if (sspp='LEDUx') then spid=178;	if (sspp='PHABx') then spid=223;	if (sspp='SOAL6') then spid=268;	if (sspp='VUOCx') then spid=313;
 	if (sspp='CHPI8') then spid=44;	if (sspp='DILA9') then spid=89;	if (sspp='GABR2') then spid=134;	if (sspp='LEHI2') then spid=179;	if (sspp='PHAM4') then spid=224;	if (sspp='SOAM4') then spid=269;	if (sspp='WAMAx') then spid=314;
 	if (sspp='CHSE2') then spid=45;	if (sspp='DILI2') then spid=90;	if (sspp='GACA6') then spid=135;	if (sspp='LEMU3') then spid=180;	if (sspp='PHAN5') then spid=225;	if (sspp='SOASx') then spid=270;	if (sspp='XXXXx') then spid=315;
-	keep sspp spid coun plot year;
+	drop sspp; 
 run;
-proc print data=herb2 (firstobs=1 obs=20); title 'herb2'; run;
-*in iml: bring in numeric data, create uniquad;
-
-*numeric dataset;   
-data dat1n; set herb1; keep plot quad coun year covm soileb elev slope hydrn aspect bcat prpo spid; run; 
-*character dataset; 
-data dat1c; set herb1; keep sspp; run;		
+*proc print data=herb2 (firstobs=1 obs=20); title 'herb2'; run;
 
 /*
 *proc contents data=dat1n; run;
@@ -128,16 +115,19 @@ data dat1c; set herb1; keep sspp; run;
 
 proc iml;
 
+*sas datasets to import:
+	sumstems1: counts of stems per species
+	rowcount3: reassigns plots to numbers 1-55
+	herb2: 	   species codes (sspp) reassigned to numbers (spid) ;
+
 inputyrs = {2002, 2003, 2005, 2006, 2008, 2010, 2011, 2012, 2013, 2014, 2015};
-nyrs = nrow(inputyrs);  						* print nyrs; *11 yrs;
+nyrs = nrow(inputyrs); 
 
 *reading in numeric data;
-use dat1n; read all into matnum;				* print (matnum[1:20,]); *12 columns, 12548 rows;
-nrecords = nrow(matnum);						* print nrecords; *12548;
+use herb2; read all into matnum;				* print (matnum[1:20,]); *14 columns, 12544 rows;
+nrecords = nrow(matnum);						* print nrecords; *12544;
 
-nsp=315;	  									* number of species;
-
-*all numeric data except species/counts;
+*creating a new matrix;
 matnumdat=j(nrecords,16,9999); 					
 do i = 1 to nrecords;    						* record by record loop;
   do j = 1 to nyrs;      						* yr by yr loop;
@@ -147,7 +137,7 @@ end;                     						* end record by record loop;
 * print (matnumdat[1:20,]);
 
 *order of variables in matnum: 
-plot, quad, coun, year, covm, soileb, elev, slope, hydrn, aspect, bcat, prpo;
+plot, quad, coun, year, covm, soileb, elev, slope, hydrn, aspect, bcat, prpo spid;
 
 * fill matnumdat; 
 do i = 1 to nrecords;    						* record by record loop;
@@ -172,53 +162,12 @@ do i = 1 to nrecords;    						* record by record loop;
 end;
 * print (matnumdat[1:20,]);
 
-do i = 1 to nrecords;
-  plot = matnumdat[i,6]; time2 = matnumdat[i,2];
-  do j = 1 to nrecords;
-    if (matnumdat[j,6] = plot & matnumdat[j,1] = time2) then do;
-	  *print i,j;
-  	  matnumdat[i,4]  = matnumdat[j,3];  * year2;
-	  matnumdat[i,15] = matnumdat[j,14]; * covm2;
-	                                                  end;
-  end;  * end j loop;
-end;    * end i loop;
-* print (matnumdat[110:120,]);
 
-*done with matnumdat;
-
-*dataset of only species/counts;
-*reading in character data;
-use dat1c; read all var _char_ into matchar;	* print matchar;  *1 column, 12548 rows;
-nrecords = nrow(matchar);						* print nrecords; *12548;
-
-* nonsense;
-varnames=spid;
-varnames=matchar;
-create datids3 from datids2 [colname=varnames];
-
-/* *sticks matnumdat and datids together. works, but it's not what i want;
-matnumdat1=matnumdat||datids2; 					
-*print (matnumdat1[1:20,]);
+*create uniquad;
+/*
+export rowcount3 to iml;   iml code:
+  plotid=0; 
+  * have a data matrix datxxx, and you have a new matrix that you are filling, using plotid to calculate rowid;
+  do i = 1 to 56; if datxxxx[<of the row >] = plotnum3[i,1] then plotid = plotnum3[i,2]; end; 
+if plotid = 0 then do; print 'plotid missing!'; end;
 */
-
-***as yet unused code below;
-matpa=matnumdat1;
-
-do i=1 to nrecords;
-	do j=1 to nsp;
-		colno=j+3;
-		matpa[i,colno]=99;
-			if (matnumdat1[i,colno]=0) then matpa[i,colno]=0;
-			if (matnumdat1[i,colno]>0) then matpa[i,colno]=1;
-	end;
-end;
-
-/* *labeling columns: fix this to match herbs data;
-cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'bcat', 'aspect', 'hydr', 'soil', 'pltd', 
-			'elev', 'slope', 'ilvo1', 'ilvo2', 'pita1', 'pita2', 'qum31', 'qum32', 'quma1', 'quma2', 
-			'covm1', 'covm2', 'mhgt1', 'mhgt2'};
-create seedpairs from mat2 [colname = cnames1];
-append from mat2;
-*/
-
-quit;
