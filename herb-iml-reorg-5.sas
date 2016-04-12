@@ -32,31 +32,48 @@ quit;
 *55 plots in herb1--herbaceous data were never collected at all in plot 1226, plot gets dropped;
 */
 
-*begin norma code;
-
 *getting stem counts;
 proc sort data=herb1; by sspp; run;
 proc means data=herb1 noprint n sum mean min max; by sspp; var coun;
   output out=sumstems n=n sum=sumcount mean=meancount min=mincount max=maxcount;
 data sumstems1; set sumstems; drop _TYPE_ _FREQ_; RUN;
 proc sort data=sumstems1; by sumcount n;
-proc print data=sumstems1; title 'sumstems';
+*proc print data=sumstems1; title 'sumstems';
 run;
 
 *renaming plots 1-56;
-data rowcount; set herb1; dummy = 1; keep plot dummy;
-proc sort data=rowcount; by plot; run;
-proc means data=rowcount noprint mean noprint; by plot; var dummy;
-  output out=rowcount2 mean = mean;
+data plotid; set herb1; dummy = 1; keep plot dummy;
+proc sort data=plotid; by plot; run;
+proc means data=plotid noprint mean noprint; by plot; var dummy;
+  output out=plotid2 mean = mean;
 *proc print data=rowcount2; title 'rowcount2'; 
 run;
-data rowcount3; set rowcount2; newplotid = _n_; keep plot newplotid;
-proc print data=rowcount3; title 'rowcount3';
-run;
-
-*end norma code;
+data plotid3; set plotid2; newplotid = _n_; keep plot newplotid;
+*proc print data=plotid3; title 'plotid3';
+run; *n=55;
 
 data herb2; set herb1;
+	*reassigning plot ids;
+	if plot = 1181 then plotnew = 1; if plot = 1186 then plotnew = 2; if plot = 1188 then plotnew = 3; 
+	if plot = 1189 then plotnew = 4; if plot = 1190 then plotnew = 5; if plot = 1191 then plotnew = 6; 
+	if plot = 1192 then plotnew = 7; if plot = 1193 then plotnew = 8; if plot = 1194 then plotnew = 9; 
+	if plot = 1195 then plotnew = 10; if plot = 1196 then plotnew = 11; if plot = 1197 then plotnew = 12; 
+	if plot = 1198 then plotnew = 13; if plot = 1199 then plotnew = 14; if plot = 1200 then plotnew = 15; 
+	if plot = 1201 then plotnew = 16; if plot = 1202 then plotnew = 17; if plot = 1203 then plotnew = 18; 
+	if plot = 1204 then plotnew = 19; if plot = 1205 then plotnew = 20; if plot = 1206 then plotnew = 21; 
+	if plot = 1207 then plotnew = 22; if plot = 1208 then plotnew = 23; if plot = 1209 then plotnew = 24; 
+	if plot = 1210 then plotnew = 25; if plot = 1211 then plotnew = 26; if plot = 1212 then plotnew = 27; 
+	if plot = 1213 then plotnew = 28; if plot = 1214 then plotnew = 29; if plot = 1215 then plotnew = 30; 
+	if plot = 1216 then plotnew = 31; if plot = 1217 then plotnew = 32; if plot = 1218 then plotnew = 33; 
+	if plot = 1219 then plotnew = 34; if plot = 1220 then plotnew = 35; if plot = 1221 then plotnew = 36;
+	if plot = 1222 then plotnew = 37; if plot = 1223 then plotnew = 38; if plot = 1224 then plotnew = 39; 
+	if plot = 1225 then plotnew = 40; if plot = 1227 then plotnew = 41; if plot = 1228 then plotnew = 42; 
+	if plot = 1229 then plotnew = 43; if plot = 1230 then plotnew = 44; if plot = 1231 then plotnew = 45; 
+	if plot = 1232 then plotnew = 46; if plot = 1233 then plotnew = 47; if plot = 1234 then plotnew = 48; 
+	if plot = 1235 then plotnew = 49; if plot = 1236 then plotnew = 50; if plot = 1237 then plotnew = 51; 
+	if plot = 1238 then plotnew = 52; if plot = 1239 then plotnew = 53; if plot = 1240 then plotnew = 54; 
+	if plot = 5300 then plotnew = 55; 
+	*reassigning species codes;
 	if (sspp='ACGR2') then spid=1;  if (sspp='CHTE1') then spid=46;	if (sspp='DILI5') then spid=91;		if (sspp='GAPE2') then spid=136;	if (sspp='LERE2') then spid=181;	if (sspp='PHCI4') then spid=226;	if (sspp='SOCA6') then spid=271;
 	if (sspp='AGFA2') then spid=2;	if (sspp='CIHO2') then spid=47;	if (sspp='DIOLS') then spid=92;		if (sspp='GAPI2') then spid=137;	if (sspp='LESPE') then spid=182;	if (sspp='PHHE4') then spid=227;	if (sspp='SOEL3') then spid=272;
 	if (sspp='AGHYx') then spid=3;	if (sspp='CITE2') then spid=48;	if (sspp='DIOLx') then spid=93;		if (sspp='GAPU3') then spid=138;	if (sspp='LEST4') then spid=183;	if (sspp='PHHE5') then spid=228;	if (sspp='SONU2') then spid=273;
@@ -104,21 +121,11 @@ data herb2; set herb1;
 	if (sspp='CHSE2') then spid=45;	if (sspp='DILI2') then spid=90;	if (sspp='GACA6') then spid=135;	if (sspp='LEMU3') then spid=180;	if (sspp='PHAN5') then spid=225;	if (sspp='SOASx') then spid=270;	if (sspp='XXXXx') then spid=315;
 	drop sspp; 
 run;
+proc sort data=herb2; by plotnew year spid;
 *proc print data=herb2 (firstobs=1 obs=20); title 'herb2'; run;
-
-/*
-*proc contents data=dat1n; run;
-*proc print    data=dat1n (firstobs=1 obs=20); title 'dat1n'; run;
-*proc contents data=dat1c; run;
-*proc print    data=dat1c (firstobs=1 obs=20); title 'dat1c'; run;
-*/
+*proc contents data=herb2; run;
 
 proc iml;
-
-*sas datasets to import:
-	sumstems1: counts of stems per species
-	rowcount3: reassigns plots to numbers 1-55
-	herb2: 	   species codes (sspp) reassigned to numbers (spid) ;
 
 inputyrs = {2002, 2003, 2005, 2006, 2008, 2010, 2011, 2012, 2013, 2014, 2015};
 nyrs = nrow(inputyrs); 
@@ -128,46 +135,73 @@ use herb2; read all into matnum;				* print (matnum[1:20,]); *14 columns, 12544 
 nrecords = nrow(matnum);						* print nrecords; *12544;
 
 *creating a new matrix;
-matnumdat=j(nrecords,16,9999); 					
+matnumdat=j(nrecords,18,9999); 					
 do i = 1 to nrecords;    						* record by record loop;
   do j = 1 to nyrs;      						* yr by yr loop;
-    if (matnum[i,4] = inputyrs[j]) then matnumdat[i,1] = j;
+    if (matnum[i,4] = inputyrs[j]) then matnumdat[i,1] = j; 
   end;                   						* end yr by yr loop;
 end;                     						* end record by record loop;
 * print (matnumdat[1:20,]);
 
 *order of variables in matnum: 
-plot, quad, coun, year, covm, soileb, elev, slope, hydrn, aspect, bcat, prpo spid;
+1-plot, 2-quad, 3-coun, 4-year, 5-covm, 6-soileb, 7-elev, 8-slope, 
+9-hydrn, 10-aspect, 11-bcat, 12-prpo, 13-type, 14-plotnew, 15-spid;
 
 * fill matnumdat; 
 do i = 1 to nrecords;    						* record by record loop;
-  uniquad=10*(matnum[i,1]-1)+ matnum[i,2];		* unique quadrat id;
+  uniquad=10*(matnum[i,14]-1)+ matnum[i,2];		* unique quadrat id;
   time1 = matnumdat[i,1];
   time2 = time1 + 1;
   matnumdat[i,2]  = time2;	
-  matnumdat[i,3]  = matnum[i,4];  * year1;
+  matnumdat[i,3]  = matnum[i,4];   * year1;
   *matnumdat[i,4] will be year2;
-  matnumdat[i,5]  = matnum[i,12]; * prpo;
-  matnumdat[i,6]  = matnum[i,1];  * plot;
-  matnumdat[i,7]  = uniquad;  	  * quad;
-  matnumdat[i,8]  = matnum[i,11]; * bcat;
-  matnumdat[i,9]  = matnum[i,10]; * aspect;
-  matnumdat[i,10] = matnum[i,9];  * hydrn;
-  matnumdat[i,11] = matnum[i,6];  * soileb;
-  matnumdat[i,12] = matnum[i,7];  * elev;
-  matnumdat[i,13] = matnum[i,8];  * slope;
-  matnumdat[i,14] = matnum[i,5];  * covm1;
-  *matnumdat[i,15] will be covm2;     
-  matnumdat[i,16] = matnum[i,3];  * coun;
+  matnumdat[i,5]  = matnum[i,12];  * prpo;
+  matnumdat[i,6]  = matnum[i,14];  * plot;
+  matnumdat[i,7]  = uniquad;  	   * quad;
+  matnumdat[i,8]  = matnum[i,13];  * type;
+  matnumdat[i,9]  = matnum[i,14];  * spid;
+  matnumdat[i,10] = matnum[i,3];   * coun;
+  matnumdat[i,11] = matnum[i,11];  * bcat;
+  matnumdat[i,12] = matnum[i,10];  * aspect;
+  matnumdat[i,13] = matnum[i,9];   * hydrn;
+  matnumdat[i,14] = matnum[i,6];   * soileb;
+  matnumdat[i,15] = matnum[i,7];   * elev;
+  matnumdat[i,16] = matnum[i,8];   * slope;
+  matnumdat[i,17] = matnum[i,5];   * covm1;
+  *matnumdat[i,18] will be covm2;     
 end;
-* print (matnumdat[1:20,]);
+* print (matnumdat[12524:12544,]);
 
+*fills in year2 and covm2;
+do i = 1 to nrecords;
+  plot = matnumdat[i,6]; time2 = matnumdat[i,2];
+  do j = 1 to nrecords;
+    if (matnumdat[j,6] = plot & matnumdat[j,1] = time2) then do;
+	  *print i,j;
+  	  matnumdat[i,4]  = matnumdat[j,3];  * year2;
+	  matnumdat[i,18] = matnumdat[j,17]; * covm2;
+	                                                  end;
+  end;  * end j loop;
+end;    * end i loop;
+* print (matnumdat[10:20,]);
 
-*create uniquad;
-/*
-export rowcount3 to iml;   iml code:
-  plotid=0; 
-  * have a data matrix datxxx, and you have a new matrix that you are filling, using plotid to calculate rowid;
-  do i = 1 to 56; if datxxxx[<of the row >] = plotnum3[i,1] then plotid = plotnum3[i,2]; end; 
-if plotid = 0 then do; print 'plotid missing!'; end;
-*/
+*presence/absence matrix;
+matpa=matnumdat;
+
+do i=1 to nrecords;
+	countcol=10;
+	matpa[i,countcol]=99;
+		if (matnumdat[i,countcol]=0) then matpa[i,countcol]=0;
+		if (matnumdat[i,countcol]>0) then matpa[i,countcol]=1;
+end;
+* print (matpa[10:20,]);
+
+*labeling columns;
+cnames = {'time1', 'time2', 'year1', 'year2', 'prpo', 'plot', 'quad', 'type', 'spid',
+		  'coun',  'bcat', 'aspect', 'hydr', 'soil', 'elev', 'slope', 'cov1', 'cov2'};
+create herbdat from matnumdat [colname = cnames];
+append from matnumdat;
+
+quit;
+
+*proc print data=herbdat (firstobs=111 obs=120); title 'herbdat'; run;
