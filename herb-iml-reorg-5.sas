@@ -1,3 +1,10 @@
+
+proc glimmix data=mcounyrbcatspid; title 'mcounyrbcatspid';
+  *class bcat spid;
+  model mcoun = year1 / distribution=negbin link=log solution DDFM=bw;
+  *lsmeans bcat / ilink cl;
+  output out=glmout2 resid=ehat;
+run;
 data herb1; set herbx;
 	if sspp='     ' then delete;
 	if year=1999 	then delete;
@@ -159,7 +166,7 @@ do i = 1 to nrecords;    						* record by record loop;
   matnumdat[i,6]  = matnum[i,14];  * plot;
   matnumdat[i,7]  = uniquad;  	   * quad;
   matnumdat[i,8]  = matnum[i,13];  * type;
-  matnumdat[i,9]  = matnum[i,14];  * spid;
+  matnumdat[i,9]  = matnum[i,15];  * spid;
   matnumdat[i,10] = matnum[i,3];   * coun;
   matnumdat[i,11] = matnum[i,11];  * bcat;
   matnumdat[i,12] = matnum[i,10];  * aspect;
@@ -205,3 +212,87 @@ append from matnumdat;
 quit;
 
 *proc print data=herbdat (firstobs=111 obs=120); title 'herbdat'; run;
+
+*checking values;
+proc sort data=herbdat; by spid;
+proc means data=herbdat noprint; 
+	output out=spidcoun;
+proc print data=spidcoun; run;
+
+*count by year;
+proc sort data=herbdat; by year1; run;
+proc means data=herbdat noprint mean; by year1; var coun;
+  output out=mcountbyyr mean = mcoun;
+*proc print data=mcountbyyr; title 'mean count by year'; 
+run;			*9 years;
+proc plot data=mcountbyyr; title 'mean count by year'; 
+	plot mcoun*year1; 
+run;
+
+*count by bcat;
+proc sort data=herbdat; by bcat; run;
+proc means data=herbdat noprint mean; by bcat; var coun;
+  output out=mcountbybcat mean = mcoun;
+*proc print data=mcountbybcat; title 'mean count by bcat'; 
+run;			*3 levels: 1-3;
+proc plot data=mcountbybcat; title 'mean count by bcat'; 
+	plot mcoun*bcat; 
+run;
+
+*count by bcat*year;
+proc sort data=herbdat; by year1 bcat; run;
+proc means data=herbdat noprint mean noprint; by year1 bcat; var coun;
+  output out=mcountbybcatyr mean = mcoun;
+*proc print data=mcountbybcatyr; title 'mean count by year/bcat'; 
+run;			*20 year*bcat combinations;
+proc plot data=mcountbybcatyr; title 'mean count by year/bcat'; 
+	plot mcoun*bcat mcoun*year1; 
+run;
+
+proc glimmix data=mcountbybcatyr; title 'mcountbybcatyr';
+  class bcat;
+  model mcoun = year1 bcat year1*bcat / distribution=negbin link=log solution DDFM=bw; 
+  lsmeans bcat / ilink cl; 
+  output out=glmout2 resid=ehat;
+run;
+
+*count by bcat*year*spid;
+proc sort data=herbdat; by year1 bcat spid; run;
+proc means data=herbdat noprint mean noprint; by year1 bcat spid; var coun;
+  output out=mcounyrbcatspid mean = mcoun;
+*proc print data=mcounyrbcatspid; title 'mean count by year/bcat/spid'; 
+run;			*1353 year*bcat*spid combinations;
+proc plot data=mcounyrbcatspid; title 'mean count by year/bcat/spid'; 
+	plot mcoun*bcat mcoun*year1 mcoun*spid; 
+run;
+
+proc glimmix data=mcounyrbcatspid; title 'mcounyrbcatspid';
+  class bcat spid;
+  model mcoun = year1 bcat spid year1*bcat year1*spid bcat*spid year1*bcat*spid / distribution=negbin link=log solution DDFM=bw; 
+  lsmeans bcat / ilink cl; 
+  output out=glmoutfull resid=ehat;
+run;
+
+proc glimmix data=mcounyrbcatspid; title 'mcoun=year';
+  *class bcat spid;
+  model mcoun = year1 / distribution=negbin link=log solution DDFM=bw; 
+  *lsmeans bcat / ilink cl; 
+  output out=glmoutyr resid=ehat;
+run;
+
+proc glimmix data=mcounyrbcatspid; title 'mcoun=burn';
+  class bcat;
+  model mcoun = bcat / distribution=negbin link=log solution DDFM=bw; 
+  lsmeans bcat / ilink cl; 
+  output out=glmoutbcat resid=ehat;
+run;
+proc print data=glmoutbcat; run;
+proc plot data=glmoutbcat; plot mcoun*ehat; run;
+
+proc glimmix data=mcounyrbcatspid; title 'mcoun=species';
+  class spid;
+  model mcoun = spid / distribution=negbin link=log solution DDFM=bw; 
+  lsmeans spid / ilink cl; 
+  output out=glmoutspid resid=ehat;
+run;
+
