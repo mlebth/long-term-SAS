@@ -132,6 +132,8 @@ proc sort data=herb2; by plotnew year spid;
 *proc print data=herb2 (firstobs=1 obs=20); title 'herb2'; run;
 *proc contents data=herb2; run;
 
+data herbsp; set herb1; keep sspp; run;
+
 proc iml;
 
 inputyrs = {2002, 2003, 2005, 2006, 2008, 2010, 2011, 2012, 2013, 2014, 2015};
@@ -192,6 +194,14 @@ do i = 1 to nrecords;
 end;    * end i loop;
 * print (matnumdat[10:20,]);
 
+*reading in character data;
+use herbsp; read all var _char_ into matchar;	* print matchar;  *1 column, 12544 rows;
+* print (matchar[10:20,]);
+
+create matdat from matnumdat;
+append from matchar;
+close matdat; 	
+
 *presence/absence matrix;
 matpa=matnumdat;
 
@@ -213,52 +223,58 @@ quit;
 
 *proc print data=herbdat (firstobs=111 obs=120); title 'herbdat'; run;
 
+data herbdat2; merge herbdat herbsp; run;
+*proc print data=herbdat2 (firstobs=1 obs=20); title 'herbdat2'; run;
+
 *checking values;
-proc sort data=herbdat; by spid;
-proc means data=herbdat noprint; 
-	output out=spidcoun;
-proc print data=spidcoun; run;
+proc sort data=herbdat2; by spid;
+proc means data=herbdat2 noprint; 
+	output out=datcheck;
+*proc print data=datcheck; title 'datcheck'; run;
 
 *count by year;
-proc sort data=herbdat; by year1; run;
-proc means data=herbdat noprint mean; by year1; var coun;
+proc sort data=herbdat2; by year1; run;
+proc means data=herbdat2 noprint mean; by year1; var coun;
   output out=mcountbyyr mean = mcoun;
 *proc print data=mcountbyyr; title 'mean count by year'; 
-run;			*9 years;
-proc plot data=mcountbyyr; title 'mean count by year'; 
-	plot mcoun*year1; 
+run;			*9 years--post-fire jump, decreasing after 2013;
+proc plot data=herbdat2; title 'mean count by year'; 
+	plot coun*year1; 
 run;
 
 *count by bcat;
-proc sort data=herbdat; by bcat; run;
-proc means data=herbdat noprint mean; by bcat; var coun;
+proc sort data=herbdat2; by bcat; run;
+data herbdatpost; set herbdat2; if prpo=2; run;
+proc means data=herbdatpost noprint mean; by bcat; var coun;
   output out=mcountbybcat mean = mcoun;
 *proc print data=mcountbybcat; title 'mean count by bcat'; 
-run;			*3 levels: 1-3;
-proc plot data=mcountbybcat; title 'mean count by bcat'; 
-	plot mcoun*bcat; 
+run;			*bcat 2--mcoun 14.1, 3--26.2;
+*2 levels present of bcat b/c 1=unburned, 2=s/l, 3=heavy--no unburned plots surveyed post-fire;
+proc plot data=herbdatpost; title 'mean count by bcat'; 
+	plot coun*bcat; 
 run;
 
 *count by bcat*year;
-proc sort data=herbdat; by year1 bcat; run;
-proc means data=herbdat noprint mean noprint; by year1 bcat; var coun;
+proc sort data=herbdat2; by bcat year1; run;
+proc means data=herbdatpost noprint mean noprint; by bcat year1; var coun;
   output out=mcountbybcatyr mean = mcoun;
 *proc print data=mcountbybcatyr; title 'mean count by year/bcat'; 
-run;			*20 year*bcat combinations;
-proc plot data=mcountbybcatyr; title 'mean count by year/bcat'; 
-	plot mcoun*bcat mcoun*year1; 
+run;			*8 year*bcat combinations;
+proc plot data=herbdat2; title 'mean count by year/bcat'; 
+	plot coun*bcat coun*year1; 
 run;
 
-proc glimmix data=mcountbybcatyr; title 'mcountbybcatyr';
+*models;
+proc glimmix data=herbdat2; title 'bcat';
   class bcat;
-  model mcoun = year1 bcat year1*bcat / distribution=negbin link=log solution DDFM=bw; 
+  model coun = bcat / distribution=negbin link=log solution; 
   lsmeans bcat / ilink cl; 
   output out=glmout2 resid=ehat;
 run;
 
 *count by bcat*year*spid;
-proc sort data=herbdat; by year1 bcat spid; run;
-proc means data=herbdat noprint mean noprint; by year1 bcat spid; var coun;
+proc sort data=herbdat2; by year1 bcat spid; run;
+proc means data=herbdat2 noprint mean noprint; by year1 bcat spid; var coun;
   output out=mcounyrbcatspid mean = mcoun;
 *proc print data=mcounyrbcatspid; title 'mean count by year/bcat/spid'; 
 run;			*1353 year*bcat*spid combinations;

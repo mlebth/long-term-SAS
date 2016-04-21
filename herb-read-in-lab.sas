@@ -8,7 +8,7 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
 *--------------------------------------- POST-BURN SEVERITY ASSESSMENT AND PLOT HISTORY -----------------------------------------------------;
 *Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\postburnsev.csv"
+proc import datafile="G:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\postburnsev.csv"
 out=postsev dbms=csv replace; getnames=yes; run;  * N = 1227;
 /* proc print data = postsev; run;
 proc contents data = postsev; run;
@@ -87,7 +87,7 @@ proc contents data=postsev2x5; run;
 * Plot history: This comes from my own document, not FFI;
 * Includes hydromulch, rx burn history, and burn severity variables. Burn severity is only for plots 1227-5300--these are the new plots
 that were not included in the initial post-burn assessment. Qualitative assessment was done in summer 2012.;
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothistory.csv"  
+proc import datafile="G:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothistory.csv"  
 out=hist dbms=csv replace; getnames=yes; 
 run;  * N = 56;
 /*proc contents data=hist; title 'plot history'; run;
@@ -223,7 +223,7 @@ proc freq data=plothist; tables soileb*plot; run;
 
 *making a printout for EK;
 proc export data=plothist
-   outfile='E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothist.csv'
+   outfile='G:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothist.csv'
    dbms=csv
    replace;
 run;
@@ -234,8 +234,8 @@ This was done because these plots were established the year following the BCCF.
 Burnsev for all other plots was calculated from veg and subs values in the post-burn assessment.;
 
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
-/*proc import datafile="E:\FFI CSV files\CanopyCoverallyrs.csv"*/
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\CanopyCover.csv"
+/*proc import datafile="G:\FFI CSV files\CanopyCoverallyrs.csv"*/
+proc import datafile="G:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\CanopyCover.csv"
 out=canopy dbms=csv replace; getnames=yes;
 run;  
 proc sort data = canopy; by plot year; run;	
@@ -281,7 +281,7 @@ proc sort data=canopy3; by plot year; run;
 proc contents data=canopy3; run;*/
 
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
-proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbaceous-allyrs.csv"
+proc import datafile="G:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbaceous-allyrs.csv"
 out=herbaceous dbms=csv replace; getnames=yes;
 run;  * N = 12878;
 
