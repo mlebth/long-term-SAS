@@ -1,10 +1,3 @@
-
-proc glimmix data=mcounyrbcatspid; title 'mcounyrbcatspid';
-  *class bcat spid;
-  model mcoun = year1 / distribution=negbin link=log solution DDFM=bw;
-  *lsmeans bcat / ilink cl;
-  output out=glmout2 resid=ehat;
-run;
 data herb1; set herbx;
 	if sspp='     ' then delete;
 	if year=1999 	then delete;
@@ -194,6 +187,7 @@ do i = 1 to nrecords;
 end;    * end i loop;
 * print (matnumdat[10:20,]);
 
+/*
 *reading in character data;
 use herbsp; read all var _char_ into matchar;	* print matchar;  *1 column, 12544 rows;
 * print (matchar[10:20,]);
@@ -212,6 +206,7 @@ do i=1 to nrecords;
 		if (matnumdat[i,countcol]>0) then matpa[i,countcol]=1;
 end;
 * print (matpa[10:20,]);
+*/
 
 *labeling columns;
 cnames = {'time1', 'time2', 'year1', 'year2', 'prpo', 'plot', 'quad', 'type', 'spid',
@@ -231,6 +226,26 @@ proc sort data=herbdat2; by spid;
 proc means data=herbdat2 noprint; 
 	output out=datcheck;
 *proc print data=datcheck; title 'datcheck'; run;
+
+*count by plot;
+proc sort data=herbdat2; by plot; run;
+proc means data=herbdat2 noprint mean; by plot; var coun;
+  output out=mcountbyplot mean = mcoun;
+*proc print data=mcountbyplot; title 'mean count by plot'; 
+run;			*9 years--post-fire jump, decreasing after 2013;
+proc plot data=herbdat2; title 'mean count by year'; 
+	plot coun*year1; 
+run;
+
+*count by plot;
+proc sort data=herbdat2; by plot year1; run;
+proc means data=herbdat2 noprint mean; by plot year1; var coun;
+  output out=mcountbyplotyr mean = mcoun;
+*proc print data=mcountbyplotyr; title 'mean count by plot/year combo'; 
+run;			*9 years--post-fire jump, decreasing after 2013;
+proc plot data=herbdat2; title 'mean count by year'; 
+	plot coun*year1; 
+run;
 
 *count by year;
 proc sort data=herbdat2; by year1; run;
@@ -266,9 +281,20 @@ run;
 
 *models;
 proc glimmix data=herbdat2; title 'bcat';
-  class bcat;
-  model coun = bcat / distribution=negbin link=log solution; 
+  class plot bcat;
+  *class year1;
+  *class plot bcat year1;
+  model coun = bcat plot bcat*plot/ distribution=negbin link=log solution; 
   lsmeans bcat / ilink cl; 
+  random plot(bcat);
+  output out=glmout2 resid=ehat;
+run;
+
+
+proc glimmix data=mcounyrbcatspid; title 'mcounyrbcatspid';
+  *class bcat spid;
+  model mcoun = year1 / distribution=negbin link=log solution DDFM=bw;
+  *lsmeans bcat / ilink cl;
   output out=glmout2 resid=ehat;
 run;
 
