@@ -1,4 +1,4 @@
-
+ 
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
 * if processes get too slow, run this to free up memory, then rerun relevant 
