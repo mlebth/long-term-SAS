@@ -27,12 +27,12 @@ proc plot data=herbmerge2post; title 'herbmerge2post';
 	plot mcoun*bcat mcoun*year mcoun*soil; 
 run;
 
-*models -- plot(***);
+*models--hermberge1;
 proc glimmix data=herbmerge1; title 'plot-bcat-soil';
-  class plot bcat soil;
-  model mcoun = plot bcat soil/ distribution=negbin link=log solution; 
-  random plot(bcat*soil);
-  lsmeans bcat soil / ilink cl; 
+  class plot bcat;
+  model mcoun = plot bcat / distribution=negbin link=log solution; 
+  random bcat / subject=plot;
+  lsmeans bcat / ilink cl; 
   output out=glmout2 resid=ehat;
 run;
 
@@ -45,6 +45,15 @@ proc glimmix data=herbmerge1; title 'plot-bcat-soil';
 run;
 
 proc glimmix data=herbmerge1; title 'plot-bcat-soil';
+  class bcat soil;
+  model mcoun = plot bcat soil / distribution=negbin link=log solution; 
+  random plot(bcat*soil);
+  lsmeans bcat soil / ilink cl; 
+  output out=glmout2 resid=ehat;
+run;
+
+*models--hermberge2;
+proc glimmix data=herbmerge2; title 'plot-bcat-soil';
   class bcat soil;
   model mcoun = plot bcat soil / distribution=negbin link=log solution; 
   random plot(bcat*soil);
