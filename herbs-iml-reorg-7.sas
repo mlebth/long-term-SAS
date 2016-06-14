@@ -1,122 +1,128 @@
+*this file organizes herbs in 2 ways:
+	structure 1 (herbmerge1) pools pre-fire data and pools post-fire data (can compare before/after)
+	structure 2 (herbmerge2) pools pre-fire data but not post-fire data (can compare before with 2011-2015);
 
+*creating a set of herbs;
 data herb1; set herbx;
+	*removing blank lines;
 	if sspp='     ' then delete;
+	*removing 1999--data are of extremely poor quality;
 	if year=1999 	then delete;
-  	type = 1;     		  			  	 * default - it is a plant;
- 	if (sspp = 'XXXXx') then type = 2;   * type 2 means non-plant;
+	*type 1--it is a plant. type 2--zero plants were found in year 2005-plot 1203;
+  	type = 1;     		  			  	 
+ 	if (sspp = 'XXXXx') then type = 2;   
 	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year prpo type; 
 run; *n=12,544;
 proc sort data=herb1; by plot sspp quad year bcat covm coun soileb elev slope aspect hydrn prpo type; run; 
 *proc print data=herb1 (firstobs=1 obs=20); title 'herb1'; run;
-proc means data=herb1 noprint sum; by plot sspp quad year bcat covm coun soileb elev slope aspect hydrn prpo type; var coun; 
-  output out=herb2 sum=nperspp; run; *N=12535;
 
-*reassigning nperspp. This gives num per species where each species has its own variable for count;
-data holdANGL2; set herb2; if sspp='ANGL2'; nANGL2=nperspp; proc sort data=holdANGL2; by plot bcat year;
-data holdKRVIx; set herb2; if sspp='KRVIx'; nKRVIx=nperspp; proc sort data=holdKRVIx; by plot bcat year;
-data holdCOERx; set herb2; if sspp='COERx'; nCOERx=nperspp; proc sort data=holdCOERx; by plot bcat year;
-data holdPABR2; set herb2; if sspp='PABR2'; nPABR2=nperspp; proc sort data=holdPABR2; by plot bcat year;
-data holdWAMAx; set herb2; if sspp='WAMAx'; nWAMAx=nperspp; proc sort data=holdWAMAx; by plot bcat year;
-data holdPASEC; set herb2; if sspp='PASEC'; nPASEC=nperspp; proc sort data=holdPASEC; by plot bcat year;
-data holdSILIx; set herb2; if sspp='SILIx'; nSILIx=nperspp; proc sort data=holdSILIx; by plot bcat year;
-data holdARPUP; set herb2; if sspp='ARPUP'; nARPUP=nperspp; proc sort data=holdARPUP; by plot bcat year;
-data holdDITE2; set herb2; if sspp='DITE2'; nDITE2=nperspp; proc sort data=holdDITE2; by plot bcat year;
-data holdSOEL3; set herb2; if sspp='SOEL3'; nSOEL3=nperspp; proc sort data=holdSOEL3; by plot bcat year;
-data holdNUCAx; set herb2; if sspp='NUCAx'; nNUCAx=nperspp; proc sort data=holdNUCAx; by plot bcat year;
-data holdCITE2; set herb2; if sspp='CITE2'; nCITE2=nperspp; proc sort data=holdCITE2; by plot bcat year;
-data holdPHAM4; set herb2; if sspp='PHAM4'; nPHAM4=nperspp; proc sort data=holdPHAM4; by plot bcat year;
-data holdTRUR2; set herb2; if sspp='TRUR2'; nTRUR2=nperspp; proc sort data=holdTRUR2; by plot bcat year;
-data holdPAPE5; set herb2; if sspp='PAPE5'; nPAPE5=nperspp; proc sort data=holdPAPE5; by plot bcat year;
-data holdCRGL2; set herb2; if sspp='CRGL2'; nCRGL2=nperspp; proc sort data=holdCRGL2; by plot bcat year;
-data holdPAHI1; set herb2; if sspp='PAHI1'; nPAHI1=nperspp; proc sort data=holdPAHI1; by plot bcat year;
-data holdCHTE1; set herb2; if sspp='CHTE1'; nCHTE1=nperspp; proc sort data=holdCHTE1; by plot bcat year;
-data holdPSOB3; set herb2; if sspp='PSOB3'; nPSOB3=nperspp; proc sort data=holdPSOB3; by plot bcat year;
-data holdSPCO1; set herb2; if sspp='SPCO1'; nSPCO1=nperspp; proc sort data=holdSPCO1; by plot bcat year;
-data holdFRFLx; set herb2; if sspp='FRFLx'; nFRFLx=nperspp; proc sort data=holdFRFLx; by plot bcat year;
-data holdNELU2; set herb2; if sspp='NELU2'; nNELU2=nperspp; proc sort data=holdNELU2; by plot bcat year;
-data holdDICO6; set herb2; if sspp='DICO6'; nDICO6=nperspp; proc sort data=holdDICO6; by plot bcat year;
-data holdJUBRx; set herb2; if sspp='JUBRx'; nJUBRx=nperspp; proc sort data=holdJUBRx; by plot bcat year;
-data holdCOBA2; set herb2; if sspp='COBA2'; nCOBA2=nperspp; proc sort data=holdCOBA2; by plot bcat year;
-data holdDIOLS; set herb2; if sspp='DIOLS'; nDIOLS=nperspp; proc sort data=holdDIOLS; by plot bcat year;
-data holdJUTEx; set herb2; if sspp='JUTEx'; nJUTEx=nperspp; proc sort data=holdJUTEx; by plot bcat year;
-data holdDICA3; set herb2; if sspp='DICA3'; nDICA3=nperspp; proc sort data=holdDICA3; by plot bcat year;
-data holdERSEx; set herb2; if sspp='ERSEx'; nERSEx=nperspp; proc sort data=holdERSEx; by plot bcat year;
-data holdGYAMx; set herb2; if sspp='GYAMx'; nGYAMx=nperspp; proc sort data=holdGYAMx; by plot bcat year;
-data holdSTPI3; set herb2; if sspp='STPI3'; nSTPI3=nperspp; proc sort data=holdSTPI3; by plot bcat year;
-data holdLEHI2; set herb2; if sspp='LEHI2'; nLEHI2=nperspp; proc sort data=holdLEHI2; by plot bcat year;
-data holdCRSA4; set herb2; if sspp='CRSA4'; nCRSA4=nperspp; proc sort data=holdCRSA4; by plot bcat year;
-data holdERINx; set herb2; if sspp='ERINx'; nERINx=nperspp; proc sort data=holdERINx; by plot bcat year;
-data holdANVI2; set herb2; if sspp='ANVI2'; nANVI2=nperspp; proc sort data=holdANVI2; by plot bcat year;
-data holdHERO2; set herb2; if sspp='HERO2'; nHERO2=nperspp; proc sort data=holdHERO2; by plot bcat year;
-data holdCAMU4; set herb2; if sspp='CAMU4'; nCAMU4=nperspp; proc sort data=holdCAMU4; by plot bcat year;
-data holdTRBI2; set herb2; if sspp='TRBI2'; nTRBI2=nperspp; proc sort data=holdTRBI2; by plot bcat year;
-data holdDIACx; set herb2; if sspp='DIACx'; nDIACx=nperspp; proc sort data=holdDIACx; by plot bcat year;
-data holdTRPE4; set herb2; if sspp='TRPE4'; nTRPE4=nperspp; proc sort data=holdTRPE4; by plot bcat year;
-data holdPTAQx; set herb2; if sspp='PTAQx'; nPTAQx=nperspp; proc sort data=holdPTAQx; by plot bcat year;
-data holdDIRAx; set herb2; if sspp='DIRAx'; nDIRAx=nperspp; proc sort data=holdDIRAx; by plot bcat year;
-data holdLERE2; set herb2; if sspp='LERE2'; nLERE2=nperspp; proc sort data=holdLERE2; by plot bcat year;
-data holdPHCI4; set herb2; if sspp='PHCI4'; nPHCI4=nperspp; proc sort data=holdPHCI4; by plot bcat year;
-data holdSPCLx; set herb2; if sspp='SPCLx'; nSPCLx=nperspp; proc sort data=holdSPCLx; by plot bcat year;
-data holdFIPUx; set herb2; if sspp='FIPUx'; nFIPUx=nperspp; proc sort data=holdFIPUx; by plot bcat year;
-data holdCALE6; set herb2; if sspp='CALE6'; nCALE6=nperspp; proc sort data=holdCALE6; by plot bcat year;
-data holdHYDRx; set herb2; if sspp='HYDRx'; nHYDRx=nperspp; proc sort data=holdHYDRx; by plot bcat year;
-data holdCRMO6; set herb2; if sspp='CRMO6'; nCRMO6=nperspp; proc sort data=holdCRMO6; by plot bcat year;
-data holdCYHYx; set herb2; if sspp='CYHYx'; nCYHYx=nperspp; proc sort data=holdCYHYx; by plot bcat year;
-data holdSONU2; set herb2; if sspp='SONU2'; nSONU2=nperspp; proc sort data=holdSONU2; by plot bcat year;
-data holdNUTEx; set herb2; if sspp='NUTEx'; nNUTEx=nperspp; proc sort data=holdNUTEx; by plot bcat year;
-data holdHYGL2; set herb2; if sspp='HYGL2'; nHYGL2=nperspp; proc sort data=holdHYGL2; by plot bcat year;
-data holdTRRA5; set herb2; if sspp='TRRA5'; nTRRA5=nperspp; proc sort data=holdTRRA5; by plot bcat year;
-data holdJUMA4; set herb2; if sspp='JUMA4'; nJUMA4=nperspp; proc sort data=holdJUMA4; by plot bcat year;
-data holdACGR2; set herb2; if sspp='ACGR2'; nACGR2=nperspp; proc sort data=holdACGR2; by plot bcat year;
-data holdPASE5; set herb2; if sspp='PASE5'; nPASE5=nperspp; proc sort data=holdPASE5; by plot bcat year;
-data holdCYCR6; set herb2; if sspp='CYCR6'; nCYCR6=nperspp; proc sort data=holdCYCR6; by plot bcat year;
-data holdEUCO7; set herb2; if sspp='EUCO7'; nEUCO7=nperspp; proc sort data=holdEUCO7; by plot bcat year;
-data holdCYLU2; set herb2; if sspp='CYLU2'; nCYLU2=nperspp; proc sort data=holdCYLU2; by plot bcat year;
-data holdARLO1; set herb2; if sspp='ARLO1'; nARLO1=nperspp; proc sort data=holdARLO1; by plot bcat year;
-data holdBUCA2; set herb2; if sspp='BUCA2'; nBUCA2=nperspp; proc sort data=holdBUCA2; by plot bcat year;
-data holdEUSEx; set herb2; if sspp='EUSEx'; nEUSEx=nperspp; proc sort data=holdEUSEx; by plot bcat year;
-data holdEUCO1; set herb2; if sspp='EUCO1'; nEUCO1=nperspp; proc sort data=holdEUCO1; by plot bcat year;
-data holdGAREx; set herb2; if sspp='GAREx'; nGAREx=nperspp; proc sort data=holdGAREx; by plot bcat year;
-data holdCEVI2; set herb2; if sspp='CEVI2'; nCEVI2=nperspp; proc sort data=holdCEVI2; by plot bcat year;
-data holdDISC3; set herb2; if sspp='DISC3'; nDISC3=nperspp; proc sort data=holdDISC3; by plot bcat year;
-data holdVUOCx; set herb2; if sspp='VUOCx'; nVUOCx=nperspp; proc sort data=holdVUOCx; by plot bcat year;
-data holdBUCIx; set herb2; if sspp='BUCIx'; nBUCIx=nperspp; proc sort data=holdBUCIx; by plot bcat year;
-data holdCYEC2; set herb2; if sspp='CYEC2'; nCYEC2=nperspp; proc sort data=holdCYEC2; by plot bcat year;
-data holdAGHYx; set herb2; if sspp='AGHYx'; nAGHYx=nperspp; proc sort data=holdAGHYx; by plot bcat year;
-data holdDIOVx; set herb2; if sspp='DIOVx'; nDIOVx=nperspp; proc sort data=holdDIOVx; by plot bcat year;
-data holdHEGEx; set herb2; if sspp='HEGEx'; nHEGEx=nperspp; proc sort data=holdHEGEx; by plot bcat year;
-data holdDIAC2; set herb2; if sspp='DIAC2'; nDIAC2=nperspp; proc sort data=holdDIAC2; by plot bcat year;
-data holdGAPE2; set herb2; if sspp='GAPE2'; nGAPE2=nperspp; proc sort data=holdGAPE2; by plot bcat year;
-data holdOXDI2; set herb2; if sspp='OXDI2'; nOXDI2=nperspp; proc sort data=holdOXDI2; by plot bcat year;
-data holdCRDI1; set herb2; if sspp='CRDI1'; nCRDI1=nperspp; proc sort data=holdCRDI1; by plot bcat year;
-data holdDIVI7; set herb2; if sspp='DIVI7'; nDIVI7=nperspp; proc sort data=holdDIVI7; by plot bcat year;
-data holdCHPI8; set herb2; if sspp='CHPI8'; nCHPI8=nperspp; proc sort data=holdCHPI8; by plot bcat year;
-data holdRHHAx; set herb2; if sspp='RHHAx'; nRHHAx=nperspp; proc sort data=holdRHHAx; by plot bcat year;
-data holdGAAN1; set herb2; if sspp='GAAN1'; nGAAN1=nperspp; proc sort data=holdGAAN1; by plot bcat year;
-data holdARDE3; set herb2; if sspp='ARDE3'; nARDE3=nperspp; proc sort data=holdARDE3; by plot bcat year;
-data holdSCSCx; set herb2; if sspp='SCSCx'; nSCSCx=nperspp; proc sort data=holdSCSCx; by plot bcat year;
-data holdLEMU3; set herb2; if sspp='LEMU3'; nLEMU3=nperspp; proc sort data=holdLEMU3; by plot bcat year;
-data holdSEARx; set herb2; if sspp='SEARx'; nSEARx=nperspp; proc sort data=holdSEARx; by plot bcat year;
-data holdPAPL3; set herb2; if sspp='PAPL3'; nPAPL3=nperspp; proc sort data=holdPAPL3; by plot bcat year;
-data holdGAAR1; set herb2; if sspp='GAAR1'; nGAAR1=nperspp; proc sort data=holdGAAR1; by plot bcat year;
-data holdDIAN4; set herb2; if sspp='DIAN4'; nDIAN4=nperspp; proc sort data=holdDIAN4; by plot bcat year;
-data holdERSPx; set herb2; if sspp='ERSPx'; nERSPx=nperspp; proc sort data=holdERSPx; by plot bcat year;
-data holdCYRE5; set herb2; if sspp='CYRE5'; nCYRE5=nperspp; proc sort data=holdCYRE5; by plot bcat year;
-data holdCAMI8; set herb2; if sspp='CAMI8'; nCAMI8=nperspp; proc sort data=holdCAMI8; by plot bcat year;
-data holdSCCIx; set herb2; if sspp='SCCIx'; nSCCIx=nperspp; proc sort data=holdSCCIx; by plot bcat year;
-data holdLEDUx; set herb2; if sspp='LEDUx'; nLEDUx=nperspp; proc sort data=holdLEDUx; by plot bcat year;
-data holdCOCA5; set herb2; if sspp='COCA5'; nCOCA5=nperspp; proc sort data=holdCOCA5; by plot bcat year;
-data holdLETEx; set herb2; if sspp='LETEx'; nLETEx=nperspp; proc sort data=holdLETEx; by plot bcat year;
-data holdPOPR4; set herb2; if sspp='POPR4'; nPOPR4=nperspp; proc sort data=holdPOPR4; by plot bcat year;
-data holdDISP2; set herb2; if sspp='DISP2'; nDISP2=nperspp; proc sort data=holdDISP2; by plot bcat year;
-data holdHELA5; set herb2; if sspp='HELA5'; nHELA5=nperspp; proc sort data=holdHELA5; by plot bcat year;
-data holdDIOLx; set herb2; if sspp='DIOLx'; nDIOLx=nperspp; proc sort data=holdDIOLx; by plot bcat year;
-data holdDILI2; set herb2; if sspp='DILI2'; nDILI2=nperspp; proc sort data=holdDILI2; by plot bcat year;
+*new datasets--each species is now a variable with count as the value;
+data holdANGL2; set herb1; if sspp='ANGL2'; nANGL2=coun; proc sort data=holdANGL2; by plot bcat year;
+data holdKRVIx; set herb1; if sspp='KRVIx'; nKRVIx=coun; proc sort data=holdKRVIx; by plot bcat year;
+data holdCOERx; set herb1; if sspp='COERx'; nCOERx=coun; proc sort data=holdCOERx; by plot bcat year;
+data holdPABR2; set herb1; if sspp='PABR2'; nPABR2=coun; proc sort data=holdPABR2; by plot bcat year;
+data holdWAMAx; set herb1; if sspp='WAMAx'; nWAMAx=coun; proc sort data=holdWAMAx; by plot bcat year;
+data holdPASEC; set herb1; if sspp='PASEC'; nPASEC=coun; proc sort data=holdPASEC; by plot bcat year;
+data holdSILIx; set herb1; if sspp='SILIx'; nSILIx=coun; proc sort data=holdSILIx; by plot bcat year;
+data holdARPUP; set herb1; if sspp='ARPUP'; nARPUP=coun; proc sort data=holdARPUP; by plot bcat year;
+data holdDITE2; set herb1; if sspp='DITE2'; nDITE2=coun; proc sort data=holdDITE2; by plot bcat year;
+data holdSOEL3; set herb1; if sspp='SOEL3'; nSOEL3=coun; proc sort data=holdSOEL3; by plot bcat year;
+data holdNUCAx; set herb1; if sspp='NUCAx'; nNUCAx=coun; proc sort data=holdNUCAx; by plot bcat year;
+data holdCITE2; set herb1; if sspp='CITE2'; nCITE2=coun; proc sort data=holdCITE2; by plot bcat year;
+data holdPHAM4; set herb1; if sspp='PHAM4'; nPHAM4=coun; proc sort data=holdPHAM4; by plot bcat year;
+data holdTRUR2; set herb1; if sspp='TRUR2'; nTRUR2=coun; proc sort data=holdTRUR2; by plot bcat year;
+data holdPAPE5; set herb1; if sspp='PAPE5'; nPAPE5=coun; proc sort data=holdPAPE5; by plot bcat year;
+data holdCRGL2; set herb1; if sspp='CRGL2'; nCRGL2=coun; proc sort data=holdCRGL2; by plot bcat year;
+data holdPAHI1; set herb1; if sspp='PAHI1'; nPAHI1=coun; proc sort data=holdPAHI1; by plot bcat year;
+data holdCHTE1; set herb1; if sspp='CHTE1'; nCHTE1=coun; proc sort data=holdCHTE1; by plot bcat year;
+data holdPSOB3; set herb1; if sspp='PSOB3'; nPSOB3=coun; proc sort data=holdPSOB3; by plot bcat year;
+data holdSPCO1; set herb1; if sspp='SPCO1'; nSPCO1=coun; proc sort data=holdSPCO1; by plot bcat year;
+data holdFRFLx; set herb1; if sspp='FRFLx'; nFRFLx=coun; proc sort data=holdFRFLx; by plot bcat year;
+data holdNELU2; set herb1; if sspp='NELU2'; nNELU2=coun; proc sort data=holdNELU2; by plot bcat year;
+data holdDICO6; set herb1; if sspp='DICO6'; nDICO6=coun; proc sort data=holdDICO6; by plot bcat year;
+data holdJUBRx; set herb1; if sspp='JUBRx'; nJUBRx=coun; proc sort data=holdJUBRx; by plot bcat year;
+data holdCOBA2; set herb1; if sspp='COBA2'; nCOBA2=coun; proc sort data=holdCOBA2; by plot bcat year;
+data holdDIOLS; set herb1; if sspp='DIOLS'; nDIOLS=coun; proc sort data=holdDIOLS; by plot bcat year;
+data holdJUTEx; set herb1; if sspp='JUTEx'; nJUTEx=coun; proc sort data=holdJUTEx; by plot bcat year;
+data holdDICA3; set herb1; if sspp='DICA3'; nDICA3=coun; proc sort data=holdDICA3; by plot bcat year;
+data holdERSEx; set herb1; if sspp='ERSEx'; nERSEx=coun; proc sort data=holdERSEx; by plot bcat year;
+data holdGYAMx; set herb1; if sspp='GYAMx'; nGYAMx=coun; proc sort data=holdGYAMx; by plot bcat year;
+data holdSTPI3; set herb1; if sspp='STPI3'; nSTPI3=coun; proc sort data=holdSTPI3; by plot bcat year;
+data holdLEHI2; set herb1; if sspp='LEHI2'; nLEHI2=coun; proc sort data=holdLEHI2; by plot bcat year;
+data holdCRSA4; set herb1; if sspp='CRSA4'; nCRSA4=coun; proc sort data=holdCRSA4; by plot bcat year;
+data holdERINx; set herb1; if sspp='ERINx'; nERINx=coun; proc sort data=holdERINx; by plot bcat year;
+data holdANVI2; set herb1; if sspp='ANVI2'; nANVI2=coun; proc sort data=holdANVI2; by plot bcat year;
+data holdHERO2; set herb1; if sspp='HERO2'; nHERO2=coun; proc sort data=holdHERO2; by plot bcat year;
+data holdCAMU4; set herb1; if sspp='CAMU4'; nCAMU4=coun; proc sort data=holdCAMU4; by plot bcat year;
+data holdTRBI2; set herb1; if sspp='TRBI2'; nTRBI2=coun; proc sort data=holdTRBI2; by plot bcat year;
+data holdDIACx; set herb1; if sspp='DIACx'; nDIACx=coun; proc sort data=holdDIACx; by plot bcat year;
+data holdTRPE4; set herb1; if sspp='TRPE4'; nTRPE4=coun; proc sort data=holdTRPE4; by plot bcat year;
+data holdPTAQx; set herb1; if sspp='PTAQx'; nPTAQx=coun; proc sort data=holdPTAQx; by plot bcat year;
+data holdDIRAx; set herb1; if sspp='DIRAx'; nDIRAx=coun; proc sort data=holdDIRAx; by plot bcat year;
+data holdLERE2; set herb1; if sspp='LERE2'; nLERE2=coun; proc sort data=holdLERE2; by plot bcat year;
+data holdPHCI4; set herb1; if sspp='PHCI4'; nPHCI4=coun; proc sort data=holdPHCI4; by plot bcat year;
+data holdSPCLx; set herb1; if sspp='SPCLx'; nSPCLx=coun; proc sort data=holdSPCLx; by plot bcat year;
+data holdFIPUx; set herb1; if sspp='FIPUx'; nFIPUx=coun; proc sort data=holdFIPUx; by plot bcat year;
+data holdCALE6; set herb1; if sspp='CALE6'; nCALE6=coun; proc sort data=holdCALE6; by plot bcat year;
+data holdHYDRx; set herb1; if sspp='HYDRx'; nHYDRx=coun; proc sort data=holdHYDRx; by plot bcat year;
+data holdCRMO6; set herb1; if sspp='CRMO6'; nCRMO6=coun; proc sort data=holdCRMO6; by plot bcat year;
+data holdCYHYx; set herb1; if sspp='CYHYx'; nCYHYx=coun; proc sort data=holdCYHYx; by plot bcat year;
+data holdSONU2; set herb1; if sspp='SONU2'; nSONU2=coun; proc sort data=holdSONU2; by plot bcat year;
+data holdNUTEx; set herb1; if sspp='NUTEx'; nNUTEx=coun; proc sort data=holdNUTEx; by plot bcat year;
+data holdHYGL2; set herb1; if sspp='HYGL2'; nHYGL2=coun; proc sort data=holdHYGL2; by plot bcat year;
+data holdTRRA5; set herb1; if sspp='TRRA5'; nTRRA5=coun; proc sort data=holdTRRA5; by plot bcat year;
+data holdJUMA4; set herb1; if sspp='JUMA4'; nJUMA4=coun; proc sort data=holdJUMA4; by plot bcat year;
+data holdACGR2; set herb1; if sspp='ACGR2'; nACGR2=coun; proc sort data=holdACGR2; by plot bcat year;
+data holdPASE5; set herb1; if sspp='PASE5'; nPASE5=coun; proc sort data=holdPASE5; by plot bcat year;
+data holdCYCR6; set herb1; if sspp='CYCR6'; nCYCR6=coun; proc sort data=holdCYCR6; by plot bcat year;
+data holdEUCO7; set herb1; if sspp='EUCO7'; nEUCO7=coun; proc sort data=holdEUCO7; by plot bcat year;
+data holdCYLU2; set herb1; if sspp='CYLU2'; nCYLU2=coun; proc sort data=holdCYLU2; by plot bcat year;
+data holdARLO1; set herb1; if sspp='ARLO1'; nARLO1=coun; proc sort data=holdARLO1; by plot bcat year;
+data holdBUCA2; set herb1; if sspp='BUCA2'; nBUCA2=coun; proc sort data=holdBUCA2; by plot bcat year;
+data holdEUSEx; set herb1; if sspp='EUSEx'; nEUSEx=coun; proc sort data=holdEUSEx; by plot bcat year;
+data holdEUCO1; set herb1; if sspp='EUCO1'; nEUCO1=coun; proc sort data=holdEUCO1; by plot bcat year;
+data holdGAREx; set herb1; if sspp='GAREx'; nGAREx=coun; proc sort data=holdGAREx; by plot bcat year;
+data holdCEVI2; set herb1; if sspp='CEVI2'; nCEVI2=coun; proc sort data=holdCEVI2; by plot bcat year;
+data holdDISC3; set herb1; if sspp='DISC3'; nDISC3=coun; proc sort data=holdDISC3; by plot bcat year;
+data holdVUOCx; set herb1; if sspp='VUOCx'; nVUOCx=coun; proc sort data=holdVUOCx; by plot bcat year;
+data holdBUCIx; set herb1; if sspp='BUCIx'; nBUCIx=coun; proc sort data=holdBUCIx; by plot bcat year;
+data holdCYEC2; set herb1; if sspp='CYEC2'; nCYEC2=coun; proc sort data=holdCYEC2; by plot bcat year;
+data holdAGHYx; set herb1; if sspp='AGHYx'; nAGHYx=coun; proc sort data=holdAGHYx; by plot bcat year;
+data holdDIOVx; set herb1; if sspp='DIOVx'; nDIOVx=coun; proc sort data=holdDIOVx; by plot bcat year;
+data holdHEGEx; set herb1; if sspp='HEGEx'; nHEGEx=coun; proc sort data=holdHEGEx; by plot bcat year;
+data holdDIAC2; set herb1; if sspp='DIAC2'; nDIAC2=coun; proc sort data=holdDIAC2; by plot bcat year;
+data holdGAPE2; set herb1; if sspp='GAPE2'; nGAPE2=coun; proc sort data=holdGAPE2; by plot bcat year;
+data holdOXDI2; set herb1; if sspp='OXDI2'; nOXDI2=coun; proc sort data=holdOXDI2; by plot bcat year;
+data holdCRDI1; set herb1; if sspp='CRDI1'; nCRDI1=coun; proc sort data=holdCRDI1; by plot bcat year;
+data holdDIVI7; set herb1; if sspp='DIVI7'; nDIVI7=coun; proc sort data=holdDIVI7; by plot bcat year;
+data holdCHPI8; set herb1; if sspp='CHPI8'; nCHPI8=coun; proc sort data=holdCHPI8; by plot bcat year;
+data holdRHHAx; set herb1; if sspp='RHHAx'; nRHHAx=coun; proc sort data=holdRHHAx; by plot bcat year;
+data holdGAAN1; set herb1; if sspp='GAAN1'; nGAAN1=coun; proc sort data=holdGAAN1; by plot bcat year;
+data holdARDE3; set herb1; if sspp='ARDE3'; nARDE3=coun; proc sort data=holdARDE3; by plot bcat year;
+data holdSCSCx; set herb1; if sspp='SCSCx'; nSCSCx=coun; proc sort data=holdSCSCx; by plot bcat year;
+data holdLEMU3; set herb1; if sspp='LEMU3'; nLEMU3=coun; proc sort data=holdLEMU3; by plot bcat year;
+data holdSEARx; set herb1; if sspp='SEARx'; nSEARx=coun; proc sort data=holdSEARx; by plot bcat year;
+data holdPAPL3; set herb1; if sspp='PAPL3'; nPAPL3=coun; proc sort data=holdPAPL3; by plot bcat year;
+data holdGAAR1; set herb1; if sspp='GAAR1'; nGAAR1=coun; proc sort data=holdGAAR1; by plot bcat year;
+data holdDIAN4; set herb1; if sspp='DIAN4'; nDIAN4=coun; proc sort data=holdDIAN4; by plot bcat year;
+data holdERSPx; set herb1; if sspp='ERSPx'; nERSPx=coun; proc sort data=holdERSPx; by plot bcat year;
+data holdCYRE5; set herb1; if sspp='CYRE5'; nCYRE5=coun; proc sort data=holdCYRE5; by plot bcat year;
+data holdCAMI8; set herb1; if sspp='CAMI8'; nCAMI8=coun; proc sort data=holdCAMI8; by plot bcat year;
+data holdSCCIx; set herb1; if sspp='SCCIx'; nSCCIx=coun; proc sort data=holdSCCIx; by plot bcat year;
+data holdLEDUx; set herb1; if sspp='LEDUx'; nLEDUx=coun; proc sort data=holdLEDUx; by plot bcat year;
+data holdCOCA5; set herb1; if sspp='COCA5'; nCOCA5=coun; proc sort data=holdCOCA5; by plot bcat year;
+data holdLETEx; set herb1; if sspp='LETEx'; nLETEx=coun; proc sort data=holdLETEx; by plot bcat year;
+data holdPOPR4; set herb1; if sspp='POPR4'; nPOPR4=coun; proc sort data=holdPOPR4; by plot bcat year;
+data holdDISP2; set herb1; if sspp='DISP2'; nDISP2=coun; proc sort data=holdDISP2; by plot bcat year;
+data holdHELA5; set herb1; if sspp='HELA5'; nHELA5=coun; proc sort data=holdHELA5; by plot bcat year;
+data holdDIOLx; set herb1; if sspp='DIOLx'; nDIOLx=coun; proc sort data=holdDIOLx; by plot bcat year;
+data holdDILI2; set herb1; if sspp='DILI2'; nDILI2=coun; proc sort data=holdDILI2; by plot bcat year;
 run;
 
-proc sort data=herb2; by plot bcat year; run;
-*n(spp) is count, pa(spp) is presence/absence;
-data herb3; merge holdANGL2	holdKRVIx	holdCOERx	holdPABR2	holdWAMAx	holdPASEC	holdSILIx	
+*creating dataset with species as variables, each 2 ways: n (count) and pa (presence/absence);
+proc sort data=herb1; by plot bcat year; run;
+*merging all species datasets;
+data herb2; merge holdANGL2	holdKRVIx	holdCOERx	holdPABR2	holdWAMAx	holdPASEC	holdSILIx	
 				  holdARPUP	holdDITE2	holdSOEL3	holdNUCAx	holdCITE2	holdPHAM4	holdTRUR2	
 				  holdPAPE5	holdCRGL2	holdPAHI1	holdCHTE1	holdPSOB3	holdSPCO1	holdFRFLx	
 				  holdNELU2	holdDICO6	holdJUBRx	holdCOBA2	holdDIOLS	holdJUTEx	holdDICA3	
@@ -130,7 +136,8 @@ data herb3; merge holdANGL2	holdKRVIx	holdCOERx	holdPABR2	holdWAMAx	holdPASEC	ho
 				  holdDIVI7	holdCHPI8	holdRHHAx	holdGAAN1	holdARDE3	holdSCSCx	holdLEMU3	
 				  holdSEARx	holdPAPL3	holdGAAR1	holdDIAN4	holdERSPx	holdCYRE5	holdCAMI8	
 				  holdSCCIx	holdLEDUx	holdCOCA5	holdLETEx	holdPOPR4	holdDISP2	holdHELA5	
-				  holdDIOLx	holdDILI2 herb2; by plot bcat year;
+				  holdDIOLx	holdDILI2 	herb1; by plot bcat year;
+  *changing . to 0, then creating p/a columns;
   if (nANGL2=.) then nANGL2=0; if (nANGL2=0) then paANGL2=0; if (nANGL2^=0) then paANGL2=1;
   if (nKRVIx=.) then nKRVIx=0; if (nKRVIx=0) then paKRVIx=0; if (nKRVIx^=0) then paKRVIx=1;
   if (nCOERx=.) then nCOERx=0; if (nCOERx=0) then paCOERx=0; if (nCOERx^=0) then paCOERx=1;
@@ -231,46 +238,33 @@ data herb3; merge holdANGL2	holdKRVIx	holdCOERx	holdPABR2	holdWAMAx	holdPASEC	ho
   if (nHELA5=.) then nHELA5=0; if (nHELA5=0) then paHELA5=0; if (nHELA5^=0) then paHELA5=1;
   if (nDIOLx=.) then nDIOLx=0; if (nDIOLx=0) then paDIOLx=0; if (nDIOLx^=0) then paDIOLx=1;
   if (nDILI2=.) then nDILI2=0; if (nDILI2=0) then paDILI2=0; if (nDILI2^=0) then paDILI2=1;
-  drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
-run;
-* N = 12535; 
-
-data herb4; set herb3; 	
-	keep plot quad year bcat covm coun soileb elev slope aspect hydrn prpo type nANGL2	nKRVIx	
-	nCOERx	nPABR2	nWAMAx	nPASEC	nSILIx	nARPUP	nDITE2	nSOEL3	nNUCAx	nCITE2	nPHAM4	nTRUR2	
-	nPAPE5	nCRGL2	nPAHI1	nCHTE1	nPSOB3	nSPCO1	nFRFLx	nNELU2	nDICO6	nJUBRx	nCOBA2	nDIOLS	
-	nJUTEx	nDICA3	nERSEx	nGYAMx	nSTPI3	nLEHI2	nCRSA4	nERINx	nANVI2	nHERO2	nCAMU4	nTRBI2	
-	nDIACx	nTRPE4	nPTAQx	nDIRAx	nLERE2	nPHCI4	nSPCLx	nFIPUx	nCALE6	nHYDRx	nCRMO6	nCYHYx	
-	nSONU2	nNUTEx	nHYGL2	nTRRA5	nJUMA4	nACGR2	nPASE5	nCYCR6	nEUCO7	nCYLU2	nARLO1	nBUCA2	
-	nEUSEx	nEUCO1	nGAREx	nCEVI2	nDISC3	nVUOCx	nBUCIx	nCYEC2	nAGHYx	nDIOVx	nHEGEx	nDIAC2	
-	nGAPE2	nOXDI2	nCRDI1	nDIVI7	nCHPI8	nRHHAx	nGAAN1	nARDE3	nSCSCx	nLEMU3	nSEARx	nPAPL3	
-	nGAAR1	nDIAN4	nERSPx	nCYRE5	nCAMI8	nSCCIx	nLEDUx	nCOCA5	nLETEx	nPOPR4	nDISP2	nHELA5	
-	nDIOLx	nDILI2;
-run;  * N = 12535;
-proc sort data=herb4; by plot quad year bcat covm coun soileb elev slope aspect hydrn prpo type; run;
-
-*proc contents data=herb4; title 'herb4'; run; 
+  drop sspp coun;  * dropping sspp & coun -- this information is in the species variables now;
+run; * N = 12544;
+*proc print data=herb2 (firstobs=1 obs=20) ; run;
+*proc contents data=herb2; title 'herb2'; run; 
 
 * Contents:
 #   Variable    Type    Len    	Format     	Informat
 1 	plot 		Num 	8 		BEST12. 	BEST32. 
-12 	prpo 		Num 	8     
+11 	prpo 		Num 	8     
 2 	quad 		Num 	8 		BEST12. 	BEST32. 
-9 	slope 		Num 	8 		BEST12. 	BEST32. 
-7 	soileb		Num 	8 		BEST12.		BEST32. 
-13 	type 		Num 	8     
+7 	slope 		Num 	8 		BEST12. 	BEST32. 
+5 	soileb		Num 	8 		BEST12.		BEST32. 
+12 	type 		Num 	8     
 3 	year 		Num 	8 		BEST12. 	BEST32. 
-10 	aspect 		Num 	8     
-4 	bcat 		Num 	8     
-6 	coun 		Num 	8 		BEST12. 	BEST32. 
-5 	covm 		Num 	8 		BEST12. 	BEST32. 
-8 	elev 		Num 	8		BEST12. 	BEST32. 
-11 	hydrn 		Num 	8     
+9 	aspect 		Num 	8     
+10 	bcat 		Num 	8     
+4 	covm 		Num 	8 		BEST12. 	BEST32. 
+6 	elev 		Num 	8		BEST12. 	BEST32. 
+8 	hydrn 		Num 	8     
 +all species variables
 ;
 
-proc means data=herb4 mean noprint; by plot quad year bcat covm coun soileb aspect hydrn prpo type;
-  var covm 	elev 	slope 	nANGL2	nKRVIx	
+*mean counts and canopy cover;
+*dropping out quad so counts are per plot-year, not per quad-year;
+proc sort data=herb2; by plot year bcat covm soileb elev slope aspect hydrn prpo type;
+proc means data=herb2 mean noprint; by plot year bcat covm soileb elev slope aspect hydrn prpo type;
+  var covm 	nANGL2	nKRVIx	
 	nCOERx	nPABR2	nWAMAx	nPASEC	nSILIx	nARPUP	nDITE2	nSOEL3	nNUCAx	nCITE2	nPHAM4	nTRUR2	
 	nPAPE5	nCRGL2	nPAHI1	nCHTE1	nPSOB3	nSPCO1	nFRFLx	nNELU2	nDICO6	nJUBRx	nCOBA2	nDIOLS	
 	nJUTEx	nDICA3	nERSEx	nGYAMx	nSTPI3	nLEHI2	nCRSA4	nERINx	nANVI2	nHERO2	nCAMU4	nTRBI2	
@@ -280,7 +274,7 @@ proc means data=herb4 mean noprint; by plot quad year bcat covm coun soileb aspe
 	nGAPE2	nOXDI2	nCRDI1	nDIVI7	nCHPI8	nRHHAx	nGAAN1	nARDE3	nSCSCx	nLEMU3	nSEARx	nPAPL3	
 	nGAAR1	nDIAN4	nERSPx	nCYRE5	nCAMI8	nSCCIx	nLEDUx	nCOCA5	nLETEx	nPOPR4	nDISP2	nHELA5	
 	nDIOLx	nDILI2;
-  output out=herb5 mean = mcov elev slope 	mANGL2	mKRVIx	mCOERx	mPABR2	mWAMAx	mPASEC		
+  output out=herb3 mean = mcov	mANGL2	mKRVIx	mCOERx	mPABR2	mWAMAx	mPASEC		
 	mARPUP	mDITE2	mSOEL3	mNUCAx	mCITE2	mPHAM4	mTRUR2	mPAPE5	mCRGL2	mPAHI1	mCHTE1	mPSOB3	
 	mSPCO1	mFRFLx	mNELU2	mDICO6	mJUBRx	mCOBA2	mDIOLS	mJUTEx	mDICA3	mERSEx	mGYAMx	mSTPI3	
 	mLEHI2	mCRSA4	mERINx	mANVI2	mHERO2	mCAMU4	mTRBI2	mDIACx	mTRPE4	mPTAQx	mDIRAx	mLERE2	
@@ -290,16 +284,32 @@ proc means data=herb4 mean noprint; by plot quad year bcat covm coun soileb aspe
 	mRHHAx	mGAAN1	mARDE3	mSCSCx	mLEMU3	mSEARx	mPAPL3	mGAAR1	mDIAN4	mERSPx	mCYRE5	mCAMI8	
 	mSCCIx	mLEDUx	mCOCA5	mLETEx	mPOPR4	mDISP2	mHELA5	mDIOLx	mDILI2	mSILIx;
 run;
-data herb6; set herb5; drop _TYPE_ coun covm; *N=10143;
-*proc print data=herb6 (firstobs=1 obs=20); title 'herb6'; run; 
-*proc contents data=herb6; run;
+data herb4; set herb3; drop _FREQ_ _TYPE_ covm; *N=243; run;
+*proc print data=herb4 (firstobs=100 obs=110); title 'herb4'; run; 
+*proc contents data=herb4; run;
+
+* Contents:
+#   Variable    Type    Len    	Format     	Informat
+1 	plot 		Num 	8 		BEST12. 	BEST32. 
+9 	prpo 		Num 	8     
+6 	slope 		Num 	8 		BEST12. 	BEST32. 
+4 	soileb		Num 	8 		BEST12.		BEST32. 
+10 	type 		Num 	8     
+2 	year 		Num 	8 		BEST12. 	BEST32. 
+7 	aspect 		Num 	8     
+3 	bcat 		Num 	8     
+11 	mcov 		Num 	8 		BEST12. 	BEST32. 
+5 	elev 		Num 	8		BEST12. 	BEST32. 
+8 	hydrn 		Num 	8     
++all species variables
+;
 
 proc iml;
 
 inputyrs = {2002, 2003, 2005, 2006, 2008, 2010, 2011, 2012, 2013, 2014, 2015};
 nyrs = nrow(inputyrs);  * print nyrs; *11 yrs;
 
-use herb6; read all into mat1;
+use herb4; read all into mat1;
 * print (mat1[1:20,]); 
 
 nrecords = nrow(mat1);   *print nrecords; *N = 10,143;
@@ -312,128 +322,127 @@ do i = 1 to nrecords;    * record by record loop;
 end;                     * end yr by yr loop;
 * print (mat2[1:20,]);
 
-* variables the same each year: plot, quad, slope, soileb, aspect, bcat, elev, hydrn,
+* variables the same each year: plot, slope, soileb, aspect, bcat, elev, hydrn,
   variables that change each year: _FREQ_, mcov, mcoun, year, mspecies;
 
 *order of variables in mat1:					
-1	plot, 2	quad, 3	year, 4	bcat, 5	soileb, 6	aspect, 7	hydrn, 8	prpo, 9	type, 10	_FREQ_,			
-11	mcov, 12	elev, 13	slope;
+1 plot, 2 year, 3 bcat, 4 soileb, 5 elev, 6 slope, 7 aspect, 8 hydrn, 9 prpo, 10 type, 11 mcov;   	 
 
 * fill mat2; * col1 already has first yr;
 do i = 1 to nrecords;    * record by record loop;
   time1 = mat2[i,1];
   time2 = time1 + 1;
   mat2[i,2] = time2;	
-  mat2[i,3] = mat1[i,3];   * year1;
+  mat2[i,3] = mat1[i,2];   * year1;
   mat2[i,5] = mat1[i,1];   * plot;
-  mat2[i,6] = mat1[i,4];   * bcat;
-  mat2[i,7] = mat1[i,6];   * aspect;
-  mat2[i,8] = mat1[i,7];   * hydrn;
-  mat2[i,9] = mat1[i,5];   * soileb;
-  mat2[i,10] = mat1[i,12]; * elev;
-  mat2[i,11] = mat1[i,13]; * slope;
+  mat2[i,6] = mat1[i,3];   * bcat;
+  mat2[i,7] = mat1[i,7];   * aspect;
+  mat2[i,8] = mat1[i,8];   * hydrn;
+  mat2[i,9] = mat1[i,4];   * soileb;
+  mat2[i,10] = mat1[i,5];  * elev;
+  mat2[i,11] = mat1[i,6];  * slope;
   mat2[i,12] = mat1[i,11]; * mcov1;
-  mat2[i,14]=mat1[i,14]; *mANGL2;
-  mat2[i,16]=mat1[i,15]; *mKRVIx;
-  mat2[i,18]=mat1[i,16]; *mCOERx;
-  mat2[i,20]=mat1[i,17]; *mPABR2;
-  mat2[i,22]=mat1[i,18]; *mWAMAx;
-  mat2[i,24]=mat1[i,19]; *mPASEC;
-  mat2[i,26]=mat1[i,20]; *mARPUP;
-  mat2[i,28]=mat1[i,21]; *mDITE2;
-  mat2[i,30]=mat1[i,22]; *mSOEL3;
-  mat2[i,32]=mat1[i,23]; *mNUCAx;
-  mat2[i,34]=mat1[i,24]; *mCITE2;
-  mat2[i,36]=mat1[i,25]; *mPHAM4;
-  mat2[i,38]=mat1[i,26]; *mTRUR2;
-  mat2[i,40]=mat1[i,27]; *mPAPE5;
-  mat2[i,42]=mat1[i,28]; *mCRGL2;
-  mat2[i,44]=mat1[i,29]; *mPAHI1;
-  mat2[i,46]=mat1[i,30]; *mCHTE1;
-  mat2[i,48]=mat1[i,31]; *mPSOB3;
-  mat2[i,50]=mat1[i,32]; *mSPCO1;
-  mat2[i,52]=mat1[i,33]; *mFRFLx;
-  mat2[i,54]=mat1[i,34]; *mNELU2;
-  mat2[i,56]=mat1[i,35]; *mDICO6;
-  mat2[i,58]=mat1[i,36]; *mJUBRx;
-  mat2[i,60]=mat1[i,37]; *mCOBA2;
-  mat2[i,62]=mat1[i,38]; *mDIOLS;
-  mat2[i,64]=mat1[i,39]; *mJUTEx;
-  mat2[i,66]=mat1[i,40]; *mDICA3;
-  mat2[i,68]=mat1[i,41]; *mERSEx;
-  mat2[i,70]=mat1[i,42]; *mGYAMx;
-  mat2[i,72]=mat1[i,43]; *mSTPI3;
-  mat2[i,74]=mat1[i,44]; *mLEHI2;
-  mat2[i,76]=mat1[i,45]; *mCRSA4;
-  mat2[i,78]=mat1[i,46]; *mERINx;
-  mat2[i,80]=mat1[i,47]; *mANVI2;
-  mat2[i,82]=mat1[i,48]; *mHERO2;
-  mat2[i,84]=mat1[i,49]; *mCAMU4;
-  mat2[i,86]=mat1[i,50]; *mTRBI2;
-  mat2[i,88]=mat1[i,51]; *mDIACx;
-  mat2[i,90]=mat1[i,52]; *mTRPE4;
-  mat2[i,92]=mat1[i,53]; *mPTAQx;
-  mat2[i,94]=mat1[i,54]; *mDIRAx;
-  mat2[i,96]=mat1[i,55]; *mLERE2;
-  mat2[i,98]=mat1[i,56]; *mPHCI4;
-  mat2[i,100]=mat1[i,57]; *mSPCLx;
-  mat2[i,102]=mat1[i,58]; *mFIPUx;
-  mat2[i,104]=mat1[i,59]; *mCALE6;
-  mat2[i,106]=mat1[i,60]; *mHYDRx;
-  mat2[i,108]=mat1[i,61]; *mCRMO6;
-  mat2[i,110]=mat1[i,62]; *mCYHYx;
-  mat2[i,112]=mat1[i,63]; *mSONU2;
-  mat2[i,114]=mat1[i,64]; *mNUTEx;
-  mat2[i,116]=mat1[i,65]; *mHYGL2;
-  mat2[i,118]=mat1[i,66]; *mTRRA5;
-  mat2[i,120]=mat1[i,67]; *mJUMA4;
-  mat2[i,122]=mat1[i,68]; *mACGR2;
-  mat2[i,124]=mat1[i,69]; *mPASE5;
-  mat2[i,126]=mat1[i,70]; *mCYCR6;
-  mat2[i,128]=mat1[i,71]; *mEUCO7;
-  mat2[i,130]=mat1[i,72]; *mCYLU2;
-  mat2[i,132]=mat1[i,73]; *mARLO1;
-  mat2[i,134]=mat1[i,74]; *mBUCA2;
-  mat2[i,136]=mat1[i,75]; *mEUSEx;
-  mat2[i,138]=mat1[i,76]; *mEUCO1;
-  mat2[i,140]=mat1[i,77]; *mGAREx;
-  mat2[i,142]=mat1[i,78]; *mCEVI2;
-  mat2[i,144]=mat1[i,79]; *mDISC3;
-  mat2[i,146]=mat1[i,80]; *mVUOCx;
-  mat2[i,148]=mat1[i,81]; *mBUCIx;
-  mat2[i,150]=mat1[i,82]; *mCYEC2;
-  mat2[i,152]=mat1[i,83]; *mAGHYx;
-  mat2[i,154]=mat1[i,84]; *mDIOVx;
-  mat2[i,156]=mat1[i,85]; *mHEGEx;
-  mat2[i,158]=mat1[i,86]; *mDIAC2;
-  mat2[i,160]=mat1[i,87]; *mGAPE2;
-  mat2[i,162]=mat1[i,88]; *mOXDI2;
-  mat2[i,164]=mat1[i,89]; *mCRDI1;
-  mat2[i,166]=mat1[i,90]; *mDIVI7;
-  mat2[i,168]=mat1[i,91]; *mCHPI8;
-  mat2[i,170]=mat1[i,92]; *mRHHAx;
-  mat2[i,172]=mat1[i,93]; *mGAAN1;
-  mat2[i,174]=mat1[i,94]; *mARDE3;
-  mat2[i,176]=mat1[i,95]; *mSCSCx;
-  mat2[i,178]=mat1[i,96]; *mLEMU3;
-  mat2[i,180]=mat1[i,97]; *mSEARx;
-  mat2[i,182]=mat1[i,98]; *mPAPL3;
-  mat2[i,184]=mat1[i,99]; *mGAAR1;
-  mat2[i,186]=mat1[i,100]; *mDIAN4;
-  mat2[i,188]=mat1[i,101]; *mERSPx;
-  mat2[i,190]=mat1[i,102]; *mCYRE5;
-  mat2[i,192]=mat1[i,103]; *mCAMI8;
-  mat2[i,194]=mat1[i,104]; *mSCCIx;
-  mat2[i,196]=mat1[i,105]; *mLEDUx;
-  mat2[i,198]=mat1[i,106]; *mCOCA5;
-  mat2[i,200]=mat1[i,107]; *mLETEx;
-  mat2[i,202]=mat1[i,108]; *mPOPR4;
-  mat2[i,204]=mat1[i,109]; *mDISP2;
-  mat2[i,206]=mat1[i,110]; *mHELA5;
-  mat2[i,208]=mat1[i,111]; *mDIOLx;
-  mat2[i,210]=mat1[i,112]; *mDILI2;
-  mat2[i,212]=mat1[i,113]; *mSILIx;
-  mat2[i,214]=mat1[i,2]; *quad;
+  mat2[i,14]=mat1[i,12]; *mANGL2;
+  mat2[i,16]=mat1[i,13]; *mKRVIx;
+  mat2[i,18]=mat1[i,14]; *mCOERx;
+  mat2[i,20]=mat1[i,15]; *mPABR2;
+  mat2[i,22]=mat1[i,16]; *mWAMAx;
+  mat2[i,24]=mat1[i,17]; *mPASEC;
+  mat2[i,26]=mat1[i,18]; *mARPUP;
+  mat2[i,28]=mat1[i,19]; *mDITE2;
+  mat2[i,30]=mat1[i,20]; *mSOEL3;
+  mat2[i,32]=mat1[i,21]; *mNUCAx;
+  mat2[i,34]=mat1[i,22]; *mCITE2;
+  mat2[i,36]=mat1[i,23]; *mPHAM4;
+  mat2[i,38]=mat1[i,24]; *mTRUR2;
+  mat2[i,40]=mat1[i,25]; *mPAPE5;
+  mat2[i,42]=mat1[i,26]; *mCRGL2;
+  mat2[i,44]=mat1[i,27]; *mPAHI1;
+  mat2[i,46]=mat1[i,28]; *mCHTE1;
+  mat2[i,48]=mat1[i,29]; *mPSOB3;
+  mat2[i,50]=mat1[i,30]; *mSPCO1;
+  mat2[i,52]=mat1[i,31]; *mFRFLx;
+  mat2[i,54]=mat1[i,32]; *mNELU2;
+  mat2[i,56]=mat1[i,33]; *mDICO6;
+  mat2[i,58]=mat1[i,34]; *mJUBRx;
+  mat2[i,60]=mat1[i,35]; *mCOBA2;
+  mat2[i,62]=mat1[i,36]; *mDIOLS;
+  mat2[i,64]=mat1[i,37]; *mJUTEx;
+  mat2[i,66]=mat1[i,38]; *mDICA3;
+  mat2[i,68]=mat1[i,39]; *mERSEx;
+  mat2[i,70]=mat1[i,40]; *mGYAMx;
+  mat2[i,72]=mat1[i,41]; *mSTPI3;
+  mat2[i,74]=mat1[i,42]; *mLEHI2;
+  mat2[i,76]=mat1[i,43]; *mCRSA4;
+  mat2[i,78]=mat1[i,44]; *mERINx;
+  mat2[i,80]=mat1[i,45]; *mANVI2;
+  mat2[i,82]=mat1[i,46]; *mHERO2;
+  mat2[i,84]=mat1[i,47]; *mCAMU4;
+  mat2[i,86]=mat1[i,48]; *mTRBI2;
+  mat2[i,88]=mat1[i,49]; *mDIACx;
+  mat2[i,90]=mat1[i,50]; *mTRPE4;
+  mat2[i,92]=mat1[i,51]; *mPTAQx;
+  mat2[i,94]=mat1[i,52]; *mDIRAx;
+  mat2[i,96]=mat1[i,53]; *mLERE2;
+  mat2[i,98]=mat1[i,54]; *mPHCI4;
+  mat2[i,100]=mat1[i,55]; *mSPCLx;
+  mat2[i,102]=mat1[i,56]; *mFIPUx;
+  mat2[i,104]=mat1[i,57]; *mCALE6;
+  mat2[i,106]=mat1[i,58]; *mHYDRx;
+  mat2[i,108]=mat1[i,59]; *mCRMO6;
+  mat2[i,110]=mat1[i,60]; *mCYHYx;
+  mat2[i,112]=mat1[i,61]; *mSONU2;
+  mat2[i,114]=mat1[i,62]; *mNUTEx;
+  mat2[i,116]=mat1[i,63]; *mHYGL2;
+  mat2[i,118]=mat1[i,64]; *mTRRA5;
+  mat2[i,120]=mat1[i,65]; *mJUMA4;
+  mat2[i,122]=mat1[i,66]; *mACGR2;
+  mat2[i,124]=mat1[i,67]; *mPASE5;
+  mat2[i,126]=mat1[i,68]; *mCYCR6;
+  mat2[i,128]=mat1[i,69]; *mEUCO7;
+  mat2[i,130]=mat1[i,70]; *mCYLU2;
+  mat2[i,132]=mat1[i,71]; *mARLO1;
+  mat2[i,134]=mat1[i,72]; *mBUCA2;
+  mat2[i,136]=mat1[i,73]; *mEUSEx;
+  mat2[i,138]=mat1[i,74]; *mEUCO1;
+  mat2[i,140]=mat1[i,75]; *mGAREx;
+  mat2[i,142]=mat1[i,76]; *mCEVI2;
+  mat2[i,144]=mat1[i,77]; *mDISC3;
+  mat2[i,146]=mat1[i,78]; *mVUOCx;
+  mat2[i,148]=mat1[i,79]; *mBUCIx;
+  mat2[i,150]=mat1[i,80]; *mCYEC2;
+  mat2[i,152]=mat1[i,81]; *mAGHYx;
+  mat2[i,154]=mat1[i,82]; *mDIOVx;
+  mat2[i,156]=mat1[i,83]; *mHEGEx;
+  mat2[i,158]=mat1[i,84]; *mDIAC2;
+  mat2[i,160]=mat1[i,85]; *mGAPE2;
+  mat2[i,162]=mat1[i,86]; *mOXDI2;
+  mat2[i,164]=mat1[i,87]; *mCRDI1;
+  mat2[i,166]=mat1[i,88]; *mDIVI7;
+  mat2[i,168]=mat1[i,89]; *mCHPI8;
+  mat2[i,170]=mat1[i,90]; *mRHHAx;
+  mat2[i,172]=mat1[i,91]; *mGAAN1;
+  mat2[i,174]=mat1[i,92]; *mARDE3;
+  mat2[i,176]=mat1[i,93]; *mSCSCx;
+  mat2[i,178]=mat1[i,94]; *mLEMU3;
+  mat2[i,180]=mat1[i,95]; *mSEARx;
+  mat2[i,182]=mat1[i,96]; *mPAPL3;
+  mat2[i,184]=mat1[i,97]; *mGAAR1;
+  mat2[i,186]=mat1[i,98]; *mDIAN4;
+  mat2[i,188]=mat1[i,99]; *mERSPx;
+  mat2[i,190]=mat1[i,100]; *mCYRE5;
+  mat2[i,192]=mat1[i,101]; *mCAMI8;
+  mat2[i,194]=mat1[i,102]; *mSCCIx;
+  mat2[i,196]=mat1[i,103]; *mLEDUx;
+  mat2[i,198]=mat1[i,104]; *mCOCA5;
+  mat2[i,200]=mat1[i,105]; *mLETEx;
+  mat2[i,202]=mat1[i,106]; *mPOPR4;
+  mat2[i,204]=mat1[i,107]; *mDISP2;
+  mat2[i,206]=mat1[i,108]; *mHELA5;
+  mat2[i,208]=mat1[i,109]; *mDIOLx;
+  mat2[i,210]=mat1[i,110]; *mDILI2;
+  mat2[i,212]=mat1[i,111]; *mSILIx;
+  mat2[i,214]=mat1[i,9]; *prpo;
 end;
 * print (mat2[1:20,]);
 
@@ -570,21 +579,19 @@ cnames1 = {	'time1', 'time2', 	'year1', 'year2', 	'plot', 'bcat', 	'aspect', 'hy
 'SEARx2',	'PAPL31', 'PAPL32',	'GAAR11', 'GAAR12',	'DIAN41', 'DIAN42',	'ERSPx1', 'ERSPx2',	'CYRE51', 
 'CYRE52',	'CAMI81', 'CAMI82',	'SCCIx1', 'SCCIx2',	'LEDUx1', 'LEDUx2',	'COCA51', 'COCA52',	'LETEx1', 
 'LETEx2',	'POPR41', 'POPR42',	'DISP21', 'DISP22',	'HELA51', 'HELA52',	'DIOLx1', 'DIOLx2',	'DILI21', 
-'DILI22',	'SILIx1', 'SILIx2', 'quad'};
+'DILI22',	'SILIx1', 'SILIx2', 'prpo'};
 create herbpairs from mat2 [colname = cnames1];
 append from mat2;
  
 quit; run;
 
 /* 
-proc print data=herbpairs (firstobs=1 obs=20); title 'herbpairs'; run; *N=10143;
-proc freq data=herbpairs; tables soil; run; 	   * 7717 sand, 2426 gravel;
+proc print data=herbpairs (firstobs=1 obs=20); title 'herbpairs'; run; *N=243;
+proc freq data=herbpairs; tables soil; run; 	   * 185 sand, 58 gravel;
 */
 
-*reorganizing herbpairs;
-data herbpairssp; set herbpairs;
-	if (year1<2011)  then yrcat='pref'; 
-	if (year1>=2011) then yrcat='post';	
+*dropping staggered organization;
+data herbpairs1; set herbpairs;
 	drop time1 time2 year2 covm2 ANGL22	KRVIx2	COERx2	PABR22	WAMAx2	PASEC2	ARPUP2	DITE22	SOEL32	
 NUCAx2	CITE22	PHAM42	TRUR22	PAPE52	CRGL22	PAHI12	CHTE12	PSOB32	SPCO12	FRFLx2	NELU22	DICO62	
 JUBRx2	COBA22	DIOLS2	JUTEx2	DICA32	ERSEx2	GYAMx2	STPI32	LEHI22	CRSA42	ERINx2	ANVI22	HERO22	
@@ -609,30 +616,29 @@ LEMU31=LEMU3	SEARx1=SEARx	PAPL31=PAPL3	GAAR11=GAAR1	DIAN41=DIAN4	ERSPx1=ERSPx	CY
 CAMI81=CAMI8	SCCIx1=SCCIx	LEDUx1=LEDUx	COCA51=COCA5	LETEx1=LETEx	POPR41=POPR4	DISP21=DISP2	
 HELA51=HELA5	DIOLx1=DIOLx	DILI21=DILI2	SILIx1=SILIx;
 run;
-data herbspref;  set herbpairssp;
-	if yrcat='pref';
-run; *N=1030;
-data herbspost; set herbpairssp;
-	if yrcat='post'; 
-run; *N=9113;
+
 *pooling data in herbspref;
-proc sort  data=herbspref; by plot bcat elev hydr slope soil aspect;
-proc means data=herbspref n mean noprint; by plot bcat elev hydr slope soil aspect;
-	var caco 	quad	ANGL2	KRVIx	COERx	PABR2	WAMAx	PASEC	ARPUP	DITE2	SOEL3	NUCAx	CITE2	PHAM4	TRUR2	
+data herbspref;  set herbpairs1;
+	if prpo=1;
+	year=1111;
+run; *N=73;
+proc sort  data=herbspref; by year plot bcat elev hydr slope soil aspect;
+proc means data=herbspref n mean noprint; by year plot bcat elev hydr slope soil aspect;
+	var caco 	ANGL2	KRVIx	COERx	PABR2	WAMAx	PASEC	ARPUP	DITE2	SOEL3	NUCAx	CITE2	PHAM4	TRUR2	
 PAPE5	CRGL2	PAHI1	CHTE1	PSOB3	SPCO1	FRFLx	NELU2	DICO6	JUBRx	COBA2	DIOLS	JUTEx	DICA3	ERSEx
 GYAMx	STPI3	LEHI2	CRSA4	ERINx	ANVI2	HERO2	CAMU4	TRBI2	DIACx	TRPE4	PTAQx	DIRAx	LERE2	PHCI4
 SPCLx	FIPUx	CALE6	HYDRx	CRMO6	CYHYx	SONU2	NUTEx	HYGL2	TRRA5	JUMA4	ACGR2	PASE5	CYCR6	EUCO7
 CYLU2	ARLO1	BUCA2	EUSEx	EUCO1	GAREx	CEVI2	DISC3	VUOCx	BUCIx	CYEC2	AGHYx	DIOVx	HEGEx	DIAC2
 GAPE2	OXDI2	CRDI1	DIVI7	CHPI8	RHHAx	GAAN1	ARDE3	SCSCx	LEMU3	SEARx	PAPL3	GAAR1	DIAN4	ERSPx
 CYRE5	CAMI8	SCCIx	LEDUx	COCA5	LETEx	POPR4	DISP2	HELA5	DIOLx	DILI2	SILIx;
-	output out=mherbspref n=ncov nquad	nANGL2	nKRVIx	nCOERx	nPABR2	nWAMAx	nPASEC	nARPUP	nDITE2	nSOEL3	nNUCAx	nCITE2
+	output out=mherbspref n=ncov nANGL2	nKRVIx	nCOERx	nPABR2	nWAMAx	nPASEC	nARPUP	nDITE2	nSOEL3	nNUCAx	nCITE2
 nPHAM4	nTRUR2	nPAPE5	nCRGL2	nPAHI1	nCHTE1	nPSOB3	nSPCO1	nFRFLx	nNELU2	nDICO6	nJUBRx	nCOBA2	nDIOLS	nJUTEx
 nDICA3	nERSEx	nGYAMx	nSTPI3	nLEHI2	nCRSA4	nERINx	nANVI2	nHERO2	nCAMU4	nTRBI2	nDIACx	nTRPE4	nPTAQx	nDIRAx
 nLERE2	nPHCI4	nSPCLx	nFIPUx	nCALE6	nHYDRx	nCRMO6	nCYHYx	nSONU2	nNUTEx	nHYGL2	nTRRA5	nJUMA4	nACGR2	nPASE5
 nCYCR6	nEUCO7	nCYLU2	nARLO1	nBUCA2	nEUSEx	nEUCO1	nGAREx	nCEVI2	nDISC3	nVUOCx	nBUCIx	nCYEC2	nAGHYx	nDIOVx
 nHEGEx	nDIAC2	nGAPE2	nOXDI2	nCRDI1	nDIVI7	nCHPI8	nRHHAx	nGAAN1	nARDE3	nSCSCx	nLEMU3	nSEARx	nPAPL3	nGAAR1
 nDIAN4	nERSPx	nCYRE5	nCAMI8	nSCCIx	nLEDUx	nCOCA5	nLETEx	nPOPR4	nDISP2	nHELA5	nDIOLx	nDILI2	nSILIx
-		   			  mean=mcov mquad	mANGL2	mKRVIx	mCOERx	mPABR2	mWAMAx	mPASEC	mARPUP	mDITE2	mSOEL3	mNUCAx	mCITE2
+		   			  mean=mcov mANGL2	mKRVIx	mCOERx	mPABR2	mWAMAx	mPASEC	mARPUP	mDITE2	mSOEL3	mNUCAx	mCITE2
 mPHAM4	mTRUR2	mPAPE5	mCRGL2	mPAHI1	mCHTE1	mPSOB3	mSPCO1	mFRFLx	mNELU2	mDICO6	mJUBRx	mCOBA2	mDIOLS	mJUTEx
 mDICA3	mERSEx	mGYAMx	mSTPI3	mLEHI2	mCRSA4	mERINx	mANVI2	mHERO2	mCAMU4	mTRBI2	mDIACx	mTRPE4	mPTAQx	mDIRAx
 mLERE2	mPHCI4	mSPCLx	mFIPUx	mCALE6	mHYDRx	mCRMO6	mCYHYx	mSONU2	mNUTEx	mHYGL2	mTRRA5	mJUMA4	mACGR2	mPASE5
@@ -642,48 +648,21 @@ mDIAN4	mERSPx	mCYRE5	mCAMI8	mSCCIx	mLEDUx	mCOCA5	mLETEx	mPOPR4	mDISP2	mHELA5	mDI
 run;
 *proc print data=mherbspref; title 'mherbspref'; run; *N=39;
 
-
-
-*structure 1;
-proc sort data=herbspost; by plot bcat elev hydr slope soil aspect;
-proc sort data=mherbspref; by plot bcat elev hydr slope soil aspect; run;
-data herbmerge1; merge herbspost mherbspref; by plot bcat elev hydr slope soil aspect; 	
-	drop _TYPE_ _FREQ_ yrcat; 
+*structure 1--pre-fire pooled, post-fire not pooled. Species counts are not separated by year;
+data herbspost;  set herbpairs1;
+	if prpo=2;
+run; *N=170;
+proc sort data=herbspost; by year plot bcat elev hydr slope soil aspect;
+proc sort data=mherbspref; by year plot bcat elev hydr slope soil aspect; run;
+data herbmerge1; merge herbspost mherbspref; by year plot bcat elev hydr slope soil aspect; 	
+	drop _TYPE_ _FREQ_ prpo; 
 run;
-*proc print data=herbmerge1 (firstobs=1 obs=20); title 'herbmerge1'; run;	*N=9122;
+*proc print data=herbmerge1 (firstobs=1 obs=10); title 'herbmerge1'; run;	*N=209;
 *proc contents data=herbmerge1; run;
 
-
-*structure 2;
-proc sort data=herbspost; by plot year bcat elev hydr slope soil aspect;	run;
-*mean counts per plot (instead of per quad);
-proc means data=herbspost n mean noprint; by plot year bcat elev hydr slope soil aspect; 
-	var caco 	quad	ANGL2	KRVIx	COERx	PABR2	WAMAx	PASEC	ARPUP	DITE2	SOEL3	NUCAx	CITE2	PHAM4	TRUR2	
-PAPE5	CRGL2	PAHI1	CHTE1	PSOB3	SPCO1	FRFLx	NELU2	DICO6	JUBRx	COBA2	DIOLS	JUTEx	DICA3	ERSEx
-GYAMx	STPI3	LEHI2	CRSA4	ERINx	ANVI2	HERO2	CAMU4	TRBI2	DIACx	TRPE4	PTAQx	DIRAx	LERE2	PHCI4
-SPCLx	FIPUx	CALE6	HYDRx	CRMO6	CYHYx	SONU2	NUTEx	HYGL2	TRRA5	JUMA4	ACGR2	PASE5	CYCR6	EUCO7
-CYLU2	ARLO1	BUCA2	EUSEx	EUCO1	GAREx	CEVI2	DISC3	VUOCx	BUCIx	CYEC2	AGHYx	DIOVx	HEGEx	DIAC2
-GAPE2	OXDI2	CRDI1	DIVI7	CHPI8	RHHAx	GAAN1	ARDE3	SCSCx	LEMU3	SEARx	PAPL3	GAAR1	DIAN4	ERSPx
-CYRE5	CAMI8	SCCIx	LEDUx	COCA5	LETEx	POPR4	DISP2	HELA5	DIOLx	DILI2	SILIx;
-	output out=mquadpost n=ncov nquad	nANGL2	nKRVIx	nCOERx	nPABR2	nWAMAx	nPASEC	nARPUP	nDITE2	nSOEL3	nNUCAx	nCITE2
-nPHAM4	nTRUR2	nPAPE5	nCRGL2	nPAHI1	nCHTE1	nPSOB3	nSPCO1	nFRFLx	nNELU2	nDICO6	nJUBRx	nCOBA2	nDIOLS	nJUTEx
-nDICA3	nERSEx	nGYAMx	nSTPI3	nLEHI2	nCRSA4	nERINx	nANVI2	nHERO2	nCAMU4	nTRBI2	nDIACx	nTRPE4	nPTAQx	nDIRAx
-nLERE2	nPHCI4	nSPCLx	nFIPUx	nCALE6	nHYDRx	nCRMO6	nCYHYx	nSONU2	nNUTEx	nHYGL2	nTRRA5	nJUMA4	nACGR2	nPASE5
-nCYCR6	nEUCO7	nCYLU2	nARLO1	nBUCA2	nEUSEx	nEUCO1	nGAREx	nCEVI2	nDISC3	nVUOCx	nBUCIx	nCYEC2	nAGHYx	nDIOVx
-nHEGEx	nDIAC2	nGAPE2	nOXDI2	nCRDI1	nDIVI7	nCHPI8	nRHHAx	nGAAN1	nARDE3	nSCSCx	nLEMU3	nSEARx	nPAPL3	nGAAR1
-nDIAN4	nERSPx	nCYRE5	nCAMI8	nSCCIx	nLEDUx	nCOCA5	nLETEx	nPOPR4	nDISP2	nHELA5	nDIOLx	nDILI2	nSILIx 
-	mean=mcov mquad	mANGL2	mKRVIx	mCOERx	mPABR2	mWAMAx	mPASEC	mARPUP	mDITE2	mSOEL3	mNUCAx	mCITE2
-mPHAM4	mTRUR2	mPAPE5	mCRGL2	mPAHI1	mCHTE1	mPSOB3	mSPCO1	mFRFLx	mNELU2	mDICO6	mJUBRx	mCOBA2	mDIOLS	mJUTEx
-mDICA3	mERSEx	mGYAMx	mSTPI3	mLEHI2	mCRSA4	mERINx	mANVI2	mHERO2	mCAMU4	mTRBI2	mDIACx	mTRPE4	mPTAQx	mDIRAx
-mLERE2	mPHCI4	mSPCLx	mFIPUx	mCALE6	mHYDRx	mCRMO6	mCYHYx	mSONU2	mNUTEx	mHYGL2	mTRRA5	mJUMA4	mACGR2	mPASE5
-mCYCR6	mEUCO7	mCYLU2	mARLO1	mBUCA2	mEUSEx	mEUCO1	mGAREx	mCEVI2	mDISC3	mVUOCx	mBUCIx	mCYEC2	mAGHYx	mDIOVx
-mHEGEx	mDIAC2	mGAPE2	mOXDI2	mCRDI1	mDIVI7	mCHPI8	mRHHAx	mGAAN1	mARDE3	mSCSCx	mLEMU3	mSEARx	mPAPL3	mGAAR1
-mDIAN4	mERSPx	mCYRE5	mCAMI8	mSCCIx	mLEDUx	mCOCA5	mLETEx	mPOPR4	mDISP2	mHELA5	mDIOLx	mDILI2	mSILIx;
-run; *n=170;
-* proc print data=mquadpost (firstobs=1 obs=20); title 'mquadpost'; run;
-
-data dat2012; set mquadpost; if year=2012; 
-	 rename mcov=cov12 mquad=quad12 mANGL2=mANGL212	mKRVIx=mKRVIx12	mCOERx=mCOERx12	mPABR2=mPABR212	mWAMAx=mWAMAx12	mPASEC=mPASEC12
+*structure 2--pre-fire pooled, post-fire not pooled. Species variables are by year;
+data dat2012; set herbspost; if year=2012; 
+	 rename caco=cov12 mANGL2=mANGL212	mKRVIx=mKRVIx12	mCOERx=mCOERx12	mPABR2=mPABR212	mWAMAx=mWAMAx12	mPASEC=mPASEC12
 mARPUP=mARPUP12	mDITE2=mDITE212	mSOEL3=mSOEL312	mNUCAx=mNUCAx12	mCITE2=mCITE212	mPHAM4=mPHAM412	mTRUR2=mTRUR212	mPAPE5=mPAPE512	
 mCRGL2=mCRGL212	mPAHI1=mPAHI112	mCHTE1=mCHTE112	mPSOB3=mPSOB312	mSPCO1=mSPCO112	mFRFLx=mFRFLx12	mNELU2=mNELU212	mDICO6=mDICO612	
 mJUBRx=mJUBRx12	mCOBA2=mCOBA212	mDIOLS=mDIOLS12	mJUTEx=mJUTEx12	mDICA3=mDICA312	mERSEx=mERSEx12	mGYAMx=mGYAMx12	mSTPI3=mSTPI312	
@@ -696,8 +675,8 @@ mDIOVx=mDIOVx12	mHEGEx=mHEGEx12	mDIAC2=mDIAC212	mGAPE2=mGAPE212	mOXDI2=mOXDI212	
 mRHHAx=mRHHAx12	mGAAN1=mGAAN112	mARDE3=mARDE312	mSCSCx=mSCSCx12	mLEMU3=mLEMU312	mSEARx=mSEARx12	mPAPL3=mPAPL312	mGAAR1=mGAAR112	
 mDIAN4=mDIAN412	mERSPx=mERSPx12	mCYRE5=mCYRE512	mCAMI8=mCAMI812	mSCCIx=mSCCIx12	mLEDUx=mLEDUx12	mCOCA5=mCOCA512	mLETEx=mLETEx12	
 mPOPR4=mPOPR412	mDISP2=mDISP212	mHELA5=mHELA512	mDIOLx=mDIOLx12	mDILI2=mDILI212	mSILIx=mSILIx12	;  
-data dat2013; set mquadpost; if year=2013; 
-	 rename mcov=cov13 mquad=quad13 mANGL2=mANGL213	mKRVIx=mKRVIx13	mCOERx=mCOERx13	mPABR2=mPABR213	mWAMAx=mWAMAx13	
+data dat2013; set herbspost; if year=2013; 
+	 rename caco=cov13 mANGL2=mANGL213	mKRVIx=mKRVIx13	mCOERx=mCOERx13	mPABR2=mPABR213	mWAMAx=mWAMAx13	
 mPASEC=mPASEC13	mARPUP=mARPUP13	mDITE2=mDITE213	mSOEL3=mSOEL313	mNUCAx=mNUCAx13	mCITE2=mCITE213	mPHAM4=mPHAM413	mTRUR2=mTRUR213
 mPAPE5=mPAPE513	mCRGL2=mCRGL213	mPAHI1=mPAHI113	mCHTE1=mCHTE113	mPSOB3=mPSOB313	mSPCO1=mSPCO113	mFRFLx=mFRFLx13	mNELU2=mNELU213
 mDICO6=mDICO613	mJUBRx=mJUBRx13	mCOBA2=mCOBA213	mDIOLS=mDIOLS13	mJUTEx=mJUTEx13	mDICA3=mDICA313	mERSEx=mERSEx13	mGYAMx=mGYAMx13
@@ -710,8 +689,8 @@ mAGHYx=mAGHYx13	mDIOVx=mDIOVx13	mHEGEx=mHEGEx13	mDIAC2=mDIAC213	mGAPE2=mGAPE213	
 mCHPI8=mCHPI813	mRHHAx=mRHHAx13	mGAAN1=mGAAN113	mARDE3=mARDE313	mSCSCx=mSCSCx13	mLEMU3=mLEMU313	mSEARx=mSEARx13	mPAPL3=mPAPL313
 mGAAR1=mGAAR113	mDIAN4=mDIAN413	mERSPx=mERSPx13	mCYRE5=mCYRE513	mCAMI8=mCAMI813	mSCCIx=mSCCIx13	mLEDUx=mLEDUx13	mCOCA5=mCOCA513	
 mLETEx=mLETEx13	mPOPR4=mPOPR413	mDISP2=mDISP213	mHELA5=mHELA513	mDIOLx=mDIOLx13	mDILI2=mDILI213	mSILIx=mSILIx13; 
-data dat2014; set mquadpost; if year=2014; 
-	 rename mcov=cov14 mquad=quad14 mANGL2=mANGL214	mKRVIx=mKRVIx14	mCOERx=mCOERx14	mPABR2=mPABR214	mWAMAx=mWAMAx14	mPASEC=mPASEC14	
+data dat2014; set herbspost; if year=2014; 
+	 rename caco=cov14 mANGL2=mANGL214	mKRVIx=mKRVIx14	mCOERx=mCOERx14	mPABR2=mPABR214	mWAMAx=mWAMAx14	mPASEC=mPASEC14	
 mARPUP=mARPUP14	mDITE2=mDITE214	mSOEL3=mSOEL314	mNUCAx=mNUCAx14	mCITE2=mCITE214	mPHAM4=mPHAM414	mTRUR2=mTRUR214	mPAPE5=mPAPE514	
 mCRGL2=mCRGL214	mPAHI1=mPAHI114	mCHTE1=mCHTE114	mPSOB3=mPSOB314	mSPCO1=mSPCO114	mFRFLx=mFRFLx14	mNELU2=mNELU214	mDICO6=mDICO614	
 mJUBRx=mJUBRx14	mCOBA2=mCOBA214	mDIOLS=mDIOLS14	mJUTEx=mJUTEx14	mDICA3=mDICA314	mERSEx=mERSEx14	mGYAMx=mGYAMx14	mSTPI3=mSTPI314	
@@ -724,8 +703,8 @@ mDIOVx=mDIOVx14	mHEGEx=mHEGEx14	mDIAC2=mDIAC214	mGAPE2=mGAPE214	mOXDI2=mOXDI214	
 mRHHAx=mRHHAx14	mGAAN1=mGAAN114	mARDE3=mARDE314	mSCSCx=mSCSCx14	mLEMU3=mLEMU314	mSEARx=mSEARx14	mPAPL3=mPAPL314	mGAAR1=mGAAR114	
 mDIAN4=mDIAN414	mERSPx=mERSPx14	mCYRE5=mCYRE514	mCAMI8=mCAMI814	mSCCIx=mSCCIx14	mLEDUx=mLEDUx14	mCOCA5=mCOCA514	mLETEx=mLETEx14	
 mPOPR4=mPOPR414	mDISP2=mDISP214	mHELA5=mHELA514	mDIOLx=mDIOLx14	mDILI2=mDILI214	mSILIx=mSILIx14;  
-data dat2015; set mquadpost; if year=2015; 
-	 rename mcov=cov15 mquad=quad15 mANGL2=mANGL215	mKRVIx=mKRVIx15	mCOERx=mCOERx15	mPABR2=mPABR215	mWAMAx=mWAMAx15	mPASEC=mPASEC15
+data dat2015; set herbspost; if year=2015; 
+	 rename caco=cov15 mANGL2=mANGL215	mKRVIx=mKRVIx15	mCOERx=mCOERx15	mPABR2=mPABR215	mWAMAx=mWAMAx15	mPASEC=mPASEC15
 mARPUP=mARPUP15	mDITE2=mDITE215	mSOEL3=mSOEL315	mNUCAx=mNUCAx15	mCITE2=mCITE215	mPHAM4=mPHAM415	mTRUR2=mTRUR215	mPAPE5=mPAPE515
 mCRGL2=mCRGL215	mPAHI1=mPAHI115	mCHTE1=mCHTE115	mPSOB3=mPSOB315	mSPCO1=mSPCO115	mFRFLx=mFRFLx15	mNELU2=mNELU215	mDICO6=mDICO615	
 mJUBRx=mJUBRx15	mCOBA2=mCOBA215	mDIOLS=mDIOLS15	mJUTEx=mJUTEx15	mDICA3=mDICA315	mERSEx=mERSEx15	mGYAMx=mGYAMx15	mSTPI3=mSTPI315	
@@ -739,7 +718,7 @@ mRHHAx=mRHHAx15	mGAAN1=mGAAN115	mARDE3=mARDE315	mSCSCx=mSCSCx15	mLEMU3=mLEMU315	
 mDIAN4=mDIAN415	mERSPx=mERSPx15	mCYRE5=mCYRE515	mCAMI8=mCAMI815	mSCCIx=mSCCIx15	mLEDUx=mLEDUx15	mCOCA5=mCOCA515	mLETEx=mLETEx15
 mPOPR4=mPOPR415	mDISP2=mDISP215	mHELA5=mHELA515	mDIOLx=mDIOLx15	mDILI2=mDILI215	mSILIx=mSILIx15; 
 data prefavg; set mherbspref; 
-	 rename ncov=ncovpre nquad=nquadpre nANGL2=nANGL2pre	nKRVIx=nKRVIxpre	nCOERx=nCOERxpre	nPABR2=nPABR2pre	nWAMAx=nWAMAxpre	nPASEC=nPASECpre	
+	 rename ncov=ncovpre  nANGL2=nANGL2pre	nKRVIx=nKRVIxpre	nCOERx=nCOERxpre	nPABR2=nPABR2pre	nWAMAx=nWAMAxpre	nPASEC=nPASECpre	
 nARPUP=nARPUPpre	nDITE2=nDITE2pre	nSOEL3=nSOEL3pre	nNUCAx=nNUCAxpre	nCITE2=nCITE2pre	nPHAM4=nPHAM4pre	nTRUR2=nTRUR2pre	
 nPAPE5=nPAPE5pre	nCRGL2=nCRGL2pre	nPAHI1=nPAHI1pre	nCHTE1=nCHTE1pre	nPSOB3=nPSOB3pre	nSPCO1=nSPCO1pre	nFRFLx=nFRFLxpre	
 nNELU2=nNELU2pre	nDICO6=nDICO6pre	nJUBRx=nJUBRxpre	nCOBA2=nCOBA2pre	nDIOLS=nDIOLSpre	nJUTEx=nJUTExpre	nDICA3=nDICA3pre	
@@ -754,7 +733,7 @@ nDIVI7=nDIVI7pre	nCHPI8=nCHPI8pre	nRHHAx=nRHHAxpre	nGAAN1=nGAAN1pre	nARDE3=nARDE
 nSEARx=nSEARxpre	nPAPL3=nPAPL3pre	nGAAR1=nGAAR1pre	nDIAN4=nDIAN4pre	nERSPx=nERSPxpre	nCYRE5=nCYRE5pre	nCAMI8=nCAMI8pre	
 nSCCIx=nSCCIxpre	nLEDUx=nLEDUxpre	nCOCA5=nCOCA5pre	nLETEx=nLETExpre	nPOPR4=nPOPR4pre	nDISP2=nDISP2pre	nHELA5=nHELA5pre	
 nDIOLx=nDIOLxpre	nDILI2=nDILI2pre	nSILIx=nSILIxpre	
-		   	mcov=mcovpre mquad=mquadpre mANGL2=mANGL2pre	mKRVIx=mKRVIxpre	mCOERx=mCOERxpre	mPABR2=mPABR2pre	mWAMAx=mWAMAxpre	mPASEC=mPASECpre
+		   	mcov=mcovpre mANGL2=mANGL2pre	mKRVIx=mKRVIxpre	mCOERx=mCOERxpre	mPABR2=mPABR2pre	mWAMAx=mWAMAxpre	mPASEC=mPASECpre
 mARPUP=mARPUPpre	mDITE2=mDITE2pre	mSOEL3=mSOEL3pre	mNUCAx=mNUCAxpre	mCITE2=mCITE2pre	mPHAM4=mPHAM4pre	mTRUR2=mTRUR2pre	
 mPAPE5=mPAPE5pre	mCRGL2=mCRGL2pre	mPAHI1=mPAHI1pre	mCHTE1=mCHTE1pre	mPSOB3=mPSOB3pre	mSPCO1=mSPCO1pre	mFRFLx=mFRFLxpre	
 mNELU2=mNELU2pre	mDICO6=mDICO6pre	mJUBRx=mJUBRxpre	mCOBA2=mCOBA2pre	mDIOLS=mDIOLSpre	mJUTEx=mJUTExpre	mDICA3=mDICA3pre	

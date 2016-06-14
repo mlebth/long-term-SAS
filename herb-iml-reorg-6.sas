@@ -1,15 +1,30 @@
+*this file reorganizes herbs in 2 ways:
+	structure 1 (herbprpo) pools pre-fire data and pools post-fire data (can compare before/after)
+	structure 2 (herbbyyr) pools pre-fire data but not post-fire data (can compare before with 2011-2015);
+
+*creating a set of herbs;
 data herb1; set herbx;
+	*removing blank lines;
 	if sspp='     ' then delete;
+	*removing 1999--data are of extremely poor quality;
 	if year=1999 	then delete;
-  	type = 1;     		  			  	 * default - it is a plant;
- 	if (sspp = 'XXXXx') then type = 2;   * type 2 means non-plant;
+	*type 1--it is a plant. type 2--zero plants were found in that plot/year;
+  	type = 1;     		  			  	
+ 	if (sspp = 'XXXXx') then type = 2;   
 	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year prpo type; 
 run; *n=12,544;
-
 proc sort data=herb1; by sspp plot quad year bcat covm coun soileb elev slope aspect hydrn prpo type; run; 
 *proc print data=herb1 (firstobs=1 obs=20); title 'herb1'; run;
 
-/* *56 plots total, only 55 in herb1--missing 1226, finding out why;
+*checking if any plot/year combos actually have 0 plants;
+proc sql;
+	select year, plot, sspp
+	from herb1
+	where sspp = 'XXXXx';
+quit;
+*yes--plot 1203 in 2005 is the only instance;
+
+/* *56 plots total, only 55 in herb1--missing 1226, finding out why below;
 
 proc sort data=herbx; by plot; run;
 proc means data=herbx noprint n; by plot; 
@@ -51,28 +66,14 @@ run;
 data plotid3; set plotid2; newplotid = _n_; keep plot newplotid;
 *proc print data=plotid3; title 'plotid3';
 run; *n=55;
+*re-merging with dataset;
+proc sort data=plotid3; by plot newplotid;
+proc sort data=herb1; by plot;
+data herb1x; merge herb1 plotid3; by plot;
+run;
+*proc print data=herb1x (firstobs=8050 obs=8060); title 'herb1x--new plot names'; run;
 
-data herb2; set herb1;
-	*reassigning plot ids;
-	if plot = 1181 then plotnew = 1; if plot = 1186 then plotnew = 2; if plot = 1188 then plotnew = 3; 
-	if plot = 1189 then plotnew = 4; if plot = 1190 then plotnew = 5; if plot = 1191 then plotnew = 6; 
-	if plot = 1192 then plotnew = 7; if plot = 1193 then plotnew = 8; if plot = 1194 then plotnew = 9; 
-	if plot = 1195 then plotnew = 10; if plot = 1196 then plotnew = 11; if plot = 1197 then plotnew = 12; 
-	if plot = 1198 then plotnew = 13; if plot = 1199 then plotnew = 14; if plot = 1200 then plotnew = 15; 
-	if plot = 1201 then plotnew = 16; if plot = 1202 then plotnew = 17; if plot = 1203 then plotnew = 18; 
-	if plot = 1204 then plotnew = 19; if plot = 1205 then plotnew = 20; if plot = 1206 then plotnew = 21; 
-	if plot = 1207 then plotnew = 22; if plot = 1208 then plotnew = 23; if plot = 1209 then plotnew = 24; 
-	if plot = 1210 then plotnew = 25; if plot = 1211 then plotnew = 26; if plot = 1212 then plotnew = 27; 
-	if plot = 1213 then plotnew = 28; if plot = 1214 then plotnew = 29; if plot = 1215 then plotnew = 30; 
-	if plot = 1216 then plotnew = 31; if plot = 1217 then plotnew = 32; if plot = 1218 then plotnew = 33; 
-	if plot = 1219 then plotnew = 34; if plot = 1220 then plotnew = 35; if plot = 1221 then plotnew = 36;
-	if plot = 1222 then plotnew = 37; if plot = 1223 then plotnew = 38; if plot = 1224 then plotnew = 39; 
-	if plot = 1225 then plotnew = 40; if plot = 1227 then plotnew = 41; if plot = 1228 then plotnew = 42; 
-	if plot = 1229 then plotnew = 43; if plot = 1230 then plotnew = 44; if plot = 1231 then plotnew = 45; 
-	if plot = 1232 then plotnew = 46; if plot = 1233 then plotnew = 47; if plot = 1234 then plotnew = 48; 
-	if plot = 1235 then plotnew = 49; if plot = 1236 then plotnew = 50; if plot = 1237 then plotnew = 51; 
-	if plot = 1238 then plotnew = 52; if plot = 1239 then plotnew = 53; if plot = 1240 then plotnew = 54; 
-	if plot = 5300 then plotnew = 55; 
+data herb2; set herb1x;
 	*reassigning species codes;
 	if (sspp='ACGR2') then spid=1;  if (sspp='CHTE1') then spid=46;	if (sspp='DILI5') then spid=91;		if (sspp='GAPE2') then spid=136;	if (sspp='LERE2') then spid=181;	if (sspp='PHCI4') then spid=226;	if (sspp='SOCA6') then spid=271;
 	if (sspp='AGFA2') then spid=2;	if (sspp='CIHO2') then spid=47;	if (sspp='DIOLS') then spid=92;		if (sspp='GAPI2') then spid=137;	if (sspp='LESPE') then spid=182;	if (sspp='PHHE4') then spid=227;	if (sspp='SOEL3') then spid=272;
@@ -121,10 +122,11 @@ data herb2; set herb1;
 	if (sspp='CHSE2') then spid=45;	if (sspp='DILI2') then spid=90;	if (sspp='GACA6') then spid=135;	if (sspp='LEMU3') then spid=180;	if (sspp='PHAN5') then spid=225;	if (sspp='SOASx') then spid=270;	if (sspp='XXXXx') then spid=315;
 	drop sspp; 
 run;
-proc sort data=herb2; by plotnew year spid;
+proc sort data=herb2; by newplotid year spid;
 *proc print data=herb2 (firstobs=1 obs=20); title 'herb2'; run;
 *proc contents data=herb2; run;
 
+*dataset of just species names. as yet unused;
 data herbsp; set herb1; keep sspp; run;
 
 proc iml;
@@ -147,7 +149,7 @@ end;                     						* end record by record loop;
 
 *order of variables in matnum: 
 1-plot, 2-quad, 3-coun, 4-year, 5-covm, 6-soileb, 7-elev, 8-slope, 
-9-hydrn, 10-aspect, 11-bcat, 12-prpo, 13-type, 14-plotnew, 15-spid;
+9-hydrn, 10-aspect, 11-bcat, 12-prpo, 13-type, 14-newplotid, 15-spid;
 
 * fill matnumdat; 
 do i = 1 to nrecords;    						* record by record loop;
@@ -218,13 +220,14 @@ quit;
 
 *proc print data=herbdat (firstobs=111 obs=120); title 'herbdat'; run;
 
-*checking that values make sense;
+*checking that values for each variable look right;
 proc sort data=herbdat; by spid;
 proc means data=herbdat noprint; 
 	output out=datcheck;
-*proc print data=datcheck; title 'datcheck'; run;
+*proc print data=datcheck; title 'datcheck'; run; *looks good;
 
-*adding back in species names for reduced confusion;
+*species names were changed to codes for iml, but easier for me if they're character variables--
+changing them back;
 data herbdat1; set herbdat;
 	if spid=1 then sspp=('ACGR2');	if spid=46 then sspp=('CHTE1');	if spid=91 then sspp=('DILI5');		if spid=136 then sspp=('GAPE2');	if spid=181 then sspp=('LERE2');	if spid=226 then sspp=('PHCI4');	if spid=271 then sspp=('SOCA6');
 	if spid=2 then sspp=('AGFA2');	if spid=47 then sspp=('CIHO2');	if spid=92 then sspp=('DIOLS');		if spid=137 then sspp=('GAPI2');	if spid=182 then sspp=('LESPE');	if spid=227 then sspp=('PHHE4');	if spid=272 then sspp=('SOEL3');
@@ -274,21 +277,19 @@ data herbdat1; set herbdat;
 run;
 *proc print data=herbdat1 (firstobs=1 obs=20); run;
 
-************reorganizing herbdat--structure 1--pref/post;
-data herbdat2; set herbdat1;
-	if (year1<2011)  then yrcat=1; 
-	if (year1>=2011) then yrcat=2;	
-	drop time1 time2 year2 cov2 prpo; 
+************structure 1--prefire pooled, postfire pooled--to compare befre/after;
+data herbdat2; set herbdat1;	
+	drop time1 time2 year2 cov2; 
 	rename year1=year cov1=caco;
 run;
 
 *herbs pre-fire;
 data herbspre;  set herbdat2;
-	if yrcat=1;
+	if prpo=1;
 run; *N=1388;
 *pooling data in herbspre;
-proc sort  data=herbspre; by yrcat plot bcat quad spid sspp type elev hydr slope soil aspect;
-proc means data=herbspre n mean noprint; by yrcat plot bcat quad spid sspp type elev hydr slope soil aspect;
+proc sort  data=herbspre; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect;
+proc means data=herbspre n mean noprint; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect;
 	var caco coun;
 	output out=mherbspre n=ncov ncoun 
 		   			  mean=mcov mcoun;
@@ -297,10 +298,10 @@ run;
 
 *herbs post-fire;
 data herbspost; set herbdat2;
-	if yrcat=2; 
+	if prpo=2; 
 run; *N=11156;
-proc sort  data=herbspost; by yrcat plot bcat quad spid sspp type elev hydr slope soil aspect;
-proc means data=herbspost n mean noprint; by yrcat plot bcat quad spid sspp type elev hydr slope soil aspect;
+proc sort  data=herbspost; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect;
+proc means data=herbspost n mean noprint; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect;
 	var caco coun;
 	output out=mherbspost n=ncov ncoun 
 		   			  	  mean=mcov mcoun;
@@ -308,147 +309,35 @@ run;
 *proc print data=mherbspost (firstobs=1 obs=20); title 'mherbspost'; run; *N=5782;
 
 *merging pre/post;
-proc sort data=mherbspost; by yrcat plot bcat quad spid sspp type elev hydr slope soil aspect;
-proc sort data=mherbspre; by yrcat plot bcat quad spid sspp type elev hydr slope soil aspect; run;
-data herbprpo; merge mherbspost mherbspre; by yrcat plot bcat quad spid sspp type elev hydr slope soil aspect; 	
+proc sort data=mherbspost; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect;
+proc sort data=mherbspre; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect; run;
+data herbprpo; merge mherbspost mherbspre; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect; 	
 	drop _TYPE_ _FREQ_; 
 run;
 *proc print data=herbprpo (firstobs=1 obs=20); title 'herbprpo'; run;	*N=6845;
 
 
-************reorganizing herbdat--structure 2--pref/2011-2015;
+************structure 2--prefire pooled, 2011-2015 not pooled;
 *herbs pre-fire;
 data herbspre;  set herbdat2;
-	if yrcat=1;
+	if prpo=1;
+	*setting year to 1111 for all pre-fire data (not 9999 so it will sort out first--logically easier;
 	year=1111;
 run; *N=1388;
 *pooling data in herbspre;
-proc sort  data=herbspre; by yrcat year plot bcat quad spid sspp type elev hydr slope soil aspect;
-proc means data=herbspre n mean noprint; by yrcat year plot bcat quad spid sspp type elev hydr slope soil aspect;
+proc sort  data=herbspre; by prpo year plot bcat quad spid sspp type elev hydr slope soil aspect;
+proc means data=herbspre n mean noprint; by prpo year plot bcat quad spid sspp type elev hydr slope soil aspect;
 	var caco coun;
 	output out=mherbspre n=ncov ncoun 
 		   			  mean=mcov mcoun;
 run;
 *proc print data=mherbspre (firstobs=1 obs=20); title 'mherbspre'; run; *N=1063;
 
-*herbs post-fire;
-data herbspost; set herbdat2;
-	if yrcat=2; 
-run; *N=11156;
-proc sort  data=herbspost; by year plot bcat quad spid type elev hydr slope soil aspect;
-proc means data=herbspost n mean noprint; by year plot bcat quad spid type elev hydr slope soil aspect;
-	var caco coun;
-	output out=mherbspost n=ncov ncoun 
-		   			  	  mean=mcov mcoun;
-run;
-*proc print data=mherbspost (firstobs=1 obs=20); title 'mherbspost'; run; *N=11156;
-
+proc print data=herbspost (firstobs=1 obs=10); run;
 *merging pre/post;
-proc sort data=mherbspost; by year plot bcat quad spid type elev hydr slope soil aspect;
-proc sort data=mherbspre; by year plot bcat quad spid type elev hydr slope soil aspect; run;
-data herbbyyr; merge mherbspost mherbspre; by year plot bcat quad spid type elev hydr slope soil aspect; 	
-	drop _TYPE_ _FREQ_; 
+proc sort data=mherbspre; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect;
+proc sort data=herbspost; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect; run;
+data herbbyyr; merge herbspost mherbspre; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect; 	
+	drop _TYPE_ _FREQ_ prpo; 
 run;
-*proc print data=herbbyyr (firstobs=1 obs=20); title 'herbbyyr'; run;	*N=12189;
-
-
-*structure 3;
-proc sort data=herbspost; by plot year;	run;
-data dat2012; set herbspost; if year=2012; 
-rename 
- DILI2=DILI212	 SPCO1=SPCO112	 TRPE4=TRPE412	 CYLU2=CYLU212	 RHHAx=RHHAx12
- ANGL2=ANGL212	 FRFLx=FRFLx12	 PTAQx=PTAQx12	 ARLO1=ARLO112	 GAAN1=GAAN112
- KRVIx=KRVIx12	 NELU2=NELU212	 DIRAx=DIRAx12	 BUCA2=BUCA212	 ARDE3=ARDE312
- COERx=COERx12	 DICO6=DICO612	 LERE2=LERE212	 EUSEx=EUSEx12	 SCSCx=SCSCx12
- PABR2=PABR212	 JUBRx=JUBRx12	 PHCI4=PHCI412	 EUCO1=EUCO112	 LEMU3=LEMU312
- WAMAx=WAMAx12	 COBA2=COBA212	 SPCLx=SPCLx12	 GAREx=GAREx12	 SEARx=SEARx12
- PASEC=PASEC12	 DIOLS=DIOLS12	 FIPUx=FIPUx12	 CEVI2=CEVI212	 PAPL3=PAPL312
- SILIx=SILIx12	 JUTEx=JUTEx12	 CALE6=CALE612	 DISC3=DISC312	 GAAR1=GAAR112
- ARPUP=ARPUP12	 DICA3=DICA312	 HYDRx=HYDRx12	 VUOCx=VUOCx12	 DIAN4=DIAN412
- DITE2=DITE212	 ERSEx=ERSEx12	 CRMO6=CRMO612	 BUCIx=BUCIx12	 ERSPx=ERSPx12
- SOEL3=SOEL312	 GYAMx=GYAMx12	 CYHYx=CYHYx12	 CYEC2=CYEC212	 CYRE5=CYRE512
- NUCAx=NUCAx12	 STPI3=STPI312	 SONU2=SONU212	 AGHYx=AGHYx12	 CAMI8=CAMI812
- CITE2=CITE212	 LEHI2=LEHI212	 NUTEx=NUTEx12	 DIOVx=DIOVx12	 SCCIx=SCCIx12
- PHAM4=PHAM412	 CRSA4=CRSA412	 HYGL2=HYGL212	 HEGEx=HEGEx12	 LEDUx=LEDUx12
- TRUR2=TRUR212	 ERINx=ERINx12	 TRRA5=TRRA512	 DIAC2=DIAC212	 COCA5=COCA512
- PAPE5=PAPE512	 ANVI2=ANVI212	 JUMA4=JUMA412	 GAPE2=GAPE212	 LETEx=LETEx12
- CRGL2=CRGL212	 HERO2=HERO212	 ACGR2=ACGR212	 OXDI2=OXDI212	 POPR4=POPR412
- PAHI1=PAHI112	 CAMU4=CAMU412	 PASE5=PASE512	 CRDI1=CRDI112	 DISP2=DISP212
- CHTE1=CHTE112	 TRBI2=TRBI212	 CYCR6=CYCR612	 DIVI7=DIVI712	 HELA5=HELA512
- PSOB3=PSOB312	 DIACx=DIACx12	 EUCO7=EUCO712	 CHPI8=CHPI812	 DIOLx=DIOLx12
- mcov=mcov12;
-data dat2013; set herbspost; if year=2013; 
-	 rename 
- DILI2=DILI213	 SPCO1=SPCO113	 TRPE4=TRPE413	 CYLU2=CYLU213	 RHHAx=RHHAx13
- ANGL2=ANGL213	 FRFLx=FRFLx13	 PTAQx=PTAQx13	 ARLO1=ARLO113	 GAAN1=GAAN113
- KRVIx=KRVIx13	 NELU2=NELU213	 DIRAx=DIRAx13	 BUCA2=BUCA213	 ARDE3=ARDE313
- COERx=COERx13	 DICO6=DICO613	 LERE2=LERE213	 EUSEx=EUSEx13	 SCSCx=SCSCx13
- PABR2=PABR213	 JUBRx=JUBRx13	 PHCI4=PHCI413	 EUCO1=EUCO113	 LEMU3=LEMU313
- WAMAx=WAMAx13	 COBA2=COBA213	 SPCLx=SPCLx13	 GAREx=GAREx13	 SEARx=SEARx13
- PASEC=PASEC13	 DIOLS=DIOLS13	 FIPUx=FIPUx13	 CEVI2=CEVI213	 PAPL3=PAPL313
- SILIx=SILIx13	 JUTEx=JUTEx13	 CALE6=CALE613	 DISC3=DISC313	 GAAR1=GAAR113
- ARPUP=ARPUP13	 DICA3=DICA313	 HYDRx=HYDRx13	 VUOCx=VUOCx13	 DIAN4=DIAN413
- DITE2=DITE213	 ERSEx=ERSEx13	 CRMO6=CRMO613	 BUCIx=BUCIx13	 ERSPx=ERSPx13
- SOEL3=SOEL313	 GYAMx=GYAMx13	 CYHYx=CYHYx13	 CYEC2=CYEC213	 CYRE5=CYRE513
- NUCAx=NUCAx13	 STPI3=STPI313	 SONU2=SONU213	 AGHYx=AGHYx13	 CAMI8=CAMI813
- CITE2=CITE213	 LEHI2=LEHI213	 NUTEx=NUTEx13	 DIOVx=DIOVx13	 SCCIx=SCCIx13
- PHAM4=PHAM413	 CRSA4=CRSA413	 HYGL2=HYGL213	 HEGEx=HEGEx13	 LEDUx=LEDUx13
- TRUR2=TRUR213	 ERINx=ERINx13	 TRRA5=TRRA513	 DIAC2=DIAC213	 COCA5=COCA513
- PAPE5=PAPE513	 ANVI2=ANVI213	 JUMA4=JUMA413	 GAPE2=GAPE213	 LETEx=LETEx13
- CRGL2=CRGL213	 HERO2=HERO213	 ACGR2=ACGR213	 OXDI2=OXDI213	 POPR4=POPR413
- PAHI1=PAHI113	 CAMU4=CAMU413	 PASE5=PASE513	 CRDI1=CRDI113	 DISP2=DISP213
- CHTE1=CHTE113	 TRBI2=TRBI213	 CYCR6=CYCR613	 DIVI7=DIVI713	 HELA5=HELA513
- PSOB3=PSOB313	 DIACx=DIACx13	 EUCO7=EUCO713	 CHPI8=CHPI813	 DIOLx=DIOLx13
- mcov=mcov13; 
-data dat2014; set herbspost; if year=2014; 
-	 rename 
- DILI2=DILI214	 SPCO1=SPCO114	 TRPE4=TRPE414	 CYLU2=CYLU214	 RHHAx=RHHAx14
- ANGL2=ANGL214	 FRFLx=FRFLx14	 PTAQx=PTAQx14	 ARLO1=ARLO114	 GAAN1=GAAN114
- KRVIx=KRVIx14	 NELU2=NELU214	 DIRAx=DIRAx14	 BUCA2=BUCA214	 ARDE3=ARDE314
- COERx=COERx14	 DICO6=DICO614	 LERE2=LERE214	 EUSEx=EUSEx14	 SCSCx=SCSCx14
- PABR2=PABR214	 JUBRx=JUBRx14	 PHCI4=PHCI414	 EUCO1=EUCO114	 LEMU3=LEMU314
- WAMAx=WAMAx14	 COBA2=COBA214	 SPCLx=SPCLx14	 GAREx=GAREx14	 SEARx=SEARx14
- PASEC=PASEC14	 DIOLS=DIOLS14	 FIPUx=FIPUx14	 CEVI2=CEVI214	 PAPL3=PAPL314
- SILIx=SILIx14	 JUTEx=JUTEx14	 CALE6=CALE614	 DISC3=DISC314	 GAAR1=GAAR114
- ARPUP=ARPUP14	 DICA3=DICA314	 HYDRx=HYDRx14	 VUOCx=VUOCx14	 DIAN4=DIAN414
- DITE2=DITE214	 ERSEx=ERSEx14	 CRMO6=CRMO614	 BUCIx=BUCIx14	 ERSPx=ERSPx14
- SOEL3=SOEL314	 GYAMx=GYAMx14	 CYHYx=CYHYx14	 CYEC2=CYEC214	 CYRE5=CYRE514
- NUCAx=NUCAx14	 STPI3=STPI314	 SONU2=SONU214	 AGHYx=AGHYx14	 CAMI8=CAMI814
- CITE2=CITE214	 LEHI2=LEHI214	 NUTEx=NUTEx14	 DIOVx=DIOVx14	 SCCIx=SCCIx14
- PHAM4=PHAM414	 CRSA4=CRSA414	 HYGL2=HYGL214	 HEGEx=HEGEx14	 LEDUx=LEDUx14
- TRUR2=TRUR214	 ERINx=ERINx14	 TRRA5=TRRA514	 DIAC2=DIAC214	 COCA5=COCA514
- PAPE5=PAPE514	 ANVI2=ANVI214	 JUMA4=JUMA414	 GAPE2=GAPE214	 LETEx=LETEx14
- CRGL2=CRGL214	 HERO2=HERO214	 ACGR2=ACGR214	 OXDI2=OXDI214	 POPR4=POPR414
- PAHI1=PAHI114	 CAMU4=CAMU414	 PASE5=PASE514	 CRDI1=CRDI114	 DISP2=DISP214
- CHTE1=CHTE114	 TRBI2=TRBI214	 CYCR6=CYCR614	 DIVI7=DIVI714	 HELA5=HELA514
- PSOB3=PSOB314	 DIACx=DIACx14	 EUCO7=EUCO714	 CHPI8=CHPI814	 DIOLx=DIOLx14
- mcov=mcov14;  
-data dat2015; set herbspost; if year=2015; 
-	 rename  
- DILI2=DILI215	 SPCO1=SPCO115	 TRPE4=TRPE415	 CYLU2=CYLU215	 RHHAx=RHHAx15
- ANGL2=ANGL215	 FRFLx=FRFLx15	 PTAQx=PTAQx15	 ARLO1=ARLO115	 GAAN1=GAAN115
- KRVIx=KRVIx15	 NELU2=NELU215	 DIRAx=DIRAx15	 BUCA2=BUCA215	 ARDE3=ARDE315
- COERx=COERx15	 DICO6=DICO615	 LERE2=LERE215	 EUSEx=EUSEx15	 SCSCx=SCSCx15
- PABR2=PABR215	 JUBRx=JUBRx15	 PHCI4=PHCI415	 EUCO1=EUCO115	 LEMU3=LEMU315
- WAMAx=WAMAx15	 COBA2=COBA215	 SPCLx=SPCLx15	 GAREx=GAREx15	 SEARx=SEARx15
- PASEC=PASEC15	 DIOLS=DIOLS15	 FIPUx=FIPUx15	 CEVI2=CEVI215	 PAPL3=PAPL315
- SILIx=SILIx15	 JUTEx=JUTEx15	 CALE6=CALE615	 DISC3=DISC315	 GAAR1=GAAR115
- ARPUP=ARPUP15	 DICA3=DICA315	 HYDRx=HYDRx15	 VUOCx=VUOCx15	 DIAN4=DIAN415
- DITE2=DITE215	 ERSEx=ERSEx15	 CRMO6=CRMO615	 BUCIx=BUCIx15	 ERSPx=ERSPx15
- SOEL3=SOEL315	 GYAMx=GYAMx15	 CYHYx=CYHYx15	 CYEC2=CYEC215	 CYRE5=CYRE515
- NUCAx=NUCAx15	 STPI3=STPI315	 SONU2=SONU215	 AGHYx=AGHYx15	 CAMI8=CAMI815
- CITE2=CITE215	 LEHI2=LEHI215	 NUTEx=NUTEx15	 DIOVx=DIOVx15	 SCCIx=SCCIx15
- PHAM4=PHAM415	 CRSA4=CRSA415	 HYGL2=HYGL215	 HEGEx=HEGEx15	 LEDUx=LEDUx15
- TRUR2=TRUR215	 ERINx=ERINx15	 TRRA5=TRRA515	 DIAC2=DIAC215	 COCA5=COCA515
- PAPE5=PAPE515	 ANVI2=ANVI215	 JUMA4=JUMA415	 GAPE2=GAPE215	 LETEx=LETEx15
- CRGL2=CRGL215	 HERO2=HERO215	 ACGR2=ACGR215	 OXDI2=OXDI215	 POPR4=POPR415
- PAHI1=PAHI115	 CAMU4=CAMU415	 PASE5=PASE515	 CRDI1=CRDI115	 DISP2=DISP215
- CHTE1=CHTE115	 TRBI2=TRBI215	 CYCR6=CYCR615	 DIVI7=DIVI715	 HELA5=HELA515
- PSOB3=PSOB315	 DIACx=DIACx15	 EUCO7=EUCO715	 CHPI8=CHPI815	 DIOLx=DIOLx15
- mcov=mcov15; 
-/*data prefavg; set mherbspre; 
-	 rename nilv=nilvopresd npit=npitapresd nqm3=nquma3presd nqma=nqumapresd ncov=ncovpre
-		   	milv=milvopresd mpit=mpitapresd mqm3=mquma3presd mqma=mqumapresd mcov=mcovpre;
-run; */
-data herbmerge3; merge  dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
-*proc print data=herbmerge3; title 'herbmerge3'; run; 
+*proc print data=herbbyyr (firstobs=10010 obs=10020); title 'herbbyyr'; run;	*N=12219;

@@ -66,3 +66,10 @@ proc glimmix data=herbbyyr; title 'plot-bcat-soil';
   *lsmeans soil / ilink cl; 
   output out=glmout2 resid=ehat;
 run;
+
+proc glm data=herbbyyr; title 'herbmerge1';
+class plot ;
+model mcoun = plot; 
+lsmeans plot;
+output out=glmout; 
+run;
