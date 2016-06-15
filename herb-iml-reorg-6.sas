@@ -333,11 +333,11 @@ proc means data=herbspre n mean noprint; by prpo year plot bcat quad spid sspp t
 run;
 *proc print data=mherbspre (firstobs=1 obs=20); title 'mherbspre'; run; *N=1063;
 
-proc print data=herbspost (firstobs=1 obs=10); run;
+*proc print data=herbspost (firstobs=1 obs=10); title 'herbspost'; run; *N=11156;
 *merging pre/post;
 proc sort data=mherbspre; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect;
 proc sort data=herbspost; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect; run;
 data herbbyyr; merge herbspost mherbspre; by prpo plot bcat quad spid sspp type elev hydr slope soil aspect; 	
 	drop _TYPE_ _FREQ_ prpo; 
 run;
-*proc print data=herbbyyr (firstobs=10010 obs=10020); title 'herbbyyr'; run;	*N=12219;
+*proc print data=herbbyyr (firstobs=1 obs=10); title 'herbbyyr'; run;	*N=12219;
