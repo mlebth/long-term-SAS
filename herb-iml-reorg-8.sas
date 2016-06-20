@@ -38,7 +38,7 @@ nrecords=nrow(matquad);
 ncolumns=ncol(matquad);
 
 do i=1 to nrecords;
-	if nuniquad < 10
+	if nuniquad < 10;
 
 /*
 to add empty quads:
@@ -115,104 +115,54 @@ data herbmerge; merge fivesp2 splist2; by sspp;
 
 proc iml;
 
-nsp = 5; nquad=470; newnrows = nsp*nquad;
+nsp = 5; nquad=470; newnrows = nsp*nquad; *2350;
 *set up matrixcountquad with one row per sp x quad.  
-put quad into col1, put spcode into col2, col  3-8 fill with 0s;
+put quad into col1, put spcode into col2, col  3-7 fill with 0s;
 
 *importing;
-use herbmerge; read all into matcountquad;			
-nrecords = nrow(mattemp);						* print nrecords; *2994;
-ncolumns = ncol(mattemp);						* print ncolumns;
+use herbmerge; read all into inputmatrix;			
+nrecords = nrow(inputmatrix);				* print nrecords; *2994;
+ncolumns = ncol(inputmatrix);				* print ncolumns; *5;
 
 *creating a new matrix;
-matcountquad=j(newnrows,8,9999); 					
+*7 columns will be 2 from herbmerge (quad, spnum) plus a column for 
+each year w/ counts (1111, 2012, 2013, 2014, 2015);
+matcountquad=j(newnrows,7,0); 					
 
-do i = 1 to nrecords;    						* record by record loop;
-  mattemp[i,3]  = mattemp[i,4];   * year1;
-  mattemp[i,5]  = mattemp[i,12];  * prpo;
-  mattemp[i,6]  = mattemp[i,14];  * plot;
-
+*order of variables: 1--quad, 2--coun, 3--year, 4--plotnum, 5--spnum;
 quad = 1; sp=1; 
 do i = 1 to newnrows;
-	matcountquad[i,4] = sp;
-	matcountquad[i,2] = quad;
+	matcountquad[i,1] = quad;
+	matcountquad[i,2] = sp;
 	quad = quad + 1;
 	if quad > nquad then do;
 		sp=sp+1; quad = 1;
 	end; 
 end; 
 print matcountquad;
-
-matpaquad=matcountquad;
+nrecordscount=nrow(matcountquad);	*print nrecordscount; *2350;
+ncolumnscount=ncol(matcountquad);	*print ncolumnscount; *8;
 
 do i = 1 to newnrows;   * go through imported data set;
     tempquadid = inputmatrix[i,1];
-    tempspid   = inputmatrix[i,5];
+    tempcount  = inputmatrix[i,2];
     tempyr     = inputmatrix[i,3];
-    tempcount  = inputmatrix[i,5];
-
-*order of variables in matnum: 
-1-plot, 2-quad, 3-coun, 4-year, 5-covm, 6-soileb, 7-elev, 8-slope, 
-9-hydrn, 10-aspect, 11-bcat, 12-prpo, 13-type, 14-newplotid, 15-spid;
-
-* fill matnumdat; 
-do i = 1 to nrecords;    						* record by record loop;
-  uniquad=10*(matnum[i,14]-1)+ matnum[i,2];		* unique quadrat id;
-  time1 = matnumdat[i,1];
-  time2 = time1 + 1;
-  matnumdat[i,2]  = time2;	
-  matnumdat[i,3]  = matnum[i,4];   * year1;
-  *matnumdat[i,4] will be year2;
-  matnumdat[i,5]  = matnum[i,12];  * prpo;
-  matnumdat[i,6]  = matnum[i,14];  * plot;
-  matnumdat[i,7]  = uniquad;  	   * quad;
-  matnumdat[i,8]  = matnum[i,13];  * type;
-  matnumdat[i,9]  = matnum[i,15];  * spid;
-  matnumdat[i,10] = matnum[i,3];   * coun;
-  matnumdat[i,11] = matnum[i,11];  * bcat;
-  matnumdat[i,12] = matnum[i,10];  * aspect;
-  matnumdat[i,13] = matnum[i,9];   * hydrn;
-  matnumdat[i,14] = matnum[i,6];   * soileb;
-  matnumdat[i,15] = matnum[i,7];   * elev;
-  matnumdat[i,16] = matnum[i,8];   * slope;
-  matnumdat[i,17] = matnum[i,5];   * covm1;
-  *matnumdat[i,18] will be covm2;     
+    *tempspid  = inputmatrix[i,5];
+	targetrow  = (sp-1)*nquad + tempquadid; *for some reason says 2356 rows;
+    if (tempyr = 1111) then targetcol = 2 + 1;
+	*years 2011-2015 in rows 4-8;
+    if (tempyr > 2000) then targetcol = 3 + (tempyr - 2011);
+    matcountquad[targetrow,targetcol] = tempcount;
 end;
-* print (matnumdat[12524:12544,]);
 
-*fills in year2 and covm2;
-do i = 1 to nrecords;
-  plot = matnumdat[i,6]; time2 = matnumdat[i,2];
-  do j = 1 to nrecords;
-    if (matnumdat[j,6] = plot & matnumdat[j,1] = time2) then do;
-	  *print i,j;
-  	  matnumdat[i,4]  = matnumdat[j,3];  * year2;
-	  matnumdat[i,18] = matnumdat[j,17]; * covm2;
-	                                                  end;
-  end;  * end j loop;
-end;    * end i loop;
-* print (matnumdat[10:20,]);
+matpaquad=matcountquad;
 
-/*
-*reading in character data;
-use herbsp; read all var _char_ into matchar;	* print matchar;  *1 column, 12544 rows;
-* print (matchar[10:20,]);
-
-create matdat from matnumdat;
-append from matchar;
-close matdat; 	
-
-*presence/absence matrix;
-matpa=matnumdat;
-
-do i=1 to nrecords;
-	countcol=10;
-	matpa[i,countcol]=99;
-		if (matnumdat[i,countcol]=0) then matpa[i,countcol]=0;
-		if (matnumdat[i,countcol]>0) then matpa[i,countcol]=1;
+*fill matrixpaquad;
+do i = 1 to newnrows;
+   do j = 3 to 8;
+     if matrixcountquad[i,j] > 0 then matrixpaquad[i,j] = 1;
+	end; 
 end;
-* print (matpa[10:20,]);
-*/
 
 *labeling columns;
 cnames = {'time1', 'time2', 'year1', 'year2', 'prpo', 'plot', 'quad', 'type', 'spid',
