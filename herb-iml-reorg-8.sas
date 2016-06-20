@@ -1,5 +1,5 @@
 *creating a set of herbs;
-data herb1; set herbx;
+data herb1x; set herbx;
 	*removing blank lines;
 	if sspp='     ' then delete;
 	*removing 1999--data are of extremely poor quality;
@@ -9,11 +9,12 @@ data herb1; set herbx;
  	if (sspp = 'XXXXx') then type = 2;   
 	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year prpo type; 
 run; *n=12,544;
-proc sort data=herb1; by sspp plot quad year bcat covm coun soileb elev slope aspect hydrn prpo type; run; 
-*proc print data=herb1 (firstobs=1 obs=20); title 'herb1'; run;
+proc sort data=herb1x; by sspp plot quad year bcat covm coun soileb elev slope aspect hydrn prpo type; run; 
+*proc print data=herb1x (firstobs=1 obs=20); title 'herb1x'; run;
 
-data fivesp; set herb1; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='POPR4'); 
+data fivesp; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='POPR4'); 
 *proc print data=fivesp (firstobs=1 obs=10); title 'fivesp'; run; *n=2994;
+*********includes all vars for 5 species;
 
 *plot translation dataset--orig plot names to nums 1-56;
 data plotid; set fivesp; dummy = 1; keep plot dummy;
@@ -24,25 +25,37 @@ proc means data=plotid noprint mean; by plot; var dummy;
 data plotid3; set plotid2; plotnum = _n_; keep plot plotnum;
 *proc print data=plotid3; title 'plotid3';
 run; *n=54;
+*********includes plot and plotnum;
+
 proc sort data=fivesp; by plot; 
 proc sort data=plotid3; by plot;
 data fivesp2; merge fivesp plotid3; by plot; 
 proc sort data=fivesp2; by plotnum;
-*proc print data=fivesp2 (firstobs=100 obs=150); title 'fivesp2'; run;
+*proc print data=fivesp2; title 'fivesp2'; run;
+*********includes all vars for 5 species plus plotnum;
 
 *quad to plot (so that we don't need plot anymore, but can merge it back in). should be uniquad to plot;
-proc sort data=herb1; by plot quad;
-proc means data=herb1 mean noprint; var coun; by plot quad;
+proc sort data=fivesp; by plot quad;
+proc means data=fivesp mean noprint; var coun; by plot quad;
 	output out=quadtoplot mean=mcoun;
 run;
 data quadtoplot2; set quadtoplot; uniquad=_n_; keep plot quad uniquad;
-*proc print data=quadtoplot2 (firstobs=1 obs=100); title 'quadtoplot2'; run;
+*proc print data=quadtoplot2; title 'quadtoplot2'; run;
+*********includes plot, plotnum, quad, and uniquad;
+
+proc sort data=plotid3; by plot; 
+proc sort data=quadtoplot2; by plot;
+data quadplot; merge plotid3 quadtoplot2; by plot; run;
+proc sort data=quadplot; by plotnum uniquad;
+*proc print data=quadplot; title 'quadplot';run;
+*********includes all vars for 5 species plus plotnum and uniquad;
 
 proc sort data=fivesp2; by plot quad; 
-proc sort data=quadtoplot2; by plot quad;
-data fivesp3; merge fivesp2 quadtoplot2; by plot quad; run;
-proc sort data=fivesp3; by plot quad;
+proc sort data=quadplot; by plot quad;
+data fivesp3; merge fivesp2 quadplot; by plot quad; run;
+proc sort data=fivesp3; by plotnum uniquad;
 *proc print data=fivesp3 (firstobs=1 obs=100); title 'fivesp3';run;
+*********includes all vars for 5 species plus plotnum and uniquad;
 
 *getting stem counts;
 proc sort data=fivesp; by sspp; run;
@@ -51,13 +64,15 @@ proc means data=fivesp noprint n sum mean min max; by sspp; var coun;
 data sumstems1; set sumstems; drop _TYPE_ _FREQ_; RUN;
 proc sort data=sumstems1; by sumcount n;
 *proc print data=sumstems1; title 'sumstems';run;
+*********includes sspp, n, sumcount, meancount, mincount, maxcount;
 
 *species translation dataset--orig sp codes to nums 1-315;
-proc sort data=fivesp2; by sspp;
-proc means data=fivesp2 mean noprint; var coun; by sspp;
+proc sort data=fivesp; by sspp;
+proc means data=fivesp mean noprint; var coun; by sspp;
 	output out=splist mean=mcoun;
 data splist2; set splist; spnum=_n_; keep sspp spnum;
 *proc print data=splist2; title 'splist2'; run;
+*********includes sspp and spnum;
  
 *dataset of vars by plot-year. can be added back to any dataset organized by plot;
 proc sort data=fivesp2; by plot year;
@@ -67,12 +82,13 @@ data varplotyr; set plotvars; keep plot year aspect bcat quad mcov elev hydrn sl
 *proc print data=varplotyr (firstobs=1 obs=10); title 'varplotyr'; run; 
 
 *extracting only vars used in iml;
-proc sort data=fivesp2; by sspp; proc sort data=splist2; by sspp;
-data herbmerge; merge fivesp2 splist2; by sspp;
-	keep plotnum quad year spnum coun;
-proc sort data=herbmerge; by plotnum quad;
-*proc print data=herbmerge; title 'herbmerge'; 
-*proc contents data=herbmerge; run;
+proc sort data=fivesp3; by sspp; 
+proc sort data=splist2; by sspp;
+data fiveiml; merge fivesp3 splist2; by sspp;
+	keep plotnum uniquad year spnum coun;
+proc sort data=fiveiml; by plotnum uniquad;
+*proc print data=fiveiml; title 'fiveiml'; 
+*proc contents data=fiveiml; run;
 
 proc iml;
 
@@ -81,37 +97,36 @@ nsp = 5; nquad=470; newnrows = nsp*nquad; *2350;
 put quad into col1, put spcode into col2, col  3-7 fill with 0s;
 
 *importing;
-use herbmerge; read all into inputmatrix;			
+use fiveiml; read all into inputmatrix;			
 nrecords = nrow(inputmatrix);				* print nrecords; *2994;
 ncolumns = ncol(inputmatrix);				* print ncolumns; *5;
-print inputmatrix;
+*print inputmatrix;
 
 *creating a new matrix;
-*7 columns will be 2 from herbmerge (quad, spnum) plus a column for 
+*7 columns will be 2 from fiveiml (uniquad, spnum) plus a column for 
 each year w/ counts (1111, 2012, 2013, 2014, 2015);
 matcountquad=j(newnrows,7,0); 					
 
-*order of variables: 1--quad, 2--coun, 3--year, 4--plotnum, 5--spnum;
 quad = 1; sp=1; 
 do i = 1 to newnrows;
-	uniquad=10*(inputmatrix[i,4]-1)+ inputmatrix[i,1];		* unique quadrat id;
-	matcountquad[i,1] = uniquad;
+	matcountquad[i,1] = quad;
 	matcountquad[i,2] = sp;
 	quad = quad + 1;
 	if quad > nquad then do;
 		sp=sp+1; quad = 1;
 	end; 
 end; 
-print matcountquad;
+*print matcountquad;
 nrecordscount=nrow(matcountquad);	*print nrecordscount; *2350;
 ncolumnscount=ncol(matcountquad);	*print ncolumnscount; *8;
 
+*order of variables: 1--coun, 2--year, 3--plotnum, 4--uniquad, 5--spnum;
 do i = 1 to newnrows;   * go through imported data set;
-    tempquadid = inputmatrix[i,1];
-    tempcount  = inputmatrix[i,2];
-    tempyr     = inputmatrix[i,3];
+    tempcount  = inputmatrix[i,1]; 
+    tempyr     = inputmatrix[i,2];   
+	tempquadid = inputmatrix[i,4];
     *tempspid  = inputmatrix[i,5];
-	targetrow  = (sp-1)*nquad + tempquadid; *for some reason says 2356 rows;
+	targetrow  = (sp-1)*nquad + tempquadid; *for some reason says 2351 rows;
     if (tempyr = 1111) then targetcol = 2 + 1;
 	*years 2011-2015 in rows 4-8;
     if (tempyr > 2000) then targetcol = 3 + (tempyr - 2011);
