@@ -12,72 +12,8 @@ run; *n=12,544;
 proc sort data=herb1; by sspp plot quad year bcat covm coun soileb elev slope aspect hydrn prpo type; run; 
 *proc print data=herb1 (firstobs=1 obs=20); title 'herb1'; run;
 
-*quad to plot (so that we don't need plot anymore, but can merge it back in). should be uniquad to plot;
-proc sort data=herb1; by plot quad;
-proc means data=herb1 mean noprint; var coun; by plot quad;
-	output out=quadtoplot mean=mcoun;
-run;
-data quadtoplot2; set quadtoplot; uniquad=_n_; keep plot quad uniquad;
-*proc print data=quadtoplot2 (firstobs=1 obs=20); title 'quadtoplot2'; run;
-proc sort data=herb2; by plot quad; proc sort data=quadtoplot2; by plot quad;
-data herb2; merge herb1 quadtoplot2; by plot quad; run;
-*proc print data=herb2 (firstobs=1 obs=20); title 'herb2';run;
-
-proc sort data=herb2; by plot quad year;
-proc means data=herb2 n noprint; var uniquad; by plot quad year;
-	output out=quadsum n=nuniquad;
-run;
-data quadsum2; set quadsum; keep plot year nuniquad;
-proc sort data=quadsum2; by nuniquad;
-*proc print data=quadsum2 ; title 'quadsum2'; run;
-
-proc iml;
-
-use quadsum2; read all into matquad;
-nrecords=nrow(matquad);
-ncolumns=ncol(matquad);
-
-do i=1 to nrecords;
-	if nuniquad < 10;
-
-/*
-to add empty quads:
-create new dataset--
-make an iml loop.
-	if sum of quads is < 10: 
-		quad=quad+1
-in same loop or another, create uniquad.
-then back out of iml--if species='' then species ='XXXXx'	
-
-proc iml;
-
-use herbquad; read all into mattemp;
-nrecord=nrow(mattemp);
- 
-matquad=mattemp;
-	
-do i = 1 to nrecords;
-	do j = 1 to ncolumns;
-		*fill mattemp with 9999;
-		mattemp[i,j]=9999;
-			*fill matpa with 0s (absent) or 1s (present);
-			if (matcount[i,j]=0) then matpa[i,j]=0;
-			if (matcount[i,j]>0) then matpa[i,j]=1;
-	end;
-end;
-print matpa;	*not working--still includes values >1;
-*/
-
-data fivesp; set herb2; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='POPR4'); 
+data fivesp; set herb1; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='POPR4'); 
 *proc print data=fivesp (firstobs=1 obs=10); title 'fivesp'; run; *n=2994;
-
-*getting stem counts;
-proc sort data=fivesp; by sspp; run;
-proc means data=fivesp noprint n sum mean min max; by sspp; var coun;
-  output out=sumstems n=n sum=sumcount mean=meancount min=mincount max=maxcount;
-data sumstems1; set sumstems; drop _TYPE_ _FREQ_; RUN;
-proc sort data=sumstems1; by sumcount n;
-*proc print data=sumstems1; title 'sumstems';run;
 
 *plot translation dataset--orig plot names to nums 1-56;
 data plotid; set fivesp; dummy = 1; keep plot dummy;
@@ -88,9 +24,33 @@ proc means data=plotid noprint mean; by plot; var dummy;
 data plotid3; set plotid2; plotnum = _n_; keep plot plotnum;
 *proc print data=plotid3; title 'plotid3';
 run; *n=54;
-proc sort data=fivesp; by plot; proc sort data=plotid3; by plot;
+proc sort data=fivesp; by plot; 
+proc sort data=plotid3; by plot;
 data fivesp2; merge fivesp plotid3; by plot; 
-*proc print data=fivesp2 (firstobs=1 obs=10); title 'fivesp2'; run;
+proc sort data=fivesp2; by plotnum;
+*proc print data=fivesp2 (firstobs=100 obs=150); title 'fivesp2'; run;
+
+*quad to plot (so that we don't need plot anymore, but can merge it back in). should be uniquad to plot;
+proc sort data=herb1; by plot quad;
+proc means data=herb1 mean noprint; var coun; by plot quad;
+	output out=quadtoplot mean=mcoun;
+run;
+data quadtoplot2; set quadtoplot; uniquad=_n_; keep plot quad uniquad;
+*proc print data=quadtoplot2 (firstobs=1 obs=100); title 'quadtoplot2'; run;
+
+proc sort data=fivesp2; by plot quad; 
+proc sort data=quadtoplot2; by plot quad;
+data fivesp3; merge fivesp2 quadtoplot2; by plot quad; run;
+proc sort data=fivesp3; by plot quad;
+*proc print data=fivesp3 (firstobs=1 obs=100); title 'fivesp3';run;
+
+*getting stem counts;
+proc sort data=fivesp; by sspp; run;
+proc means data=fivesp noprint n sum mean min max; by sspp; var coun;
+  output out=sumstems n=n sum=sumcount mean=meancount min=mincount max=maxcount;
+data sumstems1; set sumstems; drop _TYPE_ _FREQ_; RUN;
+proc sort data=sumstems1; by sumcount n;
+*proc print data=sumstems1; title 'sumstems';run;
 
 *species translation dataset--orig sp codes to nums 1-315;
 proc sort data=fivesp2; by sspp;
@@ -110,7 +70,8 @@ data varplotyr; set plotvars; keep plot year aspect bcat quad mcov elev hydrn sl
 proc sort data=fivesp2; by sspp; proc sort data=splist2; by sspp;
 data herbmerge; merge fivesp2 splist2; by sspp;
 	keep plotnum quad year spnum coun;
-*proc print data=herbmerge (firstobs=1 obs=10); title 'herbmerge'; run;
+proc sort data=herbmerge; by plotnum quad;
+*proc print data=herbmerge; title 'herbmerge'; 
 *proc contents data=herbmerge; run;
 
 proc iml;
@@ -123,6 +84,7 @@ put quad into col1, put spcode into col2, col  3-7 fill with 0s;
 use herbmerge; read all into inputmatrix;			
 nrecords = nrow(inputmatrix);				* print nrecords; *2994;
 ncolumns = ncol(inputmatrix);				* print ncolumns; *5;
+print inputmatrix;
 
 *creating a new matrix;
 *7 columns will be 2 from herbmerge (quad, spnum) plus a column for 
@@ -132,7 +94,8 @@ matcountquad=j(newnrows,7,0);
 *order of variables: 1--quad, 2--coun, 3--year, 4--plotnum, 5--spnum;
 quad = 1; sp=1; 
 do i = 1 to newnrows;
-	matcountquad[i,1] = quad;
+	uniquad=10*(inputmatrix[i,4]-1)+ inputmatrix[i,1];		* unique quadrat id;
+	matcountquad[i,1] = uniquad;
 	matcountquad[i,2] = sp;
 	quad = quad + 1;
 	if quad > nquad then do;
