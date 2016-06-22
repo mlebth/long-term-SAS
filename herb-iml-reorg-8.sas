@@ -7,10 +7,13 @@ data herb1x; set herbx;
 	*type 1--it is a plant. type 2--zero plants were found in that plot/year;
   	type = 1;     		  			  	
  	if (sspp = 'XXXXx') then type = 2;   
-	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year prpo type; 
+	keep aspect bcat coun quad covm elev hydr plot slope soileb sspp year prpo type; 
+	rename soileb=soil hydrn=hydr;
 run; *n=12,544;
-proc sort data=herb1x; by sspp plot quad year bcat covm coun soileb elev slope aspect hydrn prpo type; run; 
+proc sort data=herb1x; by sspp plot quad year bcat covm coun soil elev slope aspect hydr prpo type; run; 
 *proc print data=herb1x (firstobs=1 obs=20); title 'herb1x'; run;
+
+proc freq data=herb1x; table plot; run;
 
 /*
 proc iml;
@@ -92,17 +95,25 @@ data splist2; set splist; spnum=_n_; keep sspp spnum;
 *proc print data=splist2; title 'splist2'; run;
 *********includes sspp and spnum;
  
+proc sort data=fivesp3; by sspp; 
+proc sort data=splist2; by sspp;
+data fivesp4; merge fivesp3 splist2; by sspp; run;
+proc sort data=fivesp4; by sspp spnum;
+*proc print data=fivesp4 (firstobs=1000 obs=1010); title 'fivesp4';run;
+*proc contents data=fivesp4; run;
+*********includes all vars for 5 species plus plotnum, uniquad, and spnum;
+
 *dataset of vars by plot-year. can be added back to any dataset organized by plot;
-proc sort data=fivesp2; by plot year;
-proc means data=fivesp2 mean noprint; var aspect bcat quad covm elev hydrn slope soileb prpo type; by plot year;
-	output out=plotvars mean=aspect bcat quad mcov elev hydrn slope soileb prpo type;
-data varplotyr; set plotvars; keep plot year aspect bcat quad mcov elev hydrn slope soileb type;
+proc sort data=fivesp4; by plot year;
+proc means data=fivesp4 mean noprint; var aspect bcat quad covm elev hydr slope soil prpo type; by plot year;
+	output out=plotvars mean=aspect bcat quad mcov elev hydr slope soil prpo type;
+data varplotyr; set plotvars; keep plot year aspect bcat quad mcov elev hydr slope soil type;
 *proc print data=varplotyr (firstobs=1 obs=10); title 'varplotyr'; run; 
 
 *extracting only vars used in iml;
-proc sort data=fivesp3; by sspp; 
+proc sort data=fivesp4; by sspp; 
 proc sort data=splist2; by sspp;
-data fiveiml; merge fivesp3 splist2; by sspp;
+data fiveiml; merge fivesp4 splist2; by sspp;
 	keep plotnum uniquad year spnum coun;
 proc sort data=fiveiml; by uniquad spnum;
 *proc print data=fiveiml (firstobs=1 obs=100); title 'fiveiml'; run; *2994;
@@ -160,10 +171,10 @@ do i = 1 to newnrows;   * go through imported data set;
     if (tempyr > 2000) then targetcol = 3 + (tempyr - 2011); 
     matcountquad[targetrow,targetcol] = tempcount;
 end;	
-print matcountquad;
+*print matcountquad;
 
 *labeling columns;
-countnames = {'quad', 'sspp', 'pref', 'count12', 'count2013', 'count2014', 'count2015'};
+countnames = {'uniquad', 'spnum', 'pref', 'count12', 'count2013', 'count2014', 'count2015'};
 create herbcount from matcountquad [colname = countnames];
 append from matcountquad;
 
@@ -175,10 +186,10 @@ do i = 1 to newnrows;
      if matcountquad[i,j] > 0 then matpaquad[i,j] = 1;
 	end; 
 end;
-print matpaquad; 
+*print matpaquad; 
 
 *labeling columns;
-panames = {'quad', 'sspp', 'pref', 'pa12', 'pa2013', 'pa2014', 'pa2015'};
+panames = {'uniquad', 'spnum', 'pref', 'pa12', 'pa2013', 'pa2014', 'pa2015'};
 create herbpa from matpaquad [colname = panames];
 append from matpaquad;
 
@@ -187,5 +198,47 @@ quit; run;
 *proc print data=herbcount; title 'herbcount'; run;
 *proc print data=herbpa; title 'herbpa'; run;
 
-proc sort data=herbcount; by uniquad spnum;
-data herbcount1; merge ; by;
+*herbcount merges;
+proc sort data=herbcount; by spnum;
+proc sort data=splist2; by spnum;
+data herbcount1; merge herbcount splist2; by spnum;
+run;
+*proc print data=herbcount1 (firstobs=1 obs=30); title 'herbcount1'; run;
+
+proc sort data=herbcount1; by uniquad;
+proc sort data=quadtoplot2; by uniquad;
+data herbcount2; merge herbcount1 quadtoplot2; by uniquad;
+run;
+*proc print data=herbcount2 (firstobs=1 obs=30); title 'herbcount2'; run;
+
+proc sort data=herbcount3; by plot;
+proc sort data=plotid3; by  plot;
+data herbcount3; merge herbcount3 plotid3; by  plot;
+run;
+********final herbcount;
+*proc print data=herbcount3 (firstobs=1 obs=30); title 'herbcount3'; run;
+
+*herbpa merges;
+proc sort data=herbpa; by spnum;
+proc sort data=splist2; by spnum;
+data herbpa1; merge herbpa splist2; by spnum;
+run;
+*proc print data=herbpa1 (firstobs=1 obs=30); title 'herbpa1'; run;
+
+proc sort data=herbpa1; by uniquad;
+proc sort data=quadtoplot2; by uniquad;
+data herbpa2; merge herbpa1 quadtoplot2; by uniquad;
+run;
+*proc print data=herbpa2 (firstobs=1 obs=30); title 'herbpa2'; run;
+
+proc sort data=herbpa2; by plot;
+proc sort data=plotid3; by  plot;
+data herbpa3; merge herbpa2 plotid3; by  plot;
+run;
+********final heabpa;
+*proc print data=herbpa3 (firstobs=1 obs=30); title 'herbpa3'; run;
+
+
+****************
+*proc print data=herbcount3 (firstobs=1 obs=30); title 'herbcount3'; run;
+*proc print data=herbpa3 (firstobs=1 obs=30); title 'herbpa3'; run;

@@ -12,15 +12,16 @@ splist2--sspp and spnum
 
 varplotyr--vars plot-year
 
-fivesp--all vars for 5sp
+fivesp--all vars for 5sp **
 fivesp2--all vars for 5sp + plotnum
 fivesp3--allvars for 5sp + plotnum + uniquad
+fivesp4--allvars for 5sp + plotnum + uniquad + spnum
 
-fiveiml--vars used for iml
+**all vars for 5sp: aspect, bcat, coun, covm, elev, hydr, plot, 
+plotnum, prpo, quad, slope, soil, spnum, sspp, type, uniquad, 
+year
 
-mergeable:
-fivesp+plotid3
-fivesp+quadtoplot2
-fivesp+sumstems1
-fivesp+splist2
-sumstems1+splist2;
+fiveiml--coun, plotnum, spnum, uniquad, year
+fiveiml2--mcoun, plotnum, spnum, uniquad, year
+
+herbcount3--uniquad, quad, spnum, sspp, plotnum, plot, yearvars;
