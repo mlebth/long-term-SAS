@@ -281,7 +281,7 @@ proc sort data=canopy3; by plot year; run;
 proc contents data=canopy3; run;*/
 
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
-proc import datafile="D:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbaceous-allyrs.csv"
+proc import datafile="D:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbaceous-allyrs1.csv"
 out=herbaceous dbms=csv replace; getnames=yes;
 run;  * N = 12878;
 
@@ -370,3 +370,11 @@ data herbx; set herb5;
 run;
 
 *proc print data=herbx (firstobs=1 obs=20); title 'herbx'; run;
+
+/*
+proc export data=herbx
+   outfile='D:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbx1.csv'
+   dbms=csv
+   replace;
+run;
+*/
