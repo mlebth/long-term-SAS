@@ -16,18 +16,18 @@ data herb1x; set herbx;
 	* removing 1999--data are of extremely poor quality;
 	if year = 1999 	then delete;
 	* type 1--it is a plant. type 2--zero plants were found in that plot/year;
-  	type = 1;     		  			  	
- 	if (sspp = 'XXXXx') then type = 2;   
-	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year prpo type; 
-	rename soileb=soil hydrn=hydr;
+  	*type = 1;     		  			  	
+ 	*if (sspp = 'XXXXx') then type = 2;   
+	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year; 
+	rename coun=count soileb=soil hydrn=hydr;
 run; * n = 12,543;
-proc sort data=herb1x; by sspp plot quad year bcat covm coun soil elev slope aspect hydr prpo type; run; 
+proc sort data=herb1x; by sspp plot quad year bcat covm count soil elev slope aspect hydr; run; 
 * proc print data=herb1x (firstobs=1 obs=20); title 'herb1x'; run;
 
 /*
 * getting stem counts to look at;
 proc sort data=herb1x; by sspp; run;
-proc means data=herb1x noprint n sum mean min max; by sspp; var coun;
+proc means data=herb1x noprint n sum mean min max; by sspp; var count;
   output out=sumstems n=n sum=sumcount mean=meancount min=mincount max=maxcount;
 data sumstems1; set sumstems; drop _TYPE_ _FREQ_; RUN;
 proc sort data=sumstems1; by sumcount n;
@@ -56,7 +56,7 @@ missing plot 1224--herbs were counted once in 2006, none of these species appear
 
 * --- species translation dataset--orig sp codes to nums 1-315;
 proc sort data=fivesp; by sspp;
-proc means data=fivesp mean noprint; var coun; by sspp;
+proc means data=fivesp mean noprint; var count; by sspp;
 	output out=splist mean=mcoun;
 data splist2; set splist; spnum=_n_; keep sspp spnum;
 * proc print data=splist2; title 'splist2'; run;
@@ -83,10 +83,10 @@ run;
 * ---- get plot data for environmental variables, to use later;
 proc sort data=fivesp2; by plotnum;
 proc means data=fivesp2 mean noprint; by plotnum plot; 
-  var bcat covm soil elev slope aspect hydr prpo type;
-  output out=plotvars mean=bcat covm soil elev slope aspect hydr prpo type;
+  var bcat covm soil elev slope aspect hydr;
+  output out=plotvars mean=bcat covm soil elev slope aspect hydr;
 data plotvars2; set plotvars; 
-  keep plotnum bcat covm soil elev slope aspect hydr prpo type;
+  keep plotnum bcat covm soil elev slope aspect hydr;
 run;  * N = 54;
 
 * ----- fix up counts for multiple obs in a single quad-sp-year;
@@ -99,17 +99,17 @@ run;
 
 * average multiple counts of same quad-sp-year in prefire years;
 proc means data=prefire mean noprint; by plotnum quad spnum yearnum;
-  var coun; output out=prefiremeans mean = coun;
+  var count; output out=prefiremeans mean = count;
 *proc print data=prefiremeans; title 'prefiremeans'; run;  * n = 149; 
 
 * recombine to make one fixed data set of counts;
 data fivesp3; set prefiremeans postfire; 
-  keep plotnum quad spnum yearnum coun; run;  * n = 2844;
+  keep plotnum quad spnum yearnum count; run;  * n = 2844;
 
 *----- create numerical data set for iml, called fivesp3 -------------;
 proc sort data=fivesp3; by plotnum quad spnum yearnum;
 *proc print data=fivesp3; title 'fivesp3'; run; *n=2844;
-* order in fivesp3 is plotnum, quad, spnum, yearnum, coun;
+* order in fivesp3 is plotnum, quad, spnum, yearnum, count;
 
 *------------------IML------------------------------------------;
 proc iml;
@@ -141,15 +141,19 @@ do i = 1 to nrowsmatout;
   if holdsp = 6 then do; holdsp = 1; holdquad = holdquad + 1; end;
   if holdquad = 11 then do; holdquad = 1; holdplot = holdplot + 1; end;
 end;
- 
+* print matcountquad;
+
+*input:  		 1-plot 2-quad 3-sp 4-year 5-count;
+*output: 1-rowid 2-plot 3-quad 4-sp 5-year 6-count;
 do i = 1 to nrowsmatin;   * going line by line through input matrix;
 * get info from input matrix;
-  tempplot = matin[i,1]; tempquad = matin[i,2];
-  tempsp = matin[i,3]; tempyr = matin[i,3]; tempcount = matin[i,5];
+  tempplot  = matin[i,1]; tempquad = matin[i,2];
+  tempsp    = matin[i,3]; tempyr   = matin[i,4]; 
+  tempcount = matin[i,5];
   * calculate the output matrix target rows;
   outrow = (tempplot-1)*maxrowsperplot + (tempquad-1)*maxrowsperquad + (tempsp-1)*maxrowspersp + (tempyr);
        * if tempplot=1 then do;
-       * print tempplot, tempquad,tempsp,tempyr,outrow; 
+       * print tempsp,tempyr,tempcount; 
        * end;
   * write to outrow;
   matcountquad[outrow,1] = outrow;
@@ -161,7 +165,7 @@ do i = 1 to nrowsmatin;   * going line by line through input matrix;
 end;
 * print matcountquad;
 
-cols = {rowid plotnum quad spnum yearnum coun};
+cols = {rowid plotnum quad spnum yearnum count};
 create imlout1 from matcountquad [colname = cols];  
 append from matcountquad;
 
@@ -171,6 +175,8 @@ run;
 * ----------output data row = plot-quad-sp-year ----------------;
 *proc print data=imlout1 (firstobs=1 obs=100); title 'imlout1'; run; *n=13500;
 *proc print data=imlout1 (firstobs=13400 obs=13500); title 'imlout1'; run; *n=13500;
+*proc contents data=imlout1; run;
+*rowid, plotnum, quad, spnum, yearnum, count;
 
 *----- merge back into one data set -----------------;
 * merge back in species codes;
@@ -182,12 +188,15 @@ proc sort data=temp1; by plotnum;
 proc sort data=plotid3; by plotnum;
 proc sort data=plotvars2; by plotnum;
 data herbbyquad; merge temp1 plotid3 plotvars; by plotnum; 
-    if coun=0 then pa=0; if coun>0 then pa=1;
+    if count=0 then pa=0; if count>0 then pa=1;
 run;
 
 /*
+proc contents data=herbbyquad; run;
+*rowid, plotnum, wuad, spnum, yearnum, count, all others;
+
 proc print data=herbbyquad; 
-  var plot plotnum quad sspp spnum yearnum coun bcat soil pa;
+  var plot plotnum quad sspp spnum yearnum count bcat soil pa;
  title 'herbbyquad'; run;
 */
 
@@ -195,10 +204,10 @@ proc print data=herbbyquad;
 
 * ------ use iml to re-arrange: all yrs in a row-------------------------------;
 
-data foriml2; set herbbyquad; keep plotnum quad spnum yearnum coun;
+data foriml2; set herbbyquad; keep plotnum quad spnum yearnum count;
 *proc print data=foriml2; title 'foriml2'; run;
 *proc contents data=foriml2; run;
-*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--coun;
+*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count;
 
 proc iml;
 use foriml2; read all into matcountquad1;  * print matcountquad1;
@@ -232,7 +241,7 @@ do i = 1 to nrowsmatcountquad2;
 end;
 * print matcountquad2;
 
-*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--coun;
+*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count;
 do i = 1 to nrowsmatcountquad1;   * going line by line through previously created matrix;
 * get info from input matrix;
   tempplot = matcountquad1[i,1]; tempquad = matcountquad1[i,2];
@@ -261,8 +270,7 @@ run;
 
 * proc print data=imlout2 (firstobs=1 obs=100); title 'imlout2'; run; *n=2700;
 * proc print data=imlout2 (firstobs=2601 obs=2700); title 'imlout2'; run;
-proc contents data=imlout2; run; *rowid, plotnum quad, spnum, counts1-5;
-proc print data=imlout2; var spnum count1 count2 count3 count4 count5; run;
+* proc contents data=imlout2; run; *rowid, plotnum quad, spnum, counts1-5;
 
 *----- merge back into one data set -----------------;
 * merge back in species codes;
@@ -280,14 +288,10 @@ data quadhistory; merge temp3 plotid3 plotvars2; by plotnum;
   if count4=0 then pa4=0; if count4>0 then pa4=1;
   if count5=0 then pa5=0; if count5>0 then pa5=1;
 run; *n=2700;
-proc freq data=quadhistory; tables sspp*pa5; run;
 /*
 proc print data=quadhistory; title 'quadhistory'; 
   var pa1 pa2 pa3 pa4 pa5 bcat plotnum quad; run;
+
+proc contents data=herbbyquad; run;
+proc contents data=quadhistory; run;
 */
-
-*proc contents data=herbbyquad; run;
-*proc contents data=quadhistory; run;
-
-
-

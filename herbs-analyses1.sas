@@ -1,48 +1,42 @@
 *2 datasets (herbbyquad, quadhistory), both contain: 
-rowid, plot, plotnum, quad, sspp, spnum, bcat, covm, soil, hydr, aspect, elev, slope, prpo, type
+rowid, plot, plotnum, quad, sspp, spnum, bcat, covm, soil, hydr, aspect, elev, slope
 
-herbbyquad also includes: coun, pa, yearnum, _FREQ_, _TYPE_
+herbbyquad also includes:  count,         pa, yearnum, _FREQ_, _TYPE_
 
 quadhistory also includes: count1-count5, pa1-pa5 (one for each of the 5 sp in dataset);
 
-*visualize data;
+*visualizing data;
 proc plot data=herbbyquad; title 'herbbyquad'; 
-	plot coun*bcat coun*yearnum coun*soil; 
-run;
-proc plot data=herbbyquad; title 'herbbyquad'; 
-	plot sspp*coun sspp*yearnum; 
-run;
+	plot coun*bcat coun*yearnum coun*soil; run;
 proc plot data=quadhistory; title 'quadhistory counts'; 
-	plot count1*sspp count2*sspp count3*sspp count4*sspp count5*sspp; 
-run;
-proc plot data=quadhistory; title 'quadhistory counts'; 
-	plot count1*sspp sspp*count1; 
-run;
+	plot count1*sspp count2*sspp count3*sspp count4*sspp count5*sspp; run;
+proc plot data=quadhistory; title 'quadhistory env'; 
+	plot sspp*bcat sspp; run;
 
-*nlf model;
+proc print data=splist2; run;
+*species this round: 1-DILI, 2-DIOL, 3-DISP, 4-HELA, 5-LETE;
+
+*quadhistory pa models;
 proc sort data=quadhistory; by spnum;
-proc glimmix data=quadhistory; class plotnum quad bcat; by spnum; 
-  model pa5 = bcat plotnum(bcat)/ dist=binomial;
+proc glimmix data=quadhistory; 
+	class plotnum bcat soil spnum; by spnum; 
+	*model pa2 = bcat plotnum(bcat) / dist=binomial solution;
+	*model pa2 = bcat soil covm plotnum(bcat*soil) / dist=binomial solution;
+	model pa2 = bcat soil bcat*soil / dist=binomial solution; *did not converge;
+	random plotnum(bcat*soil);
+	lsmeans bcat*soil / ilink cl;
+	output out=glmout resid=ehat;
 run;
 
-*creating a set of just post-fire data;
-data herbbyyr; set herbbyyr; if year > 2010; run;
-proc plot data=herbbyyr; title 'herbbyyr'; 
-	plot mcoun*bcat mcoun*year mcoun*soil; 
-run;
-
-*models--herbprpo;
-proc glimmix data=herbprpo; title 'plot-bcat-soil';
-  class plot bcat;
-  model mcoun = plot bcat / distribution=negbin link=log solution; 
-  random bcat / subject=plot;
-  lsmeans bcat / ilink cl; 
-  output out=glmout2 resid=ehat;
-run;
-
-proc glm data=herbbyyr; title 'herbmerge1';
-class plot ;
-model mcoun = plot; 
-lsmeans plot;
-output out=glmout; 
+*quadhistory count models;
+proc sort data=quadhistory; by spnum;
+proc glimmix data=quadhistory; 
+	class plotnum bcat soil spnum; by spnum; 
+	*model count2 = bcat soil bcat*soil/ dist=negbin solution; *did not converge;
+	model count2 = bcat / dist=negbin solution; *did not converge;
+	*model count2 = bcat soil covm plotnum(bcat*soil) / dist=binomial;
+	*model count2 = spnum bcat soil plotnum(bcat*soil) / dist=binomial;
+	random plotnum(bcat);
+	*lsmeans bcat*soil / ilink cl;
+	output out=glmout resid=ehat;
 run;
