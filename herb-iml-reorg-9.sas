@@ -6,7 +6,7 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 * proc datasets library=work kill noprint; run; 
 
 *import herb data;
-proc import datafile="D:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbx1.csv"
+proc import datafile="H:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbx1.csv"
 out=herbx dbms=csv replace; getnames=yes; run;  * N = 122547;
 
 * creating a set of herbs;
