@@ -1,5 +1,7 @@
 *2 datasets (herbbyquad, quadhistory), both contain: 
 rowid, plot, plotnum, quad, sspp, spnum, bcat, covm, soil, hydr, aspect, elev, slope
+	--reminder: bcat [1-u, 2-l/s, 3-h/m], soil [1-s, 2-g], hydr [1-n 2-y]
+				aspect [0-flat, 1-north, 2-east, 3-south, 4-west]
 
 herbbyquad also includes:  count,         pa, yearnum, _FREQ_, _TYPE_
 
@@ -17,15 +19,15 @@ proc print data=splist2; run;
 *species this round: 1-DILI, 2-DIOL, 3-DISP, 4-HELA, 5-LETE;
 
 *quadhistory pa models;
-proc sort data=quadhistory; *by spnum;
+proc sort data=quadhistory; by spnum;
 proc glimmix data=quadhistory; 
-	class plotnum bcat soil spnum; *by spnum; 
+	class plotnum bcat soil spnum hydr aspect; *by spnum; 
 	*model pa5 = bcat plotnum(bcat) / dist=binomial solution;
-	model pa5 = soil spnum / dist=binomial solution;  *did not converge;
+	model pa5 = covm / dist=binomial solution;  *did not converge;
 	*model pa5 = bcat soil covm plotnum(bcat*soil) / dist=binomial solution;
 	*model pa5 = bcat soil bcat*soil / dist=binomial solution; *did not converge;
-	random plotnum / subject = bcat;
-	*lsmeans bcat / ilink cl;
+	random plotnum / subject = bcat*soil;
+	lsmeans aspect / ilink cl;
 	output out=glmout resid=ehat;
 run;
 
@@ -38,7 +40,7 @@ proc glimmix data=quadhistory;
 	*model count2 = bcat / dist=negbin solution; 				*did not converge;
 	*model count2 = bcat soil covm plotnum(bcat*soil) / dist=binomial;
 	*model count2 = spnum bcat soil plotnum(bcat*soil) / dist=binomial;
-	random plotnum / subject = bcat*soil;
+	*random plotnum / subject = bcat*soil;
 	*lsmeans bcat*soil / ilink cl;
 	output out=glmout resid=ehat;
 run;
@@ -47,9 +49,9 @@ run;
 proc sort data=herbbyquad; *by spnum;
 proc glimmix data=herbbyquad; 
 	class plotnum bcat soil spnum; *by spnum; 
-	model count = spnum yearnum / dist=negbin solution; 
+	model count = spnum / dist=negbin solution; 
 	*random plotnum / subject = bcat*soil;
-	random plotnum(bcat*soil);
+	random plotnum / subject = bcat*soil;
 	*lsmeans bcat*soil / ilink cl;
 	output out=glmout resid=ehat;
 run;
