@@ -25,6 +25,12 @@ proc sort data=herb1x; by sspp plot quad year bcat covm count soil elev slope as
 * proc print data=herb1x (firstobs=1 obs=20); title 'herb1x'; run;
 
 /*
+*getting min and max for cover;
+proc means data=herb1x min max; var covm; run;
+min: 0.16, max: 95.32;
+*/
+
+/*
 * getting stem counts to look at;
 proc sort data=herb1x; by sspp; run;
 proc means data=herb1x noprint n sum mean min max; by sspp; var count;
@@ -83,10 +89,10 @@ run;
 * ---- get plot data for environmental variables, to use later;
 proc sort data=fivesp2; by plotnum;
 proc means data=fivesp2 mean noprint; by plotnum plot; 
-  var bcat covm soil elev slope aspect hydr;
-  output out=plotvars mean=bcat covm soil elev slope aspect hydr;
+  var bcat soil elev slope aspect hydr;
+  output out=plotvars mean=bcat soil elev slope aspect hydr;
 data plotvars2; set plotvars; 
-  keep plotnum bcat covm soil elev slope aspect hydr;
+  keep plotnum bcat soil elev slope aspect hydr;
 run;  * N = 54;
 
 * ----- fix up counts for multiple obs in a single quad-sp-year;
@@ -104,13 +110,13 @@ proc means data=prefire mean noprint; by plotnum quad spnum yearnum;
 
 * recombine to make one fixed data set of counts;
 data fivesp3; set prefiremeans postfire; 
-  keep plotnum quad spnum yearnum count; run;  * n = 2844;
+  keep plotnum quad spnum yearnum count covm; run;  * n = 2844;
 
 *----- create numerical data set for iml, called fivesp3 -------------;
 proc sort data=fivesp3; by plotnum quad spnum yearnum;
 *proc print data=fivesp3 (firstobs=1 obs=30); title 'fivesp3'; run; *n=2844;
 *proc contents data=fivesp3; run;
-* order in fivesp3 is plotnum, quad, spnum, yearnum, count;
+* order in fivesp3 is plotnum, quad, spnum, yearnum, count, covm;
 
 *------------------IML------------------------------------------;
 proc iml;
@@ -122,13 +128,13 @@ nquadsperplot = 10;
 nspecies = 5;
 nyrs = 5;  * assumes we will treat pre-fire as a single year;
 nrowsmatout = nquadsperplot * nplots * nspecies * nyrs;
-matcountquad = j(nrowsmatout,6,0); 
+matcountquad = j(nrowsmatout,7,0); 
 maxrowsperplot = nquadsperplot*nspecies*nyrs;
 maxrowsperquad = nspecies*nyrs; maxrowspersp = nyrs; 
 *print maxrowsperplot, maxrowsperquad, maxrowspersp;
 
 * set up matcountquad with one row per sp x quad x year;   
-* cols:  col1:row# col2: plot col3:uniquad col4:sp col5:year col6:count;
+* cols:  col1:row# col2: plot col3:uniquad col4:sp col5:year col6:count col7:cover;
 
 holdplot=1; holdquad=1; holdsp=1; holdyr=1;
 do i = 1 to nrowsmatout; 
@@ -144,13 +150,14 @@ do i = 1 to nrowsmatout;
 end;
 * print matcountquad;
 
-*input:  		 1-plot 2-quad 3-sp 4-year 5-count;
-*output: 1-rowid 2-plot 3-quad 4-sp 5-year 6-count;
+*input:  		 1-plot 2-quad 3-sp 4-year 5-count 6-covm;
+*output: 1-rowid 2-plot 3-quad 4-sp 5-year 6-count 7-covm;
 do i = 1 to nrowsmatin;   * going line by line through input matrix;
 * get info from input matrix;
   tempplot  = matin[i,1]; tempquad = matin[i,2];
   tempsp    = matin[i,3]; tempyr   = matin[i,4]; 
   tempcount = matin[i,5];
+  tempcov   = matin[i,6];
   * calculate the output matrix target rows;
   outrow = (tempplot-1)*maxrowsperplot + (tempquad-1)*maxrowsperquad + (tempsp-1)*maxrowspersp + (tempyr);
        * if tempplot=1 then do;
@@ -163,11 +170,12 @@ do i = 1 to nrowsmatin;   * going line by line through input matrix;
   matcountquad[outrow,4] = tempsp;
   matcountquad[outrow,5] = tempyr;
   matcountquad[outrow,6] = tempcount;
+  matcountquad[outrow,7] = tempcov;
 end;
 * print (matcountquad[1:30,]);
 * print matcountquad;
 
-cols = {rowid plotnum quad spnum yearnum count};
+cols = {rowid plotnum quad spnum yearnum count cover};
 create imlout1 from matcountquad [colname = cols];  
 append from matcountquad;
 
@@ -191,9 +199,11 @@ proc sort data=plotid3; by plotnum;
 proc sort data=plotvars2; by plotnum;
 data herbbyquad; merge temp1 plotid3 plotvars; by plotnum; 
     if count=0 then pa=0; if count>0 then pa=1;
+	if cover < 0.16 then cover = .;
 run;
 
-proc print data=herbbyquad (firstobs=1 obs=20); run;
+proc sort data=herbbyquad; by plotnum yearnum; run;
+proc print data=herbbyquad (firstobs=1 obs=100); run;
 /*
 proc contents data=herbbyquad; run;
 *rowid, plotnum, wuad, spnum, yearnum, count, all others;
