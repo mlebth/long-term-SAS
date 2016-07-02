@@ -19,16 +19,10 @@ data herb1x; set herbx;
   	*type = 1;     		  			  	
  	*if (sspp = 'XXXXx') then type = 2;   
 	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year; 
-	rename coun=count soileb=soil hydrn=hydr;
+	rename coun=count soileb=soil hydrn=hydr covm=cover;
 run; * n = 12,543;
-proc sort data=herb1x; by sspp plot quad year bcat covm count soil elev slope aspect hydr; run; 
+proc sort data=herb1x; by sspp plot quad year bcat cover count soil elev slope aspect hydr; run; 
 * proc print data=herb1x (firstobs=1 obs=20); title 'herb1x'; run;
-
-/*
-*getting min and max for cover;
-proc means data=herb1x min max; var covm; run;
-min: 0.16, max: 95.32;
-*/
 
 /*
 * getting stem counts to look at;
@@ -87,13 +81,13 @@ run;
 */
 
 * ---- get plot data for environmental variables, to use later;
-proc sort data=fivesp2; by plotnum;
-proc means data=fivesp2 mean noprint; by plotnum plot; 
-  var bcat soil elev slope aspect hydr;
-  output out=plotvars mean=bcat soil elev slope aspect hydr;
+proc sort data=fivesp2; by plotnum yearnum;
+proc means data=fivesp2 mean noprint; by plotnum plot yearnum; 
+  var bcat cover soil elev slope aspect hydr;
+  output out=plotvars mean=bcat cover soil elev slope aspect hydr;
 data plotvars2; set plotvars; 
-  keep plotnum bcat soil elev slope aspect hydr;
-run;  * N = 54;
+  keep plotnum yearnum bcat cover soil elev slope aspect hydr;
+run;  * N = 207;
 
 * ----- fix up counts for multiple obs in a single quad-sp-year;
 * the fix up for pre and post fire is different;
@@ -101,7 +95,7 @@ proc sort data=fivesp2; by plotnum quad spnum yearnum;
 data prefire; set fivesp2; if yearnum = 1;  * n = 213;
 data postfire; set fivesp2; if yearnum > 1; * n = 2695;
 run;
-*proc print data=postfire; title 'postfire'; run;
+*proc print data=postfire (firstobs=1 obs=30); title 'postfire'; run;
 
 * average multiple counts of same quad-sp-year in prefire years;
 proc means data=prefire mean noprint; by plotnum quad spnum yearnum;
@@ -110,13 +104,13 @@ proc means data=prefire mean noprint; by plotnum quad spnum yearnum;
 
 * recombine to make one fixed data set of counts;
 data fivesp3; set prefiremeans postfire; 
-  keep plotnum quad spnum yearnum count covm; run;  * n = 2844;
+  keep plotnum quad spnum yearnum count; run;  * n = 2844;
 
 *----- create numerical data set for iml, called fivesp3 -------------;
 proc sort data=fivesp3; by plotnum quad spnum yearnum;
 *proc print data=fivesp3 (firstobs=1 obs=30); title 'fivesp3'; run; *n=2844;
 *proc contents data=fivesp3; run;
-* order in fivesp3 is plotnum, quad, spnum, yearnum, count, covm;
+* order in fivesp3 is plotnum, quad, spnum, yearnum, count;
 
 *------------------IML------------------------------------------;
 proc iml;
@@ -128,13 +122,13 @@ nquadsperplot = 10;
 nspecies = 5;
 nyrs = 5;  * assumes we will treat pre-fire as a single year;
 nrowsmatout = nquadsperplot * nplots * nspecies * nyrs;
-matcountquad = j(nrowsmatout,7,0); 
+matcountquad = j(nrowsmatout,6,0); 
 maxrowsperplot = nquadsperplot*nspecies*nyrs;
 maxrowsperquad = nspecies*nyrs; maxrowspersp = nyrs; 
 *print maxrowsperplot, maxrowsperquad, maxrowspersp;
 
 * set up matcountquad with one row per sp x quad x year;   
-* cols:  col1:row# col2: plot col3:uniquad col4:sp col5:year col6:count col7:cover;
+* cols:  col1:row# col2: plot col3:uniquad col4:sp col5:year col6:count;
 
 holdplot=1; holdquad=1; holdsp=1; holdyr=1;
 do i = 1 to nrowsmatout; 
@@ -148,16 +142,17 @@ do i = 1 to nrowsmatout;
   if holdsp = 6 then do; holdsp = 1; holdquad = holdquad + 1; end;
   if holdquad = 11 then do; holdquad = 1; holdplot = holdplot + 1; end;
 end;
-* print matcountquad;
+* print (matcountquad[1:30,]);
 
-*input:  		 1-plot 2-quad 3-sp 4-year 5-count 6-covm;
-*output: 1-rowid 2-plot 3-quad 4-sp 5-year 6-count 7-covm;
+*input:  		 1-plot 2-quad 3-sp 4-year 5-count;
+*output: 1-rowid 2-plot 3-quad 4-sp 5-year 6-count;
 do i = 1 to nrowsmatin;   * going line by line through input matrix;
 * get info from input matrix;
-  tempplot  = matin[i,1]; tempquad = matin[i,2];
-  tempsp    = matin[i,3]; tempyr   = matin[i,4]; 
+  tempplot  = matin[i,1]; 
+  tempquad  = matin[i,2];
+  tempsp    = matin[i,3]; 
+  tempyr    = matin[i,4]; 
   tempcount = matin[i,5];
-  tempcov   = matin[i,6];
   * calculate the output matrix target rows;
   outrow = (tempplot-1)*maxrowsperplot + (tempquad-1)*maxrowsperquad + (tempsp-1)*maxrowspersp + (tempyr);
        * if tempplot=1 then do;
@@ -170,12 +165,11 @@ do i = 1 to nrowsmatin;   * going line by line through input matrix;
   matcountquad[outrow,4] = tempsp;
   matcountquad[outrow,5] = tempyr;
   matcountquad[outrow,6] = tempcount;
-  matcountquad[outrow,7] = tempcov;
 end;
 * print (matcountquad[1:30,]);
 * print matcountquad;
 
-cols = {rowid plotnum quad spnum yearnum count cover};
+cols = {rowid plotnum quad spnum yearnum count};
 create imlout1 from matcountquad [colname = cols];  
 append from matcountquad;
 
@@ -192,18 +186,26 @@ run;
 * merge back in species codes;
 proc sort data=imlout1; by spnum; 
 proc sort data=splist2; by spnum;
-data temp1; merge imlout1 splist2; by spnum; run;
-* merge back in plots & environmental vars;
-proc sort data=temp1; by plotnum;
+data temp1; merge imlout1 splist2; by spnum; run; 
+*proc sort data=temp1; *by rowid;
+*proc print data=temp1 (firstobs=1 obs=30); title 'temp1'; run;
+
+* merge back in plots;
+proc sort data=temp1; by rowid plotnum quad spnum yearnum;
 proc sort data=plotid3; by plotnum;
-proc sort data=plotvars2; by plotnum;
-data herbbyquad; merge temp1 plotid3 plotvars; by plotnum; 
+data temp2; merge temp1 plotid3; by plotnum; run;
+*proc print data=temp2 (firstobs=1 obs=30); title 'temp2'; run;
+
+* merge back in environmental vars;
+proc sort data=temp2; by plotnum yearnum;
+proc sort data=plotvars2; by plotnum yearnum;
+data herbbyquad; merge temp2 plotvars2; by plotnum yearnum; 
     if count=0 then pa=0; if count>0 then pa=1;
-	if cover < 0.16 then cover = .;
 run;
 
-proc sort data=herbbyquad; by plotnum yearnum; run;
-proc print data=herbbyquad (firstobs=1 obs=100); run;
+proc sort data=herbbyquad; by rowid;
+*proc print data=herbbyquad (firstobs=1 obs=30); title 'herbbyquad'; run;
+
 /*
 proc contents data=herbbyquad; run;
 *rowid, plotnum, wuad, spnum, yearnum, count, all others;
@@ -217,10 +219,10 @@ proc print data=herbbyquad;
 
 * ------ use iml to re-arrange: all yrs in a row-------------------------------;
 
-data foriml2; set herbbyquad; keep plotnum quad spnum yearnum count;
+data foriml2; set herbbyquad; keep plotnum quad spnum yearnum count cover;
 *proc print data=foriml2; title 'foriml2'; run;
 *proc contents data=foriml2; run;
-*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count;
+*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count, 6--cover;
 
 proc iml;
 use foriml2; read all into matcountquad1;  * print matcountquad1;
@@ -234,8 +236,9 @@ nyrs = 5;
 
 * creating a new matrix with a column for each year,
   and a row for each plot-quad-species;
-* 9 columns: rowid plotnum quad spnum year1 year2 year3 year4 year5;
-ncolsmatcountquad2 = 9;
+* 14 columns: rowid plotnum quad spnum year1 year2 year3 year4 year5
+cover1 cover2 cover3 cover4 cover5;
+ncolsmatcountquad2 = 14;
 nrowsmatcountquad2 = nplots * nquadsperplot * nspecies;
 matcountquad2=j(nrowsmatcountquad2,ncolsmatcountquad2,0);
  
@@ -254,27 +257,34 @@ do i = 1 to nrowsmatcountquad2;
 end;
 * print matcountquad2;
 
-*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count;
+*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count, 6--cover;
 do i = 1 to nrowsmatcountquad1;   * going line by line through previously created matrix;
 * get info from input matrix;
-  tempplot = matcountquad1[i,1]; tempquad = matcountquad1[i,2];
-  tempsp = matcountquad1[i,3]; tempyr = matcountquad1[i,4]; tempcount = matcountquad1[i,5];
+  tempplot  = matcountquad1[i,1]; 
+  tempquad  = matcountquad1[i,2];
+  tempsp    = matcountquad1[i,3]; 
+  tempyr    = matcountquad1[i,4]; 
+  tempcount = matcountquad1[i,5]; 
+  tempcov   = matcountquad1[i,6];
   * calculate the new matrix col;
-  newcol = tempyr + 4;
+  newcolcount = tempyr + 4;
+  newcolcover = tempyr + 9;
   * calculate the new matrix target rows;
   newrow = (tempplot-1)*newmaxrowsperplot + (tempquad-1)*newmaxrowsperquad + tempsp;
   matcountquad2[newrow,1] = newrow;
   matcountquad2[newrow,2] = tempplot;
   matcountquad2[newrow,3] = tempquad;
   matcountquad2[newrow,4] = tempsp;
-  matcountquad2[newrow,newcol] = tempcount;
+  matcountquad2[newrow,newcolcount] = tempcount;
+  matcountquad2[newrow,newcolcover] = tempcov;
   * if tempplot=2 then do; * print tempplot tempquad tempsp tempyr newrow; * end;
 end;
 
 *print matcountquad2;
 
 * labeling columns;
-countnames2 = {rowid plotnum quad spnum count1 count2 count3 count4 count5};
+countnames2 = {rowid plotnum quad spnum count1 count2 count3 count4 count5
+			   cover1 cover2 cover3 cover4 cover5};
 create imlout2 from matcountquad2 [colname = countnames2];
 append from matcountquad2;
 
@@ -295,6 +305,7 @@ proc sort data=temp3; by plotnum;
 proc sort data=plotid3; by plotnum;
 proc sort data=plotvars2; by plotnum;
 data quadhistory; merge temp3 plotid3 plotvars2; by plotnum; 
+  drop cover;
   if count1=0 then pa1=0; if count1>0 then pa1=1;
   if count2=0 then pa2=0; if count2>0 then pa2=1;
   if count3=0 then pa3=0; if count3>0 then pa3=1;
@@ -303,8 +314,9 @@ data quadhistory; merge temp3 plotid3 plotvars2; by plotnum;
 run; *n=2700;
 
 /*
-proc print data=quadhistory; title 'quadhistory'; 
-  var pa1 pa2 pa3 pa4 pa5 bcat plotnum quad; run;
+proc sort data=quadhistory; by rowid; run;
+proc print data=quadhistory (firstobs=1 obs=30); title 'quadhistory'; 
+  var plotnum spnum pa1 pa2 pa3 pa4 pa5 bcat soil quad cover1; run;
 
 proc contents data=herbbyquad; run;
 proc contents data=quadhistory; run;

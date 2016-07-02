@@ -12,6 +12,11 @@ splist2--sspp and spnum
 
 varplotyr--vars plot-year
 
+temp1--rowid, plotnum, quad, spnum, yearnum, count, sspp
+
+plotvars2--plotnum, yearnum, bcat, cover, soil, elev, slope,
+aspect, hydr
+
 fivesp--all vars for 5sp **
 fivesp2--all vars for 5sp + plotnum
 fivesp3--allvars for 5sp + plotnum + uniquad

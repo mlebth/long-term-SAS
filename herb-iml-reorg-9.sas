@@ -19,9 +19,9 @@ data herb1x; set herbx;
   	*type = 1;     		  			  	
  	*if (sspp = 'XXXXx') then type = 2;   
 	keep aspect bcat coun quad covm elev hydrn plot slope soileb sspp year; 
-	rename coun=count soileb=soil hydrn=hydr;
+	rename coun=count soileb=soil hydrn=hydr covm=cover;
 run; * n = 12,543;
-proc sort data=herb1x; by sspp plot quad year bcat covm count soil elev slope aspect hydr; run; 
+proc sort data=herb1x; by sspp plot quad year bcat cover count soil elev slope aspect hydr; run; 
 * proc print data=herb1x (firstobs=1 obs=20); title 'herb1x'; run;
 
 /*
@@ -81,13 +81,13 @@ run;
 */
 
 * ---- get plot data for environmental variables, to use later;
-proc sort data=fivesp2; by plotnum;
-proc means data=fivesp2 mean noprint; by plotnum plot; 
-  var bcat covm soil elev slope aspect hydr;
-  output out=plotvars mean=bcat covm soil elev slope aspect hydr;
+proc sort data=fivesp2; by plotnum yearnum;
+proc means data=fivesp2 mean noprint; by plotnum plot yearnum; 
+  var bcat cover soil elev slope aspect hydr;
+  output out=plotvars mean=bcat cover soil elev slope aspect hydr;
 data plotvars2; set plotvars; 
-  keep plotnum bcat covm soil elev slope aspect hydr;
-run;  * N = 54;
+  keep plotnum yearnum bcat cover soil elev slope aspect hydr;
+run;  * N = 207;
 
 * ----- fix up counts for multiple obs in a single quad-sp-year;
 * the fix up for pre and post fire is different;
@@ -95,7 +95,7 @@ proc sort data=fivesp2; by plotnum quad spnum yearnum;
 data prefire; set fivesp2; if yearnum = 1;  * n = 213;
 data postfire; set fivesp2; if yearnum > 1; * n = 2695;
 run;
-*proc print data=postfire; title 'postfire'; run;
+*proc print data=postfire (firstobs=1 obs=30); title 'postfire'; run;
 
 * average multiple counts of same quad-sp-year in prefire years;
 proc means data=prefire mean noprint; by plotnum quad spnum yearnum;
@@ -142,14 +142,16 @@ do i = 1 to nrowsmatout;
   if holdsp = 6 then do; holdsp = 1; holdquad = holdquad + 1; end;
   if holdquad = 11 then do; holdquad = 1; holdplot = holdplot + 1; end;
 end;
-* print matcountquad;
+* print (matcountquad[1:30,]);
 
 *input:  		 1-plot 2-quad 3-sp 4-year 5-count;
 *output: 1-rowid 2-plot 3-quad 4-sp 5-year 6-count;
 do i = 1 to nrowsmatin;   * going line by line through input matrix;
 * get info from input matrix;
-  tempplot  = matin[i,1]; tempquad = matin[i,2];
-  tempsp    = matin[i,3]; tempyr   = matin[i,4]; 
+  tempplot  = matin[i,1]; 
+  tempquad  = matin[i,2];
+  tempsp    = matin[i,3]; 
+  tempyr    = matin[i,4]; 
   tempcount = matin[i,5];
   * calculate the output matrix target rows;
   outrow = (tempplot-1)*maxrowsperplot + (tempquad-1)*maxrowsperquad + (tempsp-1)*maxrowspersp + (tempyr);
@@ -184,16 +186,26 @@ run;
 * merge back in species codes;
 proc sort data=imlout1; by spnum; 
 proc sort data=splist2; by spnum;
-data temp1; merge imlout1 splist2; by spnum; run;
-* merge back in plots & environmental vars;
-proc sort data=temp1; by plotnum;
+data temp1; merge imlout1 splist2; by spnum; run; 
+*proc sort data=temp1; *by rowid;
+*proc print data=temp1 (firstobs=1 obs=30); title 'temp1'; run;
+
+* merge back in plots;
+proc sort data=temp1; by rowid plotnum quad spnum yearnum;
 proc sort data=plotid3; by plotnum;
-proc sort data=plotvars2; by plotnum;
-data herbbyquad; merge temp1 plotid3 plotvars; by plotnum; 
+data temp2; merge temp1 plotid3; by plotnum; run;
+*proc print data=temp2 (firstobs=1 obs=30); title 'temp2'; run;
+
+* merge back in environmental vars;
+proc sort data=temp2; by plotnum yearnum;
+proc sort data=plotvars2; by plotnum yearnum;
+data herbbyquad; merge temp2 plotvars2; by plotnum yearnum; 
     if count=0 then pa=0; if count>0 then pa=1;
 run;
 
-proc print data=herbbyquad (firstobs=1 obs=20); run;
+proc sort data=herbbyquad; by rowid;
+*proc print data=herbbyquad (firstobs=1 obs=30); title 'herbbyquad'; run;
+
 /*
 proc contents data=herbbyquad; run;
 *rowid, plotnum, wuad, spnum, yearnum, count, all others;
@@ -293,8 +305,9 @@ data quadhistory; merge temp3 plotid3 plotvars2; by plotnum;
 run; *n=2700;
 
 /*
-proc print data=quadhistory; title 'quadhistory'; 
-  var pa1 pa2 pa3 pa4 pa5 bcat plotnum quad; run;
+proc sort data=quadhistory; by rowid; run;
+proc print data=quadhistory (firstobs=1 obs=30); title 'quadhistory'; 
+  var plotnum spnum pa1 pa2 pa3 pa4 pa5 bcat soil quad cover; run;
 
 proc contents data=herbbyquad; run;
 proc contents data=quadhistory; run;
