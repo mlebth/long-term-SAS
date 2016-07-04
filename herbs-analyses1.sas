@@ -28,7 +28,7 @@ proc glimmix data=quadhistory; by spnum;
 	class plotnum bcat soil; 
 	*model pa1 = cover1 / dist=binomial solution;  
 	*model pa1 = bcat soil cover1 bcat*soil / dist=binomial solution; 
-	model pa1 = bcat soil / dist=binomial solution; *best models;
+	model pa5 = bcat soil / dist=binomial solution; *best models;
 	random plotnum / subject = bcat*soil;
 	*lsmeans bcat / ilink cl;
 	output out=glmout resid=ehat;

@@ -305,7 +305,7 @@ proc sort data=temp3; by plotnum;
 proc sort data=plotid3; by plotnum;
 proc sort data=plotvars2; by plotnum;
 data quadhistory; merge temp3 plotid3 plotvars2; by plotnum; 
-  drop cover;
+  drop cover yearnum;
   if count1=0 then pa1=0; if count1>0 then pa1=1;
   if count2=0 then pa2=0; if count2>0 then pa2=1;
   if count3=0 then pa3=0; if count3>0 then pa3=1;
@@ -321,3 +321,9 @@ proc print data=quadhistory (firstobs=1 obs=30); title 'quadhistory';
 proc contents data=herbbyquad; run;
 proc contents data=quadhistory; run;
 */
+
+proc export data=quadhistory
+   outfile='Desktop\work2a.csv'
+   dbms=csv
+   replace;
+run;
