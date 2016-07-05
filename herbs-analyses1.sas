@@ -28,7 +28,7 @@ proc glimmix data=quadhistory; by spnum;
 	class plotnum bcat soil; 
 	*model pa1 = cover1 / dist=binomial solution;  
 	*model pa1 = bcat soil cover1 bcat*soil / dist=binomial solution; 
-	model pa5 = bcat soil / dist=binomial solution; *best models;
+	model pa5 = cover5 / dist=binomial solution; *best models;
 	random plotnum / subject = bcat*soil;
 	*lsmeans bcat / ilink cl;
 	output out=glmout resid=ehat;
@@ -47,11 +47,17 @@ data quadhistory3; set quadhistory2; keep count1s count2s count3s count4s count5
 										  cover1m cover2m cover3m cover4m cover5m spnum plotnum;
 *proc print data=quadhistory3; title 'quadhistory3'; run;
 
+proc freq data=quadhistory; tables bcat; run;
+
 proc sort data=quadhistory3; by spnum;
 proc glimmix data=quadhistory3; by spnum;
 	class bcatm soilm;
-	*model count5s=bcatm soilm bcatm*soilm / dist=negbin solution;
-	model count1s = bcatm soilm bcatm*soilm / dist=negbin solution;
+	*model count5s = bcatm soilm bcatm*soilm / dist=negbin solution; *bcatm*soilm NS;
+	*model count5s = bcatm soilm / dist=negbin solution;
+	model count5s = bcatm soilm cover5m / dist=negbin solution;
+	*model count1s = bcatm soilm bcatm*soilm / dist=negbin solution;
+	lsmeans bcatm soilm / ilink cl;
+	output out=glmout resid=ehat;
 run;
 
 *herbbyquad models;

@@ -322,8 +322,10 @@ proc contents data=herbbyquad; run;
 proc contents data=quadhistory; run;
 */
 
+/*
 proc export data=quadhistory
    outfile='Desktop\work2a.csv'
    dbms=csv
    replace;
 run;
+*/
