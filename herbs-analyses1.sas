@@ -22,12 +22,7 @@ proc glimmix data=quadhistory method=laplace;
 	class bcat soil plotnum; by spnum; 
 	*model pa1 = cover1 / dist=binomial solution;  
 	*model pa1 = bcat soil cover1 bcat*soil / dist=binomial solution; 
-	model pa4 = bcat soil / dist=binomial solution; *best models;
-	nloptions gconv=0;
-		*Using method= laplace: Convergence criterion (GCONV=1E-8) satisfied, note in log: 
-		At least one element of the gradient is greater than 1e-3.
-		nloptions gconv=0 forces continued estimation until max gradient is smaller.
-		This gets rid of the note but affects bcat values fewer num DF, higher F-value, lower p-value);
+	model pa5 = bcat soil / dist=binomial solution; *best models;
 	random plotnum / subject = bcat*soil;
 	lsmeans bcat / ilink cl;
 	output out=glmout resid=ehat;
@@ -53,14 +48,15 @@ proc glimmix data=quadhistory3; by spnum;
 	*tested yrs 3-5, NS: bcatm*soilm, hydr, aspect, slope, interactions;
 	*cover3m NS in any count3s models;
 		*year2: recheck slope and hydr, sig. on some.;
+	model count5s = bcatm soilm / dist=negbin solution;
 	*model count2s = bcatm soilm slope / dist=negbin solution;
 	*model count2s = bcatm soilm aspect / dist=negbin solution;
 	*model count2s = bcatm soilm hydr / dist=negbin solution;
 	*model count2s = bcatm soilm bcatm*soilm / dist=negbin solution;
-	model count2s = bcatm soilm cover2m elev  / dist=negbin solution;
+	*model count2s = bcatm soilm cover2m elev  / dist=negbin solution;
 	*model count2s = bcatm soilm cover2m elev bcatm*cover2m bcatm*elev soilm*cover3m soilm*elev cover2m*elev/ dist=negbin solution;
-	*lsmeans bcatm soilm / ilink cl;
-	*output out=glmout resid=ehat;
+	lsmeans bcatm soilm / ilink cl;
+	output out=glmout resid=ehat;
 run;
 
 *herbbyquad models;

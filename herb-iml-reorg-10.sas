@@ -112,6 +112,18 @@ proc sort data=fivesp3; by plotnum quad spnum yearnum;
 *proc contents data=fivesp3; run;
 * order in fivesp3 is plotnum, quad, spnum, yearnum, count;
 
+/*
+*finding plots that were not visited each year (to be used later, post-iml, to remove 0 counts that 
+should be missing values;
+proc sort data=fivesp3; by plotnum yearnum;
+proc means data=fivesp3 mean noprint; by plotnum yearnum;
+	var count; 
+	output out=fivesp3x mean=mcount;
+run;
+proc print data=fivesp3x; run;
+proc freq data=fivesp3x; table plotnum*yearnum; run;
+*/
+
 *------------------IML------------------------------------------;
 proc iml;
 
@@ -177,7 +189,7 @@ quit;
 run;
 
 * ----------output data row = plot-quad-sp-year ----------------;
-*proc print data=imlout1 (firstobs=1 obs=100); title 'imlout1'; run; *n=13500;
+*proc print data=imlout1 (firstobs=1 obs=30); title 'imlout1'; run; *n=13500;
 *proc print data=imlout1 (firstobs=13400 obs=13500); title 'imlout1'; run; *n=13500;
 *proc contents data=imlout1; run;
 *rowid, plotnum, quad, spnum, yearnum, count;
@@ -200,11 +212,22 @@ data temp2; merge temp1 plotid3; by plotnum; run;
 proc sort data=temp2; by plotnum yearnum;
 proc sort data=plotvars2; by plotnum yearnum;
 data herbbyquad; merge temp2 plotvars2; by plotnum yearnum; 
-    if count=0 then pa=0; if count>0 then pa=1;
+  if ((yearnum=1) and (plotnum=19 | plotnum=40 | plotnum=41 | plotnum=42 | plotnum=43 | plotnum=44 | 
+	plotnum=45 | plotnum=46 | plotnum=47 | plotnum=48 | plotnum=49 | plotnum=50 | plotnum=51 | 
+	plotnum=52 | plotnum=53 | plotnum=54)) then count=. and pa=.;
+  if ((yearnum=2) and (plotnum=4 | plotnum=5 | plotnum=6 | plotnum=7 | plotnum=8 | plotnum=12 | 
+	plotnum=14 | plotnum=15 | plotnum=20 | plotnum=21 | plotnum=24 | plotnum=25 | plotnum=26 | 
+	plotnum=27 | plotnum=29 | plotnum=30 | plotnum=31 | plotnum=33 | plotnum=34 | plotnum=35 |
+	plotnum=38 | plotnum=39 | plotnum=46)) then count=.;
+  if ((yearnum=3) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 | plotnum=33 | plotnum=34 | 
+	plotnum=38 | plotnum=39)) then count=.;
+  if ((yearnum=4) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 | plotnum=33 | plotnum=34 | 
+	plotnum=38 | plotnum=39)) then count=.;
+  if ((yearnum=5) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 | plotnum=33 | plotnum=34 | 
+	plotnum=38 | plotnum=39)) then count=.;
+  if count=0 then pa=0; if count>0 then pa=1;
 run;
-
-proc sort data=herbbyquad; by rowid;
-*proc print data=herbbyquad (firstobs=1 obs=30); title 'herbbyquad'; run;
+*proc print data=herbbyquad (firstobs=1050 obs=1080); title 'herbbyquad'; run;
 
 /*
 proc contents data=herbbyquad; run;
@@ -306,20 +329,38 @@ proc sort data=plotid3; by plotnum;
 proc sort data=plotvars2; by plotnum;
 data quadhistory; merge temp3 plotid3 plotvars2; by plotnum; 
   drop cover yearnum;
+  if ((count1=0) and (plotnum=19 | plotnum=40 | plotnum=41 | plotnum=42 | plotnum=43 | plotnum=44 | 
+	plotnum=45 | plotnum=46 | plotnum=47 | plotnum=48 | plotnum=49 | plotnum=50 | plotnum=51 | 
+	plotnum=52 | plotnum=53 | plotnum=54)) then count1=.;
+  if ((count2=0) and (plotnum=4 | plotnum=5 | plotnum=6 | plotnum=7 | plotnum=8 | plotnum=12 | 
+	plotnum=14 | plotnum=15 | plotnum=20 | plotnum=21 | plotnum=24 | plotnum=25 | plotnum=26 | 
+	plotnum=27 | plotnum=29 | plotnum=30 | plotnum=31 | plotnum=33 | plotnum=34 | plotnum=35 |
+	plotnum=38 | plotnum=39 | plotnum=46)) then count2=.;
+  if ((count3=0 | count4=0 | count5=0) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 |
+	plotnum=33 | plotnum=34 | plotnum=38 | plotnum=39)) then count3=.;
+  if ((count4=0 | count4=0 | count5=0) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 |
+	plotnum=33 | plotnum=34 | plotnum=38 | plotnum=39)) then count4=.;
+  if ((count5=0 | count4=0 | count5=0) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 |
+	plotnum=33 | plotnum=34 | plotnum=38 | plotnum=39)) then count5=.;
   if count1=0 then pa1=0; if count1>0 then pa1=1;
   if count2=0 then pa2=0; if count2>0 then pa2=1;
   if count3=0 then pa3=0; if count3>0 then pa3=1;
   if count4=0 then pa4=0; if count4>0 then pa4=1;
   if count5=0 then pa5=0; if count5>0 then pa5=1;
 run; *n=2700;
+*proc print data=quadhistory; title 'quadhistory'; run;
 
 /*
 proc sort data=quadhistory; by rowid; run;
-proc print data=quadhistory (firstobs=1 obs=30); title 'quadhistory'; 
-  var plotnum spnum pa1 pa2 pa3 pa4 pa5 bcat soil quad cover1; run;
-
-proc contents data=herbbyquad; run;
+proc print data=quadhistory (firstobs=1000 obs=1500); title 'quadhistory'; 
+  var plotnum pa5 count5 cover5 spnum bcat soil quad; run;
 proc contents data=quadhistory; run;
+
+proc sort data=herbbyquad; by rowid; run;
+proc print data=herbbyquad (firstobs=1000 obs=1050); title 'herbbyquad'; 
+  var plotnum yearnum spnum count pa cover bcat soil quad; run;
+proc contents data=herbbyquad; run;
+
 */
 
 /*
