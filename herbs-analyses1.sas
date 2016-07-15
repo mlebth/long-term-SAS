@@ -64,19 +64,21 @@ data quadhistory3; set quadhistory2; keep count1s count2s count3s count4s count5
 
 proc sort data=quadhistory3; by spnum;
 proc glimmix data=quadhistory3; by spnum;
-	class  soil ;
-	*tested yrs 3-5, NS: bcat*soil, hydr, aspect, slope, interactions;
+	class soil ;
+	**tested yrs 3-5, NS: bcat*soil, hydr, aspect, slope, interactions;
 	*cover3m NS in any count3s models;
-		*year2: recheck slope, sig. on some.;
-	*model count2s =  bcat soil / dist=negbin solution;
+	*year2: slope only included for species 1 and 3, other species' models are better without.
+		none of the interactions are sig.;
+	*year1: soil, cover1m, slope, elev;
+	model count1s =  soil cover1m elev  / dist=negbin solution;
 	*model count2s = bcat soil slope / dist=negbin solution;
 	*model count2s = bcat soil aspect / dist=negbin solution;
 	*model count2s = bcat soil hydr / dist=negbin solution;
 	*model count2s = bcat soil bcat*soil / dist=negbin solution;
 	*model count2s = bcat soil  elev / dist=negbin solution;
 	*model count2s = bcat soil cover2m elev bcat*cover2m bcat*elev soil*cover3m soil*elev cover2m*elev/ dist=negbin solution;
-	lsmeans  soil / ilink cl;
-	output out=glmout resid=ehat;
+	*lsmeans soil  / ilink cl;
+	*output out=glmout resid=ehat;
 run;
 
 *herbbyquad count models;
@@ -87,11 +89,63 @@ run;
 data herbbyquad3; set herbbyquad2; keep counts coverm spnum plotnum yearnum bcat soil hydr aspect elev slope;
 proc print data=herbbyquad3; title 'herbbyquad3'; run;
 
-proc sort data=herbbyquad3; by spnum;
-proc glimmix data=herbbyquad3; 
-	class bcat soil yearnum; by spnum; 
-	model counts = bcat soil yearnum bcat*soil / dist=negbin solution; 
-	*random plotnum / subject = bcat*soil;
+proc glimmix data=herbbyquad3; by spnum;
+	class bcat soil yearnum ;  
+	*NS: bcat*soil, soil*yearnum;
+	*model counts = bcat soil yearnum coverm slope elev aspect hydr / dist=negbin solution; 
+	model counts = bcat soil yearnum  bcat*soil bcat*yearnum soil*yearnum / dist=negbin solution; 
 	*lsmeans bcat*soil / ilink cl;
-	output out=glmout resid=ehat;
+	*output out=glmout resid=ehat;
+run;
+
+*breaking down modeling per species;
+proc sort data=herbbyquad3; by spnum;
+data herbbyquadDILI; set herbbyquad3; if spnum=1; run;
+data herbbyquadDIOL; set herbbyquad3; if spnum=2; run;
+data herbbyquadDISP; set herbbyquad3; if spnum=3; run;
+data herbbyquadHELA; set herbbyquad3; if spnum=4; run;
+data herbbyquadLETE; set herbbyquad3; if spnum=5; run;
+
+* coverm yearnum bcat soil hydr aspect elev slope;
+
+proc glimmix data=herbbyquadDILI; 
+	class bcat soil yearnum;  
+	*NS: bcat*soil, soil*yearnum;
+	model counts = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution; 
+	*not great--missing too many values for bcat*soil;
+	lsmeans bcat*soil / ilink cl;
+	*output out=glmout resid=ehat;
+run;
+
+*re-run and record;
+proc glimmix data=herbbyquadDIOL; 
+	class soil yearnum aspect;  
+	*NS: bcat*soil, soil*yearnum, elev, hydr, slope, hydr, coverm bcat;
+	model counts = soil yearnum  aspect / dist=negbin solution; 
+	lsmeans  soil yearnum aspect / ilink cl;
+	*output out=glmout resid=ehat;
+run;
+
+proc glimmix data=herbbyquadDISP; 
+	class bcat soil yearnum;  
+	*NS: bcat*soil, soil*yearnum;
+	model counts = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution; 
+	lsmeans bcat*soil / ilink cl;
+	*output out=glmout resid=ehat;
+run;
+
+proc glimmix data=herbbyquadHELA; 
+	class bcat soil yearnum;  
+	*NS: bcat*soil, soil*yearnum;
+	model counts = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution; 
+	lsmeans bcat*soil / ilink cl;
+	*output out=glmout resid=ehat;
+run;
+
+proc glimmix data=herbbyquadLETE; 
+	class bcat soil yearnum;  
+	*NS: bcat*soil, soil*yearnum;
+	model counts = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution; 
+	lsmeans bcat*soil / ilink cl;
+	*output out=glmout resid=ehat;
 run;
