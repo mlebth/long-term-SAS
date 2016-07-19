@@ -60,49 +60,45 @@ bcat=1 in:
 */
 
 data dilinoburn; set herbbyquadDILI; if bcat NE 1; run;
-
-* coverm yearnum bcat soil hydr aspect elev slope;
 proc glimmix data=dilinoburn; 
 	class bcat soil yearnum ;  
 	*model counts = bcat soil yearnum bcat*soil bcat*yearnum soil*yearnum / dist=negbin solution; 
-	model counts = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution;  *best model;
+	model counts = bcat soil yearnum elev / dist=negbin solution;  *best model;
 		* bcat*soil*elev NS;
 	*model counts = bcat / dist=negbin solution; 
 	*model counts = slope / dist=negbin solution; 
-	*lsmeans bcat soil yearnum bcat*soil  / ilink cl;
-	lsmestimate 'sand vs gravel' soil 1 -1 ;
+	lsmeans bcat soil yearnum   / ilink cl;
+	*lsmestimate 'sand vs gravel' soil 1 -1 ;
 	*output out=glmout resid=ehat;
 run;
 
-*re-run and record;
 proc glimmix data=herbbyquadDIOL; 
 	class soil yearnum aspect;  
 	*NS: bcat*soil, soil*yearnum, elev, hydr, slope, hydr, coverm bcat;
-	model counts = soil yearnum  aspect / dist=negbin solution; 
-	lsmeans  soil yearnum aspect / ilink cl;
+	model counts = soil yearnum aspect / dist=negbin solution; *best model?;
+	*model counts = bcat soil yearnum / dist=negbin solution; *best model?;
+	lsmeans soil yearnum aspect / ilink cl;
 	*output out=glmout resid=ehat;
 run;
 
+* coverm yearnum bcat soil hydr aspect elev slope;
 proc glimmix data=herbbyquadDISP; 
-	class bcat soil yearnum;  
-	*NS: bcat*soil, soil*yearnum;
-	model counts = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution; 
-	lsmeans bcat*soil / ilink cl;
+	class bcat yearnum aspect;  
+	model counts = bcat yearnum aspect elev slope / dist=negbin solution; 
+	*lsmeans bcat*soil / ilink cl;
 	*output out=glmout resid=ehat;
 run;
 
 proc glimmix data=herbbyquadHELA; 
 	class bcat soil yearnum;  
-	*NS: bcat*soil, soil*yearnum;
-	model counts = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution; 
+	model counts = bcat soil yearnum / dist=negbin solution; 
 	lsmeans bcat*soil / ilink cl;
 	*output out=glmout resid=ehat;
 run;
 
 proc glimmix data=herbbyquadLETE; 
 	class bcat soil yearnum;  
-	*NS: bcat*soil, soil*yearnum;
-	model counts = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution; 
+	model counts = bcat soil yearnum elev / dist=negbin solution; 
 	lsmeans bcat*soil / ilink cl;
 	*output out=glmout resid=ehat;
 run;
