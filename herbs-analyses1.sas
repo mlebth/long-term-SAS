@@ -2,7 +2,6 @@
 rowid, plot, plotnum, quad, sspp, spnum, bcat, soil, hydr, aspect, elev, slope
 	--reminder: bcat [1-u, 2-s/l, 3-m/h], soil [1-sandy, 2-gravelly], hydr [1-no 2-yes]
 				aspect [0-flat, 1-north, 2-east, 3-south, 4-west]
-
 quadhistory also includes: count1-count5, pa1-pa5, cover1-cover5 (1 col/var/yr in dataset)
 herbbyquad also includes:  count, cover, pa, yearnum, _FREQ_, _TYPE_;
 
