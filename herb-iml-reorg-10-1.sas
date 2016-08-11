@@ -38,8 +38,13 @@ proc sort data=sumstems1; by sumcount n;
 
 * work only top 5 species;
 data fivesp; set herb1x; if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4'); 
-* proc print data=fivesp (firstobs=1 obs=10); title 'fivesp'; run; * n = 2908;
+* proc print data=fivesp (firstobs=1 obs=10); title 'fivesp'; run; * n = 2908; *788;
 *********includes all vars for 5 species; 
+
+/*
+proc import datafile="C:\Users\Emily\Desktop\plotid3.csv"
+out=plotid3 dbms=csv replace; getnames=yes; run;  * N = 54;
+*/
 
 * --- plot translation dataset--orig plot names to nums 1-56;
 data plotid; set fivesp; dummy = 1; keep plot dummy;
@@ -49,7 +54,7 @@ proc means data=plotid noprint mean; by plot; var dummy;
 * proc print data=plotid2; title 'plotid2'; run;
 data plotid3; set plotid2; plotnum = _n_; keep plot plotnum;
 * proc print data=plotid3; title 'plotid3';
-run; * n = 54, max = 55;
+run; * n = 54, max = 55; *round2:47;
 *********includes plot and plotnum;
 *55 herbx plots, 54 fivesp plots. 
 missing plot 1224--herbs were counted once in 2006, none of these species appeared;
@@ -66,7 +71,7 @@ data splist2; set splist; spnum=_n_; keep sspp spnum;
 * merge in species codes;
 proc sort data=fivesp; by sspp; 
 proc sort data=splist2; by sspp;
-data step1; merge fivesp splist2; by sspp;
+data step1; merge fivesp splist2; by sspp; 
 * merge in plots;
 proc sort data=step1; by plot;
 proc sort data=plotid3; by plot;
@@ -74,12 +79,22 @@ data fivesp2; merge step1 plotid3; by plot;
   if (year < 2012) then yearnum = 1;
   if (year > 2011) then yearnum = year - 2010;
 *** fivesp2 has all 17 variables, including eviro vars, plotnum, spnum, yearnum ********;
-run;  * N = 2908;
+run;  * N = 2908; *795;
 /*
-proc print data=fivesp2 (firstobs=1 obs=30);  title 'fivesp2'; *var quad plot plotnum;
+proc print data=fivesp2 (firstobs=1 obs=100);  title 'fivesp2'; *var quad plot plotnum;
 run;
 */
-
+/*
+*in step 1: Obs plot quad count sspp year cover soil elev slope hydr aspect bcat spnum ;
+*in fivesp: Obs plot quad count sspp year cover soil elev slope hydr aspect bcat ;
+proc sort data=fivesp2; by plot quad count sspp year cover soil elev slope hydr aspect bcat spnum yearnum;
+proc sort data=herb1x;  by plot quad count sspp year cover soil elev slope hydr aspect bcat;
+data fivesp2; merge fivesp2 herb1x; by plot quad count sspp year cover soil elev slope hydr aspect bcat;
+ if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4');
+run;
+proc print data=fivesp2 (firstobs=1 obs=100);  title 'fivesp2x'; 
+run;
+*/
 * ---- get plot data for environmental variables, to use later;
 proc sort data=fivesp2; by plotnum yearnum;
 proc means data=fivesp2 mean noprint; by plotnum plot yearnum; 
@@ -121,7 +136,7 @@ proc means data=fivesp3 mean noprint; by plotnum yearnum;
 	output out=fivesp3x mean=mcount;
 run;
 proc print data=fivesp3x; run;
-proc freq data=fivesp3x; table plotnum*yearnum; run;
+proc freq data=fivesp3x; table yearnum*plotnum; run;
 */
 
 *------------------IML------------------------------------------;
@@ -204,13 +219,14 @@ data temp1; merge imlout1 splist2; by spnum; run;
 
 * merge back in plots;
 proc sort data=temp1; by rowid plotnum quad spnum yearnum;
-proc sort data=plotid3; by plotnum;
-data temp2; merge temp1 plotid3; by plotnum; run;
-*proc print data=temp2 (firstobs=1 obs=30); title 'temp2'; run;
+proc sort data=plotid3; by plotnum; 
+data temp2; merge temp1 plotid3; by plotnum;
+	if (yearnum=1) and (plotnum=3) then spnum=.; run;
+*proc print data=temp2 (firstobs=400 obs=530); title 'temp2'; run;
 
 * merge back in environmental vars;
 proc sort data=temp2; by plotnum yearnum;
-proc sort data=plotvars2; by plotnum yearnum;
+proc sort data=plotvars2; by plotnum yearnum; run;
 data herbbyquad; merge temp2 plotvars2; by plotnum yearnum; 
   if ((yearnum=1) and (plotnum=19 | plotnum=40 | plotnum=41 | plotnum=42 | plotnum=43 | plotnum=44 | 
 	plotnum=45 | plotnum=46 | plotnum=47 | plotnum=48 | plotnum=49 | plotnum=50 | plotnum=51 | 
@@ -227,7 +243,7 @@ data herbbyquad; merge temp2 plotvars2; by plotnum yearnum;
 	plotnum=38 | plotnum=39)) then count=.;
   if count=0 then pa=0; if count>0 then pa=1;
 run;
-*proc print data=herbbyquad (firstobs=1050 obs=1080); title 'herbbyquad'; run;
+*proc print data=herbbyquad (firstobs=400 obs=501); title 'herbbyquad'; run;
 
 /*
 proc contents data=herbbyquad; run;

@@ -50,7 +50,18 @@ data fivesp; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='
 * proc print data=fivesp; title 'fivesp'; run; * n = 788;
 *********includes all vars for 5 species; 
 
+*work LEDU only;
+data fivesp; set herb1x; if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4'); 
+* proc print data=fivesp; title 'fivesp'; run; * n = 788;
+*********includes all vars for 5 species; 
 
+
+*import plot data;
+proc import datafile="C:\Users\Emily\Desktop\plotid3.csv"
+out=plotid3 dbms=csv replace; getnames=yes; run;  * N = 122547;
+proc print data=plotid3; run;
+
+/*
 * --- plot translation dataset--orig plot names to nums 1-56;
 
 data plotid; set fivesp; dummy = 1; keep plot dummy;
@@ -65,6 +76,7 @@ run; * n = 54, max = 55;
 *********includes plot and plotnum;
 *55 herbx plots, 54 fivesp plots. 
 missing plot 1224--herbs were counted once in 2006, none of these species appeared;
+*/
 
 * --- species translation dataset--orig sp codes to nums 1-315;
 proc sort data=fivesp; by sspp;
@@ -214,12 +226,12 @@ run;
 proc sort data=imlout1; by spnum; 
 proc sort data=splist2; by spnum;
 data temp1; merge imlout1 splist2; by spnum; run; 
-*proc sort data=temp1; *by rowid;
+proc sort data=temp1; by rowid; run;
 *proc print data=temp1 (firstobs=13400 obs=13500); title 'temp1'; run;
-proc print data=plotid3; run;
+*proc print data=plotid3; run;
 
 * merge back in plots;
-proc sort data=temp1; by plotnum quad spnum yearnum; run;
+proc sort data=temp1; by rowid plotnum quad spnum yearnum; run; 
 proc sort data=plotid3; by plotnum; run;
 data temp2; merge temp1 plotid3; by plotnum; run;
 *proc print data=temp2 (firstobs=13400 obs=13500); title 'temp2'; run;

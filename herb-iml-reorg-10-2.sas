@@ -77,7 +77,7 @@ missing plot 1224--herbs were counted once in 2006, none of these species appear
 *import plot data;
 proc import datafile="C:\Users\Emily\Desktop\plotid3.csv"
 out=plotid3 dbms=csv replace; getnames=yes; run;  * N = 122547;
-proc print data=plotid3; run;
+*proc print data=plotid3; run;
 
 * --- species translation dataset--orig sp codes to nums 1-315;
 proc sort data=fivesp; by sspp;
@@ -91,7 +91,7 @@ data splist2; set splist; spnum=_n_; keep sspp spnum;
 * merge in species codes;
 proc sort data=fivesp; by sspp; 
 proc sort data=splist2; by sspp;
-data step1; merge fivesp splist2; by sspp; run;
+data step1; merge fivesp splist2; by sspp; 
 * merge in plots;
 proc sort data=step1; by plot;
 proc sort data=plotid3; by plot;
@@ -137,7 +137,7 @@ proc sort data=fivesp3; by plotnum quad spnum yearnum;
 *proc print data=fivesp3 (firstobs=1 obs=30); title 'fivesp3'; run; *n=2844; *765;
 *proc contents data=fivesp3; run;
 * order in fivesp3 is plotnum, quad, spnum, yearnum, count;
-proc sort data=fivesp3; by plotnum yearnum; run;
+*proc sort data=fivesp3; by plotnum yearnum; run;
 *proc print data=fivesp3 (firstobs=600 obs=700); run;
 
 /*
