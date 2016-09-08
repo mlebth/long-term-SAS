@@ -6,7 +6,7 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 * proc datasets library=work kill noprint; run; 
 
 *import herb data;
-proc import datafile="H:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbx1.csv"
+proc import datafile="C:\Users\Emily\Desktop\herbx1.csv"
 out=herbx dbms=csv replace; getnames=yes; run;  * N = 122547;
 
 * creating a set of herbs;
@@ -37,9 +37,14 @@ proc sort data=sumstems1; by sumcount n;
 */
 
 * work only top 5 species;
-data fivesp; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='LETEx'); 
-* proc print data=fivesp (firstobs=1 obs=10); title 'fivesp'; run; * n = 2908;
+data fivesp; set herb1x; if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4'); 
+* proc print data=fivesp (firstobs=1 obs=10); title 'fivesp'; run; * n = 2908; *788;
 *********includes all vars for 5 species; 
+
+/*
+proc import datafile="C:\Users\Emily\Desktop\plotid3.csv"
+out=plotid3 dbms=csv replace; getnames=yes; run;  * N = 54;
+*/
 
 * --- plot translation dataset--orig plot names to nums 1-56;
 data plotid; set fivesp; dummy = 1; keep plot dummy;
@@ -49,7 +54,7 @@ proc means data=plotid noprint mean; by plot; var dummy;
 * proc print data=plotid2; title 'plotid2'; run;
 data plotid3; set plotid2; plotnum = _n_; keep plot plotnum;
 * proc print data=plotid3; title 'plotid3';
-run; * n = 54, max = 55;
+run; * n = 54, max = 55; *round2:47;
 *********includes plot and plotnum;
 *55 herbx plots, 54 fivesp plots. 
 missing plot 1224--herbs were counted once in 2006, none of these species appeared;
@@ -66,7 +71,7 @@ data splist2; set splist; spnum=_n_; keep sspp spnum;
 * merge in species codes;
 proc sort data=fivesp; by sspp; 
 proc sort data=splist2; by sspp;
-data step1; merge fivesp splist2; by sspp;
+data step1; merge fivesp splist2; by sspp; 
 * merge in plots;
 proc sort data=step1; by plot;
 proc sort data=plotid3; by plot;
@@ -74,12 +79,22 @@ data fivesp2; merge step1 plotid3; by plot;
   if (year < 2012) then yearnum = 1;
   if (year > 2011) then yearnum = year - 2010;
 *** fivesp2 has all 17 variables, including eviro vars, plotnum, spnum, yearnum ********;
-run;  * N = 2908;
+run;  * N = 2908; *795;
 /*
-proc print data=fivesp2 (firstobs=1 obs=30);  title 'fivesp2'; *var quad plot plotnum;
+proc print data=fivesp2 (firstobs=1 obs=100);  title 'fivesp2'; *var quad plot plotnum;
 run;
 */
-
+/*
+*in step 1: Obs plot quad count sspp year cover soil elev slope hydr aspect bcat spnum ;
+*in fivesp: Obs plot quad count sspp year cover soil elev slope hydr aspect bcat ;
+proc sort data=fivesp2; by plot quad count sspp year cover soil elev slope hydr aspect bcat spnum yearnum;
+proc sort data=herb1x;  by plot quad count sspp year cover soil elev slope hydr aspect bcat;
+data fivesp2; merge fivesp2 herb1x; by plot quad count sspp year cover soil elev slope hydr aspect bcat;
+ if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4');
+run;
+proc print data=fivesp2 (firstobs=1 obs=100);  title 'fivesp2x'; 
+run;
+*/
 * ---- get plot data for environmental variables, to use later;
 proc sort data=fivesp2; by plotnum yearnum;
 proc means data=fivesp2 mean noprint; by plotnum plot yearnum; 
@@ -112,12 +127,24 @@ proc sort data=fivesp3; by plotnum quad spnum yearnum;
 *proc contents data=fivesp3; run;
 * order in fivesp3 is plotnum, quad, spnum, yearnum, count;
 
+/*
+*finding plots that were not visited each year (to be used later, post-iml, to remove 0 counts that 
+should be missing values;
+proc sort data=fivesp3; by plotnum yearnum;
+proc means data=fivesp3 mean noprint; by plotnum yearnum;
+	var count; 
+	output out=fivesp3x mean=mcount;
+run;
+proc print data=fivesp3x; run;
+proc freq data=fivesp3x; table yearnum*plotnum; run;
+*/
+
 *------------------IML------------------------------------------;
 proc iml;
 
 use fivesp3; read all into matin;  * print matin;
 nrowsmatin = nrow(matin); * print nrowsmatin; 
-nplots = 54;
+nplots = 47;
 nquadsperplot = 10; 
 nspecies = 5;
 nyrs = 5;  * assumes we will treat pre-fire as a single year;
@@ -177,7 +204,7 @@ quit;
 run;
 
 * ----------output data row = plot-quad-sp-year ----------------;
-*proc print data=imlout1 (firstobs=1 obs=100); title 'imlout1'; run; *n=13500;
+*proc print data=imlout1 (firstobs=1 obs=30); title 'imlout1'; run; *n=13500;
 *proc print data=imlout1 (firstobs=13400 obs=13500); title 'imlout1'; run; *n=13500;
 *proc contents data=imlout1; run;
 *rowid, plotnum, quad, spnum, yearnum, count;
@@ -192,24 +219,35 @@ data temp1; merge imlout1 splist2; by spnum; run;
 
 * merge back in plots;
 proc sort data=temp1; by rowid plotnum quad spnum yearnum;
-proc sort data=plotid3; by plotnum;
-data temp2; merge temp1 plotid3; by plotnum; run;
-*proc print data=temp2 (firstobs=1 obs=30); title 'temp2'; run;
+proc sort data=plotid3; by plotnum; 
+data temp2; merge temp1 plotid3; by plotnum;
+	if (yearnum=1) and (plotnum=3) then spnum=.; run;
+*proc print data=temp2 (firstobs=400 obs=530); title 'temp2'; run;
 
 * merge back in environmental vars;
 proc sort data=temp2; by plotnum yearnum;
-proc sort data=plotvars2; by plotnum yearnum;
+proc sort data=plotvars2; by plotnum yearnum; run;
 data herbbyquad; merge temp2 plotvars2; by plotnum yearnum; 
-    if count=0 then pa=0; if count>0 then pa=1;
+  if ((yearnum=1) and (plotnum=19 | plotnum=40 | plotnum=41 | plotnum=42 | plotnum=43 | plotnum=44 | 
+	plotnum=45 | plotnum=46 | plotnum=47 | plotnum=48 | plotnum=49 | plotnum=50 | plotnum=51 | 
+	plotnum=52 | plotnum=53 | plotnum=54)) then count=. and pa=.;
+  if ((yearnum=2) and (plotnum=4 | plotnum=5 | plotnum=6 | plotnum=7 | plotnum=8 | plotnum=12 | 
+	plotnum=14 | plotnum=15 | plotnum=20 | plotnum=21 | plotnum=24 | plotnum=25 | plotnum=26 | 
+	plotnum=27 | plotnum=29 | plotnum=30 | plotnum=31 | plotnum=33 | plotnum=34 | plotnum=35 |
+	plotnum=38 | plotnum=39 | plotnum=46)) then count=.;
+  if ((yearnum=3) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 | plotnum=33 | plotnum=34 | 
+	plotnum=38 | plotnum=39)) then count=.;
+  if ((yearnum=4) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 | plotnum=33 | plotnum=34 | 
+	plotnum=38 | plotnum=39)) then count=.;
+  if ((yearnum=5) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 | plotnum=33 | plotnum=34 | 
+	plotnum=38 | plotnum=39)) then count=.;
+  if count=0 then pa=0; if count>0 then pa=1;
 run;
-
-proc sort data=herbbyquad; by rowid;
-*proc print data=herbbyquad (firstobs=1 obs=30); title 'herbbyquad'; run;
+*proc print data=herbbyquad (firstobs=400 obs=501); title 'herbbyquad'; run;
 
 /*
 proc contents data=herbbyquad; run;
 *rowid, plotnum, wuad, spnum, yearnum, count, all others;
-
 proc print data=herbbyquad; 
   var plot plotnum quad sspp spnum yearnum count bcat soil pa;
  title 'herbbyquad'; run;
@@ -219,16 +257,16 @@ proc print data=herbbyquad;
 
 * ------ use iml to re-arrange: all yrs in a row-------------------------------;
 
-data foriml2; set herbbyquad; keep plotnum quad spnum yearnum count;
+data foriml2; set herbbyquad; keep plotnum quad spnum yearnum count cover;
 *proc print data=foriml2; title 'foriml2'; run;
 *proc contents data=foriml2; run;
-*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count;
+*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count, 6--cover;
 
 proc iml;
 use foriml2; read all into matcountquad1;  * print matcountquad1;
 nrowsmatcountquad1 = nrow(matcountquad1);  *print nrowsmatcountquad1; 
 
-nplots = 54;
+nplots = 47;
 nquadsperplot = 10; 
 nspecies = 5;
 nyrs = 5;
@@ -236,8 +274,9 @@ nyrs = 5;
 
 * creating a new matrix with a column for each year,
   and a row for each plot-quad-species;
-* 9 columns: rowid plotnum quad spnum year1 year2 year3 year4 year5;
-ncolsmatcountquad2 = 9;
+* 14 columns: rowid plotnum quad spnum year1 year2 year3 year4 year5
+cover1 cover2 cover3 cover4 cover5;
+ncolsmatcountquad2 = 14;
 nrowsmatcountquad2 = nplots * nquadsperplot * nspecies;
 matcountquad2=j(nrowsmatcountquad2,ncolsmatcountquad2,0);
  
@@ -256,27 +295,34 @@ do i = 1 to nrowsmatcountquad2;
 end;
 * print matcountquad2;
 
-*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count;
+*1--plotnum, 2--quad, 3--spnum, 4--yearnum, 5--count, 6--cover;
 do i = 1 to nrowsmatcountquad1;   * going line by line through previously created matrix;
 * get info from input matrix;
-  tempplot = matcountquad1[i,1]; tempquad = matcountquad1[i,2];
-  tempsp = matcountquad1[i,3]; tempyr = matcountquad1[i,4]; tempcount = matcountquad1[i,5];
+  tempplot  = matcountquad1[i,1]; 
+  tempquad  = matcountquad1[i,2];
+  tempsp    = matcountquad1[i,3]; 
+  tempyr    = matcountquad1[i,4]; 
+  tempcount = matcountquad1[i,5]; 
+  tempcov   = matcountquad1[i,6];
   * calculate the new matrix col;
-  newcol = tempyr + 4;
+  newcolcount = tempyr + 4;
+  newcolcover = tempyr + 9;
   * calculate the new matrix target rows;
   newrow = (tempplot-1)*newmaxrowsperplot + (tempquad-1)*newmaxrowsperquad + tempsp;
   matcountquad2[newrow,1] = newrow;
   matcountquad2[newrow,2] = tempplot;
   matcountquad2[newrow,3] = tempquad;
   matcountquad2[newrow,4] = tempsp;
-  matcountquad2[newrow,newcol] = tempcount;
+  matcountquad2[newrow,newcolcount] = tempcount;
+  matcountquad2[newrow,newcolcover] = tempcov;
   * if tempplot=2 then do; * print tempplot tempquad tempsp tempyr newrow; * end;
 end;
 
 *print matcountquad2;
 
 * labeling columns;
-countnames2 = {rowid plotnum quad spnum count1 count2 count3 count4 count5};
+countnames2 = {rowid plotnum quad spnum count1 count2 count3 count4 count5
+			   cover1 cover2 cover3 cover4 cover5};
 create imlout2 from matcountquad2 [colname = countnames2];
 append from matcountquad2;
 
@@ -297,18 +343,43 @@ proc sort data=temp3; by plotnum;
 proc sort data=plotid3; by plotnum;
 proc sort data=plotvars2; by plotnum;
 data quadhistory; merge temp3 plotid3 plotvars2; by plotnum; 
+  drop cover yearnum;
+  if ((count1=0) and (plotnum=19 | plotnum=40 | plotnum=41 | plotnum=42 | plotnum=43 | plotnum=44 | 
+	plotnum=45 | plotnum=46 | plotnum=47 | plotnum=48 | plotnum=49 | plotnum=50 | plotnum=51 | 
+	plotnum=52 | plotnum=53 | plotnum=54)) then count1=.;
+  if ((count2=0) and (plotnum=4 | plotnum=5 | plotnum=6 | plotnum=7 | plotnum=8 | plotnum=12 | 
+	plotnum=14 | plotnum=15 | plotnum=20 | plotnum=21 | plotnum=24 | plotnum=25 | plotnum=26 | 
+	plotnum=27 | plotnum=29 | plotnum=30 | plotnum=31 | plotnum=33 | plotnum=34 | plotnum=35 |
+	plotnum=38 | plotnum=39 | plotnum=46)) then count2=.;
+  if ((count3=0 | count4=0 | count5=0) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 |
+	plotnum=33 | plotnum=34 | plotnum=38 | plotnum=39)) then count3=.;
+  if ((count4=0 | count4=0 | count5=0) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 |
+	plotnum=33 | plotnum=34 | plotnum=38 | plotnum=39)) then count4=.;
+  if ((count5=0 | count4=0 | count5=0) and (plotnum=24 | plotnum=25 | plotnum=26 | plotnum=27 |
+	plotnum=33 | plotnum=34 | plotnum=38 | plotnum=39)) then count5=.;
   if count1=0 then pa1=0; if count1>0 then pa1=1;
   if count2=0 then pa2=0; if count2>0 then pa2=1;
   if count3=0 then pa3=0; if count3>0 then pa3=1;
   if count4=0 then pa4=0; if count4>0 then pa4=1;
   if count5=0 then pa5=0; if count5>0 then pa5=1;
 run; *n=2700;
+*proc print data=quadhistory; title 'quadhistory'; run;
 
 /*
 proc sort data=quadhistory; by rowid; run;
-proc print data=quadhistory (firstobs=1 obs=30); title 'quadhistory'; 
-  var plotnum spnum pa1 pa2 pa3 pa4 pa5 bcat soil quad cover; run;
-
-proc contents data=herbbyquad; run;
+proc print data=quadhistory (firstobs=1000 obs=1500); title 'quadhistory'; 
+  var plotnum pa5 count5 cover5 spnum bcat soil quad; run;
 proc contents data=quadhistory; run;
+proc sort data=herbbyquad; by rowid; run;
+proc print data=herbbyquad (firstobs=1000 obs=1050); title 'herbbyquad'; 
+  var plotnum yearnum spnum count pa cover bcat soil quad; run;
+proc contents data=herbbyquad; run;
+*/
+
+/*
+proc export data=quadhistory
+   outfile='Desktop\work2a.csv'
+   dbms=csv
+   replace;
+run;
 */

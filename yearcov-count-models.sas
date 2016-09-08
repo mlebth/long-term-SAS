@@ -91,6 +91,7 @@ proc glimmix data=herbbyquadDISP;
 	*bcat and coverm independently sig., when both included bcat becomes NS. Inclusion of coverm
 	makes a poorer-fit model;
 	*comparing bcat 1 and 2 at 3 elevations;
+<<<<<<< HEAD
 	estimate 'bcat 1 vs 2 at 130ft' bcat -1 1 bcat*elev -130 130 ;
  	estimate 'bcat 1 vs 2 at 155ft' bcat -1 1 bcat*elev -155 155 ;
  	estimate 'bcat 1 vs 2 at 180ft' bcat -1 1 bcat*elev -180 180 ;
@@ -102,17 +103,43 @@ proc glimmix data=herbbyquadDISP;
   	estimate 'counts for bcat 2 at 130ft' intercept 1 bcat 0 1 elev 130 bcat*elev 0 130 ; 
   	estimate 'counts for bcat 2 at 155ft' intercept 1 bcat 0 1 elev 155 bcat*elev 0 155 ; 
 	estimate 'counts for bcat 2 at 180ft' intercept 1 bcat 0 1 elev 180 bcat*elev 0 180 ; 
+=======
+	estimate 'bcat 1 vs 2 at 142ft' bcat -1 1 bcat*elev -142 142 ;
+ 	estimate 'bcat 1 vs 2 at 157ft' bcat -1 1 bcat*elev -157 157 ;
+ 	estimate 'bcat 1 vs 2 at 172ft' bcat -1 1 bcat*elev -172 172 ;
+ 	*estimates of counts in bcat 1 at 3 elevations;
+  	estimate 'counts for bcat 1 at 142ft' intercept 1 bcat 1 0 elev 142 bcat*elev 142 0 ; 
+  	estimate 'counts for bcat 1 at 157ft' intercept 1 bcat 1 0 elev 157 bcat*elev 157 0 ; 
+	estimate 'counts for bcat 1 at 172ft' intercept 1 bcat 1 0 elev 172 bcat*elev 172 0 ; 
+    *estimates of counts in bcat2 at 3 elevations;                    
+  	estimate 'counts for bcat 2 at 142ft' intercept 1 bcat 0 1 elev 142 bcat*elev 0 142 ; 
+  	estimate 'counts for bcat 2 at 157ft' intercept 1 bcat 0 1 elev 157 bcat*elev 0 157 ; 
+	estimate 'counts for bcat 2 at 172ft' intercept 1 bcat 0 1 elev 172 bcat*elev 0 172 ; 
+>>>>>>> origin/master
 	lsmeans yearnum bcat / ilink cl;
 	output out=glmout resid=ehat;
 run;
 proc plot data=herbbyquadDISP; plot elev*bcat; run;
+<<<<<<< HEAD
+=======
+proc freq data=herbbyquadDISP; tables elev*bcat; run; 
+*min-127, max-187
+25%: 142, 50%: 157, 75%: 172;
+>>>>>>> origin/master
 *elev main effect NS, but slope of elev is different at each level of bcat;
 
 * yearnum bcat soil hydr aspect coverm elev slope;
 *hydr and slope only ones far from NS;
+<<<<<<< HEAD
 proc glimmix data=herbbyquadHELA;  *******************NOT YET RECORDED;
 	class yearnum bcat soil aspect ;  
 /* *discarded models;
+=======
+/* *********************ignore below chunk, too messy--final model is below;
+proc glimmix data=herbbyquadHELA;  *******************NOT YET RECORDED;
+	class yearnum bcat soil aspect ;  
+ *discarded models;
+>>>>>>> origin/master
 	*model counts = yearnum bcat / dist=negbin solution; 						*bcat p=.0504. 1590, 1604, 2.14;
 	*model counts = yearnum bcat yearnum*bcat/ dist=negbin solution; 			*bcat p=.1001, yearnm*bcat p=.0001, 1568, 1590, 1.26;
 	*model counts = yearnum soil/ dist=negbin solution; 						*soil p=.0995. 1591, 1605, 2.05;
@@ -123,7 +150,12 @@ proc glimmix data=herbbyquadHELA;  *******************NOT YET RECORDED;
 	*model counts = yearnum elev yearnum*elev / dist=negbin solution;			*elev p=0.0051 yearnum*elev p=0.0049 1538 1560 .77; 
 	*model counts = yearnum bcat soil aspect coverm elev / dist=negbin solution; *bcat .0151 soil .0014 aspect .0055 coverm .0004 elev .9094. 1495 1523 1.01; 
 	*model counts = yearnum bcat soil aspect coverm / dist=negbin solution;		*bcat .0153 soil .0004 aspect .0048 coverm .0004. 1495 1521 .99;
+<<<<<<< HEAD
 */
+=======
+	model counts = yearnum bcat soil aspect coverm bcat*coverm / dist=negbin solution; *best model;
+	*****the below models don't work;	
+>>>>>>> origin/master
 	*model counts = yearnum bcat soil aspect coverm bcat*aspect bcat*coverm soil*aspect / dist=negbin solution;
 		*bcat .8029 soil <0.0001 aspect <0.0001 coverm 0.0003 bcat*aspect .0014 bcat*coverm .0009 soil*aspect <0.0001
 		1453 1493 3.5;		
@@ -136,10 +168,42 @@ proc glimmix data=herbbyquadHELA;  *******************NOT YET RECORDED;
 	*model counts = yearnum bcat soil aspect coverm bcat*aspect bcat*coverm 			/ dist=negbin solution;
 		*bcat .6313 soil <0.0001 aspect .0008 coverm <0.0001 bcat*aspect .0071 bcat*coverm .0059
 		1470 1506 1.33;	
+<<<<<<< HEAD
 
 	*lsmeans bcat*soil / ilink cl;
 	*output out=glmout resid=ehat;
 run;
+=======
+	lsmeans yearnum bcat soil aspect / ilink cl;
+	*output out=glmout resid=ehat;
+run;
+*/
+
+proc glimmix data=herbbyquadHELA;  *******************NOT YET RECORDED;
+	class yearnum bcat soil aspect ;  
+	model counts = yearnum bcat soil aspect coverm  / dist=negbin solution; *best model;
+/*
+	*comparing bcat 1 and 2 at 3 covers;
+	estimate 'bcat 1 vs 2 at 23.95% canopy cover' bcat -1 1 bcat*coverm -23.95 23.95 ;
+ 	estimate 'bcat 1 vs 2 at 47.74% canopy cover' bcat -1 1 bcat*coverm -47.74 47.74 ;
+ 	estimate 'bcat 1 vs 2 at 71.53% canopy cover' bcat -1 1 bcat*coverm -71.53 71.53 ;
+ 	*estimates of counts in bcat 1 at 3 elevations;
+  	estimate 'counts for bcat 1 at 23.95% canopy cover' intercept 1 bcat 1 0 coverm 23.95 bcat*coverm 23.95 0 ; 
+  	estimate 'counts for bcat 1 at 47.74% canopy cover' intercept 1 bcat 1 0 coverm 47.74 bcat*coverm 47.74 0 ; 
+	estimate 'counts for bcat 1 at 71.53% canopy cover' intercept 1 bcat 1 0 coverm 71.53 bcat*coverm 71.53 0 ; 
+    *estimates of counts in bcat2 at 3 elevations;                    
+  	estimate 'counts for bcat 2 at 23.95% canopy cover' intercept 1 bcat 0 1 coverm 23.95 bcat*coverm 0 23.95 ; 
+  	estimate 'counts for bcat 2 at 47.74% canopy cover' intercept 1 bcat 0 1 coverm 47.74 bcat*coverm 0 47.74 ; 
+	estimate 'counts for bcat 2 at 71.53% canopy cover' intercept 1 bcat 0 1 coverm 71.53 bcat*coverm 0 71.53 ; 
+*/
+	lsmeans yearnum bcat soil aspect / ilink cl;
+	output out=glmout resid=ehat;
+run;
+proc plot data=herbbyquadHELA; plot coverm*bcat; run;
+proc freq data=herbbyquadHELA; tables coverm*bcat; run; 
+*min-.16, max-95.32  23.79
+25%: 23.95, 50%: 47.74, 75%: 71.53;
+>>>>>>> origin/master
 
 proc glimmix data=herbbyquadLETE; 
 	class yearnum bcat soil ;  

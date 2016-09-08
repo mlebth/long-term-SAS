@@ -38,6 +38,7 @@ proc sort data=sumstems1; by sumcount n;
 
 * work only top 5 species;
 data fivesp; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='LETEx'); 
+*data fivesp; set herb1x; if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4');
 * proc print data=fivesp (firstobs=1 obs=10); title 'fivesp'; run; * n = 2908;
 *********includes all vars for 5 species; 
 
@@ -130,6 +131,7 @@ proc iml;
 use fivesp3; read all into matin;  * print matin;
 nrowsmatin = nrow(matin); * print nrowsmatin; 
 nplots = 54;
+*nplots = 47;
 nquadsperplot = 10; 
 nspecies = 5;
 nyrs = 5;  * assumes we will treat pre-fire as a single year;
@@ -251,6 +253,7 @@ use foriml2; read all into matcountquad1;  * print matcountquad1;
 nrowsmatcountquad1 = nrow(matcountquad1);  *print nrowsmatcountquad1; 
 
 nplots = 54;
+*nplots = 47;
 nquadsperplot = 10; 
 nspecies = 5;
 nyrs = 5;
