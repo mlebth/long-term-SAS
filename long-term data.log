@@ -1,0 +1,1269 @@
+1                                         The SAS System            11:25 Thursday, April 10, 2014
+
+NOTE: Copyright (c) 2002-2010 by SAS Institute Inc., Cary, NC, USA. 
+NOTE: SAS (r) Proprietary Software 9.3 (TS1M0) 
+      Licensed to UNIVERSITY OF TEXAS SYSTEM - SFA T&R, Site 70024340.
+NOTE: This session is executing on the W32_7PRO  platform.
+
+
+
+NOTE: SAS initialization used:
+      real time           0.45 seconds
+      cpu time            0.12 seconds
+      
+1          
+2          OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
+3          
+4          /*when processes get too slow, run this and RERUN ALL OF HIST to free up memory*/
+5          proc datasets library=work kill;
+                                            Directory
+
+    Libref         WORK                                                                       
+    Engine         V9                                                                         
+    Physical Name  C:\Users\Labadmin\AppData\Local\Temp\SAS Temporary Files\_TD3896_SBS811436_
+    Filename       C:\Users\Labadmin\AppData\Local\Temp\SAS Temporary Files\_TD3896_SBS811436_
+WARNING: No matching members in directory.
+6          run;
+
+7          
+
+NOTE: PROCEDURE DATASETS used (Total process time):
+      real time           0.04 seconds
+      cpu time            0.03 seconds
+      
+
+8          proc import datafile="F:\Excel Files\2013 Raw data\final data\plothistory.csv"
+9          out=hist
+10         dbms=csv replace;
+11         getnames=yes;
+12         run;
+
+ERROR: Physical file does not exist, F:\Excel Files\2013 Raw data\final data\plothistory.csv. 
+ERROR: Import unsuccessful.  See SAS Log for details.
+NOTE: PROCEDURE IMPORT used (Total process time):
+      real time           0.05 seconds
+      cpu time            0.04 seconds
+      
+
+13         /*proc contents data=hist; title 'hist'; run;
+14         proc print data=hist; run;  * N = 44; */
+15         * plot history data in this file;
+16         * variables:
+17            burnsev (s, l, m, h) = wildfire severity
+18            hydr (n, l, h) = hydromulch [needs completing]
+19            yrrx = year of last prescribed burn
+20            plot = fmh plot #;
+2                                         The SAS System            11:25 Thursday, April 10, 2014
+
+21         data hist2; set hist;
+ERROR: File WORK.HIST.DATA does not exist.
+22            if yrrx = 9999 then yrrx = .;
+23            yrsincerx = 2013 - yrrx;
+24            if (yrsincerx = .) then yrcat = 'nev';
+25            if (yrsincerx = 2| yrsincerx = 5 | yrsincerx = 6) then yrcat = 'rec';
+26            if (yrsincerx = 8 | yrsincerx = 10) then yrcat = 'old';
+27            * makes new set of treatment names with natural ordering for graphs and constrasts;
+28            if burnsev = 's' then burn = 1;
+29            if burnsev = 'l' then burn = 2;
+30            if burnsev = 'm' then burn = 3;
+31            if burnsev = 'h' then burn = 4;
+32            * poolingA - scorch, light, moderate;
+33            if (burnsev = 'h') then bcat1 = 'B';
+34            if (burnsev = 'm' | burnsev = 'l' | burnsev = 's') then bcat1 = 'A';
+35            * poolingB - combine scorch + light;
+36            if (burnsev = 'h') then bcat2 = 'C';
+37            if (burnsev = 'm') then bcat2 = 'B';
+38            if (burnsev = 's' | burnsev = 'l') then bcat2 = 'A';
+39         run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: SAS set option OBS=0 and will continue to check statements. 
+      This might cause NOTE: No observations in data set.
+WARNING: The data set WORK.HIST2 may be incomplete.  When this step was stopped there were 0 
+         observations and 7 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+
+40         
+41         proc sort data=hist2; by plot burn; run;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+42         
+43         
+44         *--------------------------------------- 2014
+44       ! -----------------------------------------------------;
+45         /*FUELS data were only collected in 1999.
+46         
+47         proc import datafile="g:\Excel Files\FFI long-term data\duff-1999.csv"
+48         out=duff
+49         dbms=csv replace;
+50         getnames=yes;
+51         run;
+52         
+53         proc import datafile="g:\Excel Files\FFI long-term data\1000hrfuels-1999.csv"
+3                                         The SAS System            11:25 Thursday, April 10, 2014
+
+54         out=cwd
+55         dbms=csv replace;
+56         getnames=yes;
+57         run;
+58         
+59         proc import datafile="g:\Excel Files\FFI long-term data\finefuels-1999.csv"
+60         out=finefuels
+61         dbms=csv replace;
+62         getnames=yes;
+63         run;
+64         
+65         From FMH handbook--'Ocular estimates of cover for plant species on a macroplot'
+66         Collected on about 13 plots, 2010-2013. no more than 5-6 spp recorded per plot, and no
+66       ! cover recorded.
+67         Also entered for 2002, 2003, 2005, 2006, but completely blank.
+68         proc import datafile="g:\Excel Files\FFI long-term data\cover-speciescomp-allyrs.csv"
+69         out=spcomp
+70         dbms=csv replace;
+71         getnames=yes;
+72         run;
+73         
+74         Done in 2011, one plot in 2008. Data for 2012 included but blank--maybe a mistake?
+75         proc import datafile="g:\Excel Files\FFI long-term data\postburnsev-allyrs.csv"
+76         out=postsev
+77         dbms=csv replace;
+78         getnames=yes;
+79         run;
+80         */
+81         
+82         *NOTE FOR ALL: Count subspecies as separate species or lump together? Also: there are
+82       ! species in the database that are taxonomically something different now, should be
+82       ! corrected for consistency;
+83         
+84         *---------------------------------------trees-----------------------------------------;
+85         *seedlings/resprouts;
+
+
+NOTE: PROCEDURE IMPORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+86         proc import datafile="f:\Excel Files\FFI long-term data\seedlings-allyrs.csv"
+87         out=seedlings
+88         dbms=csv replace;
+
+89         getnames=yes;
+           ________
+           180
+
+ERROR 180-322: Statement is not valid or it is used out of proper order.
+
+90         run;
+91         
+4                                         The SAS System            11:25 Thursday, April 10, 2014
+
+92         /*proc print data=seedlings; title 'seedlings'; run;*/
+93         
+94         *cleanup;
+95         data seedlings1;
+96         	set seedlings;
+ERROR: File WORK.SEEDLINGS.DATA does not exist.
+97         	if Species_Symbol='' then delete;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.SEEDLINGS1 may be incomplete.  When this step was stopped there were 0 
+         observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+
+98         data seedlings2 (rename=(MacroPlot_Name=plot) rename=(Species_Symbol=sspp)
+98       ! rename=(SizeClHt=shgt) rename=(Count=snum));
+99         	set seedlings1;
+
+WARNING: The variable MacroPlot_Name in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable SizeClHt in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Count in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.SEEDLINGS2 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+100        data seedlings3 (keep=plot sspp shgt snum Date);
+101        	set seedlings2;
+102        run;
+
+WARNING: The variable plot in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable shgt in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable snum in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Date in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.SEEDLINGS3 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+103        proc contents data=seedlings3; title 'seedlings3'; run;
+
+NOTE: PROCEDURE CONTENTS used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+NOTE: The PROCEDURE CONTENTS printed page 1.
+
+104        *variables
+5                                         The SAS System            11:25 Thursday, April 10, 2014
+
+105           plot = fmh plot #
+106           sspp = species code
+107           shgt = height class
+108           snum = number of seedlings or resprouts per height class. sdlngs here on out for
+108      ! simplicity.
+109           Date = date of plot visit;
+110        
+111        /*proc print data=seedlings3; run;  * N = 798 (798 sdlngs);*/
+112        proc freq data=seedlings3; tables sspp; run;
+
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+112      !                                              *CAAM is entered 2x and ILVO 9x, should
+112      ! both be in shrubs instead. UNTR1 = unknown tree;
+113        
+114        *merging with plot history;
+115        proc sort data=seedlings3; by plot;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+116        data seedlings4; merge hist2 seedlings3; by plot; run;
+
+NOTE: The data set WORK.SEEDLINGS4 has 0 observations and 8 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+117        /*proc print data=seedlings4; title 'seedlings merged with plot history'; run; * N =
+117      ! 799 b/c no seedlings observed in plot 1237; */
+118        
+119        * ---- plot-level information -----;
+120        proc sort data=seedlings4; by burn bcat1 bcat2 yrcat yrsincerx plot; run;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+121        proc means data=seedlings4 noprint n; by burn bcat1 bcat2 yrcat yrsincerx plot;
+ERROR: Variable PLOT not found.
+6                                         The SAS System            11:25 Thursday, April 10, 2014
+
+122          var snum;
+ERROR: Variable SNUM not found.
+123          output out=seedlings5 n = snumhgt
+124          						sum = sumseedlings;
+125        * snumhgt = number of sdlngs/height class/plot
+126          sumseedlings = # of all sdlngs in the plot;
+127        
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.SEEDLINGS5 may be incomplete.  When this step was stopped there were 0 
+         observations and 0 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+
+128        proc print data=seedlings5; title 'seedling5'; run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+128      !                                                     *n=51 (plot 1226 was never
+128      ! visited--record wasn't counted);
+129        
+130        proc univariate data=seedlings5 normal plot; title 'seedlings5';
+131        	var sumseedlings;
+ERROR: Variable SUMSEEDLINGS not found.
+132        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE UNIVARIATE used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+133        *N = 50 (no seedlings in one plot), skewness = 2.0180, kurtosis = 4.9477. Shapiro-Wilk:
+133      !  W=0.8021, p < 0.0001;
+134        
+135        
+136        
+137        
+138        
+139        
+140        
+141        
+142        
+143        
+144        
+
+
+NOTE: PROCEDURE IMPORT used (Total process time):
+7                                         The SAS System            11:25 Thursday, April 10, 2014
+
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+145        proc import datafile="f:\Excel Files\FFI long-term data\saplings-allyrs.csv"
+146        out=saplings
+147        dbms=csv replace;
+
+148        getnames=yes;
+           ________
+           180
+
+ERROR 180-322: Statement is not valid or it is used out of proper order.
+
+149        run;
+150        /*proc print data=saplings; title 'saplings'; run;*/
+151        
+152        *cleanup;
+153        data saplings1;
+154        	set saplings;
+ERROR: File WORK.SAPLINGS.DATA does not exist.
+155        	if Species_Symbol='' then delete;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.SAPLINGS1 may be incomplete.  When this step was stopped there were 0 
+         observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+156        data saplings2 (rename=(MacroPlot_Name=plot) rename=(Species_Symbol=pspp)
+156      ! rename=(Status=stat) rename=(SizeClDia=pdia) rename=(Count=pnum) rename=(Avght=phgt));
+157        	set saplings1;
+
+WARNING: The variable MacroPlot_Name in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Status in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable SizeClDia in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Count in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Avght in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.SAPLINGS2 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+158        data saplings3 (keep=plot pspp stat pdia pnum phgt Date);
+159        	set saplings2;
+160        run;
+
+WARNING: The variable plot in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable stat in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable pdia in the DROP, KEEP, or RENAME list has never been referenced.
+8                                         The SAS System            11:25 Thursday, April 10, 2014
+
+WARNING: The variable pnum in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable phgt in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Date in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.SAPLINGS3 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+161        proc contents data=saplings3; title 'saplings3'; run;
+
+NOTE: PROCEDURE CONTENTS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+NOTE: The PROCEDURE CONTENTS printed page 2.
+
+162        *variables
+163           plot = fmh plot #
+164           pspp = species code
+165           pdia = DBH
+166           phgt = height class
+167           pnum = number of saplings per height class
+168           stat = status (L/D)
+169           Date = date of plot visit;
+170        
+171        /*proc print data=saplings3; run;  * N = 2135;*/
+172        proc freq data=saplings3; tables pspp; run;
+
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+173        	/* VAAR should be in shrubs, not trees.
+174        	PINU = unidentified Pinus spp.
+175        	QUER = unidentified Quercus spp.
+176        	SILA = gum bully */
+177        
+178        *merging with plot history;
+179        proc sort data=saplings3; by plot;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+180        data saplings4; merge hist2 saplings3; by plot; run;
+
+NOTE: The data set WORK.SAPLINGS4 has 0 observations and 8 variables.
+9                                         The SAS System            11:25 Thursday, April 10, 2014
+
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+181        /*proc print data=saplings4; title 'saplings merged with plot history'; run; * N =
+181      ! 2149--because there are 14 plots w/hist data but no sapling observations; */
+182        
+183        * ---- plot-level information -----;
+184        proc sort data=saplings4; by burn bcat1 bcat2 yrcat yrsincerx plot; run;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+185        proc means data=saplings4 noprint n; by burn bcat1 bcat2 yrcat yrsincerx plot;
+ERROR: Variable PLOT not found.
+186          var pnum;
+ERROR: Variable PNUM not found.
+187          output out=saplings5 n = pnum
+188          					   sum = sumsaplings;
+189        * pnum = number of saplings/plot
+190          sumsaplings = # of all saplings in the plot;
+191        
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.SAPLINGS5 may be incomplete.  When this step was stopped there were 0 
+         observations and 0 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+192        proc print data=saplings5; title 'saplings5'; run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+192      !                                                    *n=51 (no obs in plot 1209--record
+192      ! wasn't counted);
+193        
+194        proc univariate data=saplings5 normal plot; title 'saplings5';
+195        	var sumsaplings;
+ERROR: Variable SUMSAPLINGS not found.
+196        run;
+
+10                                        The SAS System            11:25 Thursday, April 10, 2014
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE UNIVARIATE used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+197        *N = 37 (only 37 plots with sapling obs.), skewness = 1.3873, kurtosis = 1.2449.
+197      ! Shapiro-Wilk: W=0.8337, p < 0.0001;
+198        
+199        
+200        
+201        
+202        
+203        
+204        
+205        
+206        
+207        
+208        
+209        
+210        
+211        
+212        
+213        
+214        
+215        
+216        
+217        
+218        
+
+
+NOTE: PROCEDURE IMPORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+219        proc import datafile="f:\Excel Files\FFI long-term data\maturetrees-allyrs.csv"
+220        out=overstory
+221        dbms=csv replace;
+
+222        getnames=yes;
+           ________
+           180
+
+ERROR 180-322: Statement is not valid or it is used out of proper order.
+
+223        run;
+224        /*proc print data=overstory; title 'overstory'; run;*/
+225        
+226        *cleanup;
+227        data overstory1;
+228        	set overstory;
+ERROR: File WORK.OVERSTORY.DATA does not exist.
+229        	if Species_Symbol='' then delete;
+
+11                                        The SAS System            11:25 Thursday, April 10, 2014
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.OVERSTORY1 may be incomplete.  When this step was stopped there were 0 
+         observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+230        data overstory2 (rename=(MacroPlot_Name=plot) rename=(Species_Symbol=ospp)
+230      ! rename=(Status=stat) rename=(CrwnRto=crwn) rename=(DBH=odbh) rename=(SubFrac=onum));
+231        	set overstory1;
+
+WARNING: The variable MacroPlot_Name in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Status in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable CrwnRto in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable DBH in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable SubFrac in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.OVERSTORY2 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+
+232        data overstory3 (keep=plot ospp stat crwn odbh onum Date);
+233        	set overstory2;
+234        run;
+
+WARNING: The variable plot in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable stat in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable crwn in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable odbh in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable onum in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Date in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.OVERSTORY3 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+235        proc contents data=overstory3; title 'overstory3'; run;
+
+NOTE: PROCEDURE CONTENTS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+NOTE: The PROCEDURE CONTENTS printed page 3.
+
+236        *variables
+237           plot = fmh plot #
+238           ospp = species code
+239           crwn = crown dominance class
+240           odbh = DBH
+12                                        The SAS System            11:25 Thursday, April 10, 2014
+
+241           onum = count variable
+242           stat = status (L/D)
+243           Date = date of plot visit;
+244        
+245        /*proc print data=overstory3; run;  * N = 6236;*/
+246        proc freq data=overstory3; tables ospp; run;
+
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+247        	/* JUVA = Juncus validus--this is a graminoid, def shouldn't be here. maybe they meant
+247      !  JUVI??
+248        	QUDR = Quercus drummondii. Synonym for QUMA.
+249        	PINU = unidentified Pinus spp.
+250        	QUER = unidentified Quercus spp.
+251        	UNKN = unknown */
+252        
+253        *merging with plot history;
+254        proc sort data=overstory3; by plot;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+255        data overstory4; merge hist2 overstory3; by plot; run;
+
+NOTE: The data set WORK.OVERSTORY4 has 0 observations and 8 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+256        /*proc print data=overstory4; title 'overstory merged with plot history'; run; * N =
+256      ! 6236; */
+257        
+258        * ---- plot-level information -----;
+259        proc sort data=overstory4; by burn bcat1 bcat2 yrcat yrsincerx plot; run;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+260        proc means data=overstory4 noprint n; by burn bcat1 bcat2 yrcat yrsincerx plot;
+13                                        The SAS System            11:25 Thursday, April 10, 2014
+
+ERROR: Variable PLOT not found.
+261          var onum;
+ERROR: Variable ONUM not found.
+262          output out=overstory5 n = onum
+263          					   sum = sumtrees;
+264        * pnum = number of trees/plot
+265          sumtrees = # of all trees in the plot;
+266        
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.OVERSTORY5 may be incomplete.  When this step was stopped there were 0 
+         observations and 0 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+267        proc print data=overstory5; title 'overstory5'; run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+267      !                                                      *n=52;
+268        
+269        proc univariate data=overstory5 normal plot; title 'overstory5';
+270        	var sumtrees;
+ERROR: Variable SUMTREES not found.
+271        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE UNIVARIATE used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+272        *N = 52, skewness = 0.2806, kurtosis = -1.0372. Shapiro-Wilk: W=0.9431, p = 0.0151;
+273        
+274        
+275        
+276        
+277        
+278        
+279        
+280        
+281        
+282        
+283        
+284        *-------------------------------------herbaceous---------------------------------------
+284      ! --;
+
+
+14                                        The SAS System            11:25 Thursday, April 10, 2014
+
+NOTE: PROCEDURE IMPORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+285        proc import datafile="f:\Excel Files\FFI long-term data\density-quadrats-allyrs.csv"
+286        out=herbs
+287        dbms=csv replace;
+
+288        getnames=yes;
+           ________
+           180
+
+ERROR 180-322: Statement is not valid or it is used out of proper order.
+
+289        run;
+290        /*proc print data=herbs; title 'herbs'; run;*/
+291        
+292        *cleanup;
+293        data herbs1;
+294        	set herbs;
+ERROR: File WORK.HERBS.DATA does not exist.
+295        	if Species_Symbol='' then delete;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.HERBS1 may be incomplete.  When this step was stopped there were 0 
+         observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+296        data herbs2 (rename=(MacroPlot_Name=plot) rename=(Species_Symbol=hspp)
+296      ! rename=(Status=stat) rename=(Count=hnum));
+297        	set herbs1;
+
+WARNING: The variable MacroPlot_Name in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Status in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Count in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.HERBS2 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+298        data herbs3 (keep=plot hspp stat hnum Date);
+299        	set herbs2;
+300        run;
+
+WARNING: The variable plot in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable stat in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable hnum in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Date in the DROP, KEEP, or RENAME list has never been referenced.
+15                                        The SAS System            11:25 Thursday, April 10, 2014
+
+NOTE: The data set WORK.HERBS3 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+301        proc contents data=herbs3; title 'herbs3'; run;
+
+NOTE: PROCEDURE CONTENTS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+NOTE: The PROCEDURE CONTENTS printed page 4.
+
+302        *variables
+303           plot = fmh plot #
+304           hspp = species code
+305           hnum = count variable
+306           stat = status (L/D)
+307           Date = date of plot visit;
+308        
+309        /*proc print data=herbs3; run;  * N = 5081;*/
+310        proc freq data=herbs3; tables hspp; run;
+
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+311        	/* ACGR = Acacia farnesiana (tree), probably meant ACGR2 (Acalypha gracilens).
+312        	RUBUS should not be in here, it should be with shrubs.
+313        	SMILA2 (Smilax spp.) also should be with shrubs.
+314        	UNID1 = unidentified.
+315        	UNFL1 = unknown flower.
+316        	UNGR3 = unknown grass.
+317        	UNSE1 = unknown seedling. Shouldn't even be in here! */
+318        
+319        *merging with plot history;
+320        proc sort data=herbs3; by plot;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+321        data herbs4; merge hist2 herbs3; by plot; run;
+
+NOTE: The data set WORK.HERBS4 has 0 observations and 8 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+16                                        The SAS System            11:25 Thursday, April 10, 2014
+
+      cpu time            0.00 seconds
+      
+
+322        /*proc print data=herbs4; title 'herbs merged with plot history'; run; * N = 5081; */
+323        
+324        * ---- plot-level information -----;
+325        proc sort data=herbs4; by burn bcat1 bcat2 yrcat yrsincerx plot; run;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+326        proc means data=herbs4 noprint n; by burn bcat1 bcat2 yrcat yrsincerx plot;
+ERROR: Variable PLOT not found.
+327          var hnum;
+ERROR: Variable HNUM not found.
+328          output out=herbs5 n = hnum
+329          					   sum = sumherbs;
+330        * hnum = number of stems/plot
+331          sumherbs = # of all stems in the plot;
+332        
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.HERBS5 may be incomplete.  When this step was stopped there were 0 
+         observations and 0 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+
+333        proc print data=herbs5; title 'herbs5'; run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+333      !                                              *n=55;
+334        
+335        proc univariate data=herbs5 normal plot; title 'herbs5';
+336        	var sumherbs;
+ERROR: Variable SUMHERBS not found.
+337        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE UNIVARIATE used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+17                                        The SAS System            11:25 Thursday, April 10, 2014
+
+      
+338        *N = 55, skewness = 1.2252, kurtosis = 2.7804. Shapiro-Wilk: W=0.9204, p = 0.0014;
+339        
+340        
+341        
+342        
+343        
+344        
+345        
+346        
+347        
+348        
+349        
+350        
+351        
+352        *---------------------------------------shrubs-----------------------------------------
+352      ! --;
+
+
+NOTE: PROCEDURE IMPORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+353        proc import datafile="f:\Excel Files\FFI long-term data\density-belts-allyrs.csv"
+354        out=shrubs
+355        dbms=csv replace;
+
+356        getnames=yes;
+           ________
+           180
+
+ERROR 180-322: Statement is not valid or it is used out of proper order.
+
+357        run;
+358        /*proc print data=shrubs; title 'shrubs'; run;*/
+359        
+360        *cleanup;
+361        data shrubs1;
+362        	set shrubs;
+ERROR: File WORK.SHRUBS.DATA does not exist.
+363        	if Species_Symbol='' then delete;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.SHRUBS1 may be incomplete.  When this step was stopped there were 0 
+         observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+364        data shrubs2 (rename=(MacroPlot_Name=plot) rename=(Species_Symbol=shspp)
+364      ! rename=(Status=stat) rename=(AgeCl=agec) rename=(Count=shnum));
+18                                        The SAS System            11:25 Thursday, April 10, 2014
+
+365        	set shrubs1;
+
+WARNING: The variable MacroPlot_Name in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Status in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable AgeCl in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Count in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.SHRUBS2 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+
+366        data shrubs3 (keep=plot shspp stat agec shnum Date);
+367        	set shrubs2;
+368        run;
+
+WARNING: The variable plot in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable stat in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable agec in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable shnum in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Date in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.SHRUBS3 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+369        proc contents data=shrubs3; title 'shrubs3'; run;
+
+NOTE: PROCEDURE CONTENTS used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+NOTE: The PROCEDURE CONTENTS printed page 5.
+
+370        *variables
+371           plot = fmh plot #
+372           shspp = species code
+373           shnum = stem number
+374           agecl = age class (R(resprout)/I(immature)/M(mature))
+375           stat = status (L/D)
+376           Date = date of plot visit;
+377        
+378        /*proc print data=shrubs3; run;  * N = 685;*/
+379        proc freq data=shrubs3; tables shspp; run;
+
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+380        	* Trees (should not be included): CATE9 (Carya texana), JUVI, PITA, PRGL2 (Prosopis
+380      ! glandulosa), PTTR (Ptelea trifoliata), QUIN, QUMA3, QUNI, QUST, SILA2 (gum bully);
+19                                        The SAS System            11:25 Thursday, April 10, 2014
+
+381        
+382        *merging with plot history;
+383        proc sort data=shrubs3; by plot;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+384        data shrubs4; merge hist2 shrubs3; by plot; run;
+
+NOTE: The data set WORK.SHRUBS4 has 0 observations and 8 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+385        /*proc print data=shrubs4; title 'shrubs merged with plot history'; run; * N = 687; */
+386        
+387        * ---- plot-level information -----;
+388        proc sort data=shrubs4; by burn bcat1 bcat2 yrcat yrsincerx plot; run;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+389        proc means data=shrubs4 noprint n; by burn bcat1 bcat2 yrcat yrsincerx plot;
+ERROR: Variable PLOT not found.
+390          var shnum;
+ERROR: Variable SHNUM not found.
+391          output out=shrubs5 n = shnum
+392          					 sum = sumshrubs;
+393        * shnum = number of stems/plot
+394          sumshrubs = # of all stems in the plot;
+395        
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.SHRUBS5 may be incomplete.  When this step was stopped there were 0 
+         observations and 0 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.05 seconds
+      cpu time            0.01 seconds
+      
+
+
+396        proc print data=shrubs5; title 'shrubs5'; run;
+20                                        The SAS System            11:25 Thursday, April 10, 2014
+
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+396      !                                                *n=55. Note: 0 shrub observations in
+396      ! 1231, 1233;
+397        
+398        proc univariate data=shrubs5 normal plot; title 'shrubs5';
+399        	var sumshrubs;
+ERROR: Variable SUMSHRUBS not found.
+400        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE UNIVARIATE used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+401        *N = 53 (b/c 0 shrub observations in 1231, 1233), skewness = 1.8329, kurtosis = 3.0906.
+401      !  Shapiro-Wilk: W=0.7760, p < 0.0001;
+402        
+403        
+404        
+405        
+406        
+407        
+408        
+409        
+410        
+411        
+412        
+413        *following dataset is large, kill previous libraries
+414        *---------------------------------------point-intercept--------------------------------
+414      ! ------------;
+
+
+NOTE: PROCEDURE IMPORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+415        proc import datafile="f:\Excel Files\FFI long-term data\cover-points-allyrs.csv"
+416        out=point
+417        dbms=csv replace;
+
+418        getnames=yes;
+           ________
+           180
+
+ERROR 180-322: Statement is not valid or it is used out of proper order.
+
+419        run;
+420        /*proc print data=point; title 'point'; run;*/
+21                                        The SAS System            11:25 Thursday, April 10, 2014
+
+421        
+422        *cleanup;
+423        data point1;
+424        	set point;
+ERROR: File WORK.POINT.DATA does not exist.
+425        	if Species_Symbol='' then delete;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.POINT1 may be incomplete.  When this step was stopped there were 0 
+         observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+426        data point2 (rename=(MacroPlot_Name=plot) rename=(Species_Symbol=spp)
+426      ! rename=(Status=stat) rename=(Height=hgt));
+427        	set point1;
+
+WARNING: The variable MacroPlot_Name in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Status in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Height in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.POINT2 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+428        data point3 (keep=plot spp stat hgt Date Point Tape);
+429        	set point2;
+430        run;
+
+WARNING: The variable plot in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable stat in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable hgt in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Date in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Point in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable Tape in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: The data set WORK.POINT3 has 0 observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+431        proc contents data=point3; title 'point3'; run;
+
+NOTE: PROCEDURE CONTENTS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+NOTE: The PROCEDURE CONTENTS printed page 6.
+
+22                                        The SAS System            11:25 Thursday, April 10, 2014
+
+432        *variables
+433           plot = fmh plot #
+434           hspp = species code
+435           hnum = count variable
+436           stat = status (L/D)
+437           Date = date of plot visit;
+438        
+439        /*proc print data=point3; run;  * N = 5081;*/
+440        proc freq data=point3; tables hspp; run;
+ERROR: Variable HSPP not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+441        	/* ACGR = Acacia farnesiana (tree), probably meant ACGR2 (Acalypha gracilens).
+442        	RUBUS should not be in here, it should be with shrubs.
+443        	SMILA2 (Smilax spp.) also should be with shrubs.
+444        	UNID1 = unidentified.
+445        	UNFL1 = unknown flower.
+446        	UNGR3 = unknown grass.
+447        	UNSE1 = unknown seedling. Shouldn't even be in here! */
+448        
+449        *merging with plot history;
+
+
+450        proc sort data=point3; by plot;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+451        data point4; merge hist2 point3; by plot; run;
+
+NOTE: The data set WORK.POINT4 has 0 observations and 8 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+452        /*proc print data=point4; title 'point intercept merged with plot history'; run; * N =
+452      ! 5081; */
+453        
+454        * ---- plot-level information -----;
+455        proc sort data=point4; by burn bcat1 bcat2 yrcat yrsincerx plot; run;
+ERROR: Variable PLOT not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+23                                        The SAS System            11:25 Thursday, April 10, 2014
+
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+456        proc means data=point4 noprint n; by burn bcat1 bcat2 yrcat yrsincerx plot;
+ERROR: Variable PLOT not found.
+457          var hnum;
+ERROR: Variable HNUM not found.
+458          output out=point5 n = hnum
+459          					   sum = sumherbs;
+460        * hnum = number of stems/plot
+461          sumherbs = # of all stems in the plot;
+462        
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.POINT5 may be incomplete.  When this step was stopped there were 0 
+         observations and 0 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+463        proc print data=point5; title 'point5'; run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+463      !                                              *n=55;
+464        
+465        proc univariate data=point5 normal plot; title 'point5';
+466        	var sumherbs;
+ERROR: Variable SUMHERBS not found.
+467        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE UNIVARIATE used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+468        *N = 55, skewness = 1.2252, kurtosis = 2.7804. Shapiro-Wilk: W=0.9204, p = 0.0014;
+469        
+
+
+ERROR: Errors printed on pages 1,2,3,4,5,6,7,8,9,10,12,13,14,15,16,17,19,20,21,22,23.
+
+NOTE: SAS Institute Inc., SAS Campus Drive, Cary, NC USA 27513-2414
+NOTE: The SAS System used:
+      real time           3.24 seconds
+24                                        The SAS System            11:25 Thursday, April 10, 2014
+
+      cpu time            0.54 seconds
+      

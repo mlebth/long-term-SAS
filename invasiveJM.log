@@ -1,0 +1,349 @@
+1                                                          The SAS System                               12:08 Monday, April 28, 2014
+
+NOTE: Unable to open SASUSER.REGSTRY. WORK.REGSTRY will be opened instead.
+NOTE: All registry changes will be lost at the end of the session.
+
+WARNING: Unable to copy SASUSER registry to WORK registry. Because of this, you will not see registry customizations during this 
+         session.
+NOTE: Unable to open SASUSER.PROFILE. WORK.PROFILE will be opened instead.
+NOTE: All profile changes will be lost at the end of the session.
+NOTE: Copyright (c) 2002-2010 by SAS Institute Inc., Cary, NC, USA. 
+NOTE: SAS (r) Proprietary Software 9.3 (TS1M0) 
+      Licensed to UNIVERSITY OF TEXAS SYSTEM - SFA T&R, Site 70024340.
+NOTE: This session is executing on the W32_7PRO  platform.
+
+
+
+NOTE: SAS initialization used:
+      real time           0.89 seconds
+      cpu time            0.24 seconds
+      
+1          * invasiveJM.sas;
+2          PROC IMPORT OUT= WORK.DAThbf
+3            DATAFILE= "C:\myfiles\students - my current students\Jessica Menchaca\MenchacaData
+3        ! 7-7-2013.xlsx"
+4            DBMS=EXCEL REPLACE;
+4        !                       RANGE="hbf$"; GETNAMES=no;
+5            MIXED=yes; SCANTEXT=YES; SCANTIME=YES;
+6          RUN;
+
+ERROR: Unable to open file C:\myfiles\students - my current students\Jessica 
+       Menchaca\MenchacaData 7-7-2013.xlsx. It does not  exist or it is already opened 
+       exclusively by another user, or you need permission to view its data.
+NOTE: PROCEDURE IMPORT used (Total process time):
+      real time           0.46 seconds
+      cpu time            0.04 seconds
+      
+
+6        !       * N = 34;
+7          
+8          * proc print data=dathbf; title 'dathbf';
+9          run;
+10         * 16 columns = 1 col var names, 15 cols plots, 34 rows = vars;
+11         * char vars: 1 date, 2 site, 3 habitat, 9 slopface, 15 soildescrip, 33 distrb, 34 notes
+11       ! ;
+12         * num vars: 4 plotid, 5 lat, 6 long, 7 elev, 8 distostrt, 10 soil1, 11 soil2, 12 soil3,
+12       !  13 soil4,
+13                     14 soil5, 16 wtrpres, 17 distowtr, 18 ardo, 19 boiss, 20 coes, 21 cyda, 22
+13       ! laca, 23 lase,
+14                     24 raru, 25 soha, 26 lyja, 27 lilu, 28 nado, 29 phse, 30 meaz, 31 trsf, 32
+14       ! alju;
+15         * mixed vars: 10 soil1, 11 soil2, 12 soil3, 13 soil4, 14 soil5;
+16         
+17         * drop two variables;
+18         data datred; set dathbf; if (F1 NE 'soildescrip' & F1 NE 'notes');  * N = 32;
+ERROR: File WORK.DATHBF.DATA does not exist.
+2                                         The SAS System              12:08 Monday, April 28, 2014
+
+19         * transpose the data set;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: SAS set option OBS=0 and will continue to check statements. 
+      This might cause NOTE: No observations in data set.
+WARNING: The data set WORK.DATRED may be incomplete.  When this step was stopped there were 0 
+         observations and 1 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+
+
+20         proc transpose data=datred out=dattrans; var F1-F16;
+ERROR: Variable F16 not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.DATTRANS may be incomplete.  When this step was stopped there were 0 
+         observations and 0 variables.
+NOTE: PROCEDURE TRANSPOSE used (Total process time):
+      real time           0.03 seconds
+      cpu time            0.01 seconds
+      
+
+
+21         proc print data=dattrans; title 'dattrans';
+22         run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.14 seconds
+      cpu time            0.04 seconds
+      
+
+22       !       * N = 16;
+23         
+24         data datfix; set dattrans;
+25           if (_name_ NE 'F1');  * drop first row;
+26           * rename the variables;
+27           if _name_ = 'F2'  then plotid = 'plot01';  if _name_ = 'F3'  then plotid = 'plot02';
+28           if _name_ = 'F4'  then plotid = 'plot03';  if _name_ = 'F5'  then plotid = 'plot04';
+29           if _name_ = 'F6'  then plotid = 'plot05';  if _name_ = 'F7'  then plotid = 'plot06';
+30           if _name_ = 'F8'  then plotid = 'plot07';  if _name_ = 'F9'  then plotid = 'plot08';
+31           if _name_ = 'F10' then plotid = 'plot09';  if _name_ = 'F11' then plotid = 'plot10';
+32           if _name_ = 'F12' then plotid = 'plot11';  if _name_ = 'F13' then plotid = 'plot12';
+33           if _name_ = 'F14' then plotid = 'plot13';  if _name_ = 'F15' then plotid = 'plot14';
+34           if _name_ = 'F16' then plotid = 'plot15';
+35           date = col1; site = col2; habitat = col3; lat = col5+0; long = col6+0; elev = col7+0;
+36           distostrt = col8+0; slopface = col9; soil1 = col10; soil2 = col11; soil3 = col12;
+37           soil4 = col13; soil5 = col14; wtrpres = col15;  distowtr = col16+0; distrb = col32;
+38           ardo = col17+0; bois = col18+0; coes = col19+0; cyda = col20+0; laca = col21+0;
+39           lase = col22+0; raru = col23+0; soha = col24+0; lyja = col25+0; lilu = col26+0;
+40           nado = col27+0; phse = col28+0; meaz = col29+0; trsf = col30+0; alju = col31+0;
+41           * do some cleanup of soil, create new variables s1-s5;  * . means missing number;
+3                                         The SAS System              12:08 Monday, April 28, 2014
+
+42           if (soil1 = 'unable to measure') then s1 = .; else s1=soil1 + 0;
+43           if (soil2 = 'unable to measure') then s2 = .; else s2=soil2 + 0;
+44           if (soil3 = 'unable to measure') then s3 = .; else s3=soil3 + 0;
+45           if (soil4 = 'unable to measure') then s4 = .; else s4=soil4 + 0;
+46           if (soil5 = 'unable to measure') then s5 = .; else s5=soil5 + 0;
+47           avgdepth = (s1 + s2 + s3 +s4 + s5)/5;  * averages soil depths;
+48           if (avgdepth GE 7) then soilcat = 'd'; if (avgdepth < 7) then soilcat = 's'; *
+48       ! categories of soiil depth;
+49           * cleanup of other vars;
+50           transectdist = distostrt + 0;   * adding 0 can convert character to numeric;
+51           if (distrb =  'none' & site = 'hbf') then disturb = 'no';
+52           if (distrb NE 'none' & site = 'hbf') then disturb = 'pm'; * partly mowed;
+53           keep plotid date site habitat lat long elev disturb avgdepth soilcat
+54              wtrpres distowtr slopface transectdist
+55              ardo bois coes cyda laca lase raru soha lyja lilu
+56              nado phse meaz trsf alju;
+57         * proc print data=datfix; title 'datfix'; run;
+
+NOTE: Character values have been converted to numeric values at the places given by: 
+      (Line):(Column).
+      42:15   43:15   44:15   45:15   46:15   51:17   51:33   52:17   52:33   
+NOTE: The data set WORK.DATFIX has 0 observations and 29 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+58         
+59         proc means data=datfix sum noprint;
+60            var ardo bois coes cyda laca lase raru soha lyja lilu
+61              nado phse meaz trsf alju;
+62            output out = datout1 sum = ardo bois coes cyda laca lase raru soha lyja lilu
+63              nado phse meaz trsf alju;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.DATOUT1 may be incomplete.  When this step was stopped there were 0 
+         observations and 0 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+64         proc print data=datout1; title 'out1';
+65         run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+66         data datspprops; set datout1;
+67           nplots = 15;
+4                                         The SAS System              12:08 Monday, April 28, 2014
+
+68           fardo = ardo/nplots; fbois = bois/nplots; fcoes = coes/nplots;
+69           fcyda = cyda/nplots; flaca = laca/nplots; flase = lase/nplots;
+70           fraru = raru/nplots; fsoha = soha/nplots; flyja = lyja/nplots;
+71           flilu = lilu/nplots; fnado = nado/nplots; fphse = phse/nplots;
+72           fmeaz = meaz/nplots; ftrsf = trsf/nplots; falju = alju/nplots;
+73         run;
+
+NOTE: The data set WORK.DATSPPROPS has 0 observations and 31 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+74         proc print data=datspprops; run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+75         proc transpose data=datspprops out=forplot;
+76           var fardo fbois  fcoes
+77           fcyda flaca flase fraru fsoha flyja
+78           flilu fnado fphse fmeaz ftrsf falju;
+79         run;
+
+NOTE: There were 0 observations read from the data set WORK.DATSPPROPS.
+NOTE: The data set WORK.FORPLOT has 15 observations and 1 variables.
+NOTE: PROCEDURE TRANSPOSE used (Total process time):
+      real time           0.03 seconds
+      cpu time            0.01 seconds
+      
+
+80         data forplot2; set forplot;
+81           x = _n_; fsp = col1; xlabel = _name_;
+82           drop col1 _name_;
+
+NOTE: The data set WORK.FORPLOT2 has 0 observations and 3 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+83         proc print data=forplot2; run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+84         
+85         
+86         * --- categorical variables ----;
+5                                         The SAS System              12:08 Monday, April 28, 2014
+
+87         proc freq data=datfix;
+88            tables ardo bois coes cyda laca lase raru soha lyja lilu
+89              nado phse meaz trsf alju
+90            title 'species freqs';
+                    _______________
+                    22
+                    200
+ERROR: Variable TITLE not found.
+ERROR 22-322: Syntax error, expecting one of the following: a name, ;, (, *, -, /, :, _ALL_, 
+              _CHARACTER_, _CHAR_, _NUMERIC_.  
+ERROR 200-322: The symbol is not recognized and will be ignored.
+91         run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.06 seconds
+      cpu time            0.00 seconds
+      
+92         
+
+
+93         proc freq data=datfix; tables disturb habitat wtrpres
+94            disturb*habitat disturb*soha disturb*meaz habitat*meaz habitat*soha
+95            / expected fisher;
+96         title 'freqs';
+97         run;
+
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+98         * extra code wtrpres*habitat wtrpres*disturb wtrpres*soha wtrpres*meaz;
+99         proc freq data=datfix; tables disturb habitat wtrpres
+100           soilcat*habitat soilcat*disturb soilcat*meaz soilcat*soha
+101           / expected fisher;
+102        title 'freqs';
+103        run;
+
+NOTE: PROCEDURE FREQ used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+104        *---- continuous variables ------;
+105        proc means data=datfix noprint n mean stddev;
+106          var lat long elev avgdepth distowtr;
+107          output out=datout2 n=nlat nlong nelev navgdepth ndistowtr
+108                             mean = mlat mlong melev mavgdepth mdistowtr
+109                             stddev = slat slong selev savgdepth sdistowtr;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.DATOUT2 may be incomplete.  When this step was stopped there were 0 
+6                                         The SAS System              12:08 Monday, April 28, 2014
+
+         observations and 0 variables.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+
+
+110        proc print data=datout2; title 'datout2';
+111        run;
+
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+112        proc univariate data=datfix normal plot;
+113           var elev avgdepth distowtr;
+114           title 'proc univariate';
+115        run;
+
+NOTE: PROCEDURE UNIVARIATE used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+
+116        * compare continuous with categorical variable we might do this --------;
+117        proc sort data=datfix; by disturb;
+
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+118        proc means data=datfix mean; by disturb; var avgdepth;
+119        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+
+120        proc sort data=datfix; by habitat;
+
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+121        proc means data=datfix mean stderr; by habitat; var avgdepth;
+122        run;
+
+7                                         The SAS System              12:08 Monday, April 28, 2014
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+123        
+124        
+125        
+
+
+ERROR: Errors printed on pages 1,2,5.
+
+NOTE: SAS Institute Inc., SAS Campus Drive, Cary, NC USA 27513-2414
+NOTE: The SAS System used:
+      real time           1.99 seconds
+      cpu time            0.45 seconds
+      

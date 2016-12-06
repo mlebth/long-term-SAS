@@ -34,13 +34,13 @@ data sumstems1; set sumstems; drop _TYPE_ _FREQ_; RUN;
 proc sort data=sumstems1; by sumcount n;
 * proc print data=sumstems1; title 'sumstems';run;
 *********includes sspp, n, sumcount, meancount, mincount, maxcount; 
-*5 species w/ highest stem count: DILI2, DIOLx, HELA5, DISP2, POPR4;
+*5 grasses w/ highest stem count (after top 5 sp): LEDUx, SCSCx, ERSPx, PAPL3, DIAN4';
 */
 
-* work only top 5 species;
-data fivesp0; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='LETEx'); * n = 2908;
+* work species next 5 most common grasses;
+data fivesp0; set herb1x; 	if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4');
 proc sort data=fivesp0; by plot year; run;
-* proc print data=fivesp0 (firstobs=1000 obs=2000); title 'fivesp0'; run; 
+* proc print data=fivesp0 (firstobs=1 obs=100); title 'fivesp0'; run; * n = 788;
 *********includes all vars for 5 species; 
 
 *****plot dataset--blocked out after finding an error, redone below;
@@ -53,33 +53,33 @@ proc means data=plotid noprint mean; by plot; var dummy;
 * proc print data=plotid2; title 'plotid2'; run;
 data plotid3; set plotid2; plotnum = _n_; keep plot plotnum;
 * proc print data=plotid3; title 'plotid3';
-run; * n = 54, max = 55;
-*********includes plot and plotnum;
-*55 herbx plots, 54 fivesp0 plots. 
-missing plot 1224--herbs were counted once in 2006, none of these species appeared;
+run; 
+* n = 47 (fivesp0), max = 55 (herb1x)--missing plots 1186, 1210-1212, 1219, 1223, 1224, 1229;
 */
 
-*one missing plot: 1224 (surveyed in 2006, none of the 5 sp observed);
 *finding variable values for missing plot;
 /*
+*first make sure there are obs;
+proc sort data=herb1x; by plot year sspp; run;
 proc sql;
-	select sspp, count, year, plot, bcat, cover, soil, elev, slope, aspect, hydr
+	select plot, year, sspp
 	from herb1x
-	where plot = 1224;
+	where plot=1186 | plot = 1210 | plot = 1211 | plot = 1212 | plot = 1219
+ 	| plot = 1223 | plot = 1224 | plot = 1229;
 quit; run;
 */
-
 
 *vars in herb1x: sspp plot quad year bcat cover count soil elev slope aspect hydr;
 *getting just the variable values from herb1x to merge with fivesp0;
 *subset of herb1x with just the missing plots;
 data herb2x; set herb1x;
-	if (plot = 1224);
+	if (plot=1186 | plot = 1210 | plot = 1211 | plot = 1212 | plot = 1219
+ 		| plot = 1223 | plot = 1224 | plot = 1229);
 run;
-* proc print data=herb2x; title 'herb2x'; run; *n=3;
+* proc print data=herb2x; title 'herb2x'; run; *n=533;
 proc sort data=herb2x; by year plot;
 proc means data=herb2x noprint mean; by year plot; var bcat cover soil elev slope aspect hydr;
-  output out=herbnosp mean=bcat cover soil elev slope aspect hydr; run; *n=1;
+  output out=herbnosp mean=bcat cover soil elev slope aspect hydr; run; *n=15;
 data herbnosp2; set herbnosp; drop _TYPE_ _FREQ_; run;
 proc sort data=herbnosp2; by plot year bcat cover soil elev slope aspect hydr; run;
 * proc print data=herbnosp2; title 'herbnosp2'; run;
@@ -88,9 +88,9 @@ proc sort data=fivesp0; by plot year bcat cover soil elev slope aspect hydr; run
 data fivesp; merge fivesp0 herbnosp2; by plot year bcat cover soil elev slope aspect hydr;
 	if quad  = .  then quad = 1;
 	if count = .  then count = 0;
-	if sspp  = '' then sspp = 'LETEx';
+	if sspp  = '' then sspp = 'DIAN4';
 run;
-* proc print data=fivesp (firstobs=1 obs=100);  title 'fivesp'; run; *n=2909;
+* proc print data=fivesp (firstobs=1 obs=100);  title 'fivesp'; run; *n=803;
 
 * --- plot translation dataset--orig plot names to nums 1-55;
 data plotid; set fivesp; dummy = 1; keep plot dummy;
@@ -122,7 +122,7 @@ data fivesp2; merge step1 plotid3; by plot;
   if (year < 2012) then yearnum = 1;
   if (year > 2011) then yearnum = year - 2010;
 *** fivesp2 has all 17 variables, including eviro vars, plotnum, spnum, yearnum ********;
-run;  * N = 2908;
+run;  * N = 788;
 /*
 proc print data=fivesp2 (firstobs=1 obs=30);  title 'fivesp2'; *var quad plot plotnum;
 run;
@@ -151,23 +151,23 @@ run;  * N = 208;
 * ----- fix up counts for multiple obs in a single quad-sp-year;
 * the fix up for pre and post fire is different;
 proc sort data=fivesp2; by plotnum quad spnum yearnum;
-data prefire; set fivesp2; if yearnum = 1;  * n = 213;
-data postfire; set fivesp2; if yearnum > 1; * n = 2695;
+data prefire; set fivesp2; if yearnum = 1;  * n = 98;
+data postfire; set fivesp2; if yearnum > 1; * n = 690;
 run;
 *proc print data=postfire (firstobs=1 obs=30); title 'postfire'; run;
 
 * average multiple counts of same quad-sp-year in prefire years;
 proc means data=prefire mean noprint; by plotnum quad spnum yearnum;
   var count; output out=prefiremeans mean = count;
-*proc print data=prefiremeans; title 'prefiremeans'; run;  * n = 149; 
+*proc print data=prefiremeans; title 'prefiremeans'; run;  * n = 68; 
 
 * recombine to make one fixed data set of counts;
 data fivesp3; set prefiremeans postfire; 
-  keep plotnum quad spnum yearnum count; run;  * n = 2844;
+  keep plotnum quad spnum yearnum count; run;  * n = 758;
 
 *----- create numerical data set for iml, called fivesp3 -------------;
 proc sort data=fivesp3; by plotnum quad spnum yearnum;
-*proc print data=fivesp3 (firstobs=1 obs=30); title 'fivesp3'; run; *n=2844;
+*proc print data=fivesp3 (firstobs=1 obs=30); title 'fivesp3'; run; *n=758;
 *proc contents data=fivesp3; run;
 * order in fivesp3 is plotnum, quad, spnum, yearnum, count;
 
@@ -248,8 +248,8 @@ quit;
 run;
 
 * ----------output data row = plot-quad-sp-year ----------------;
-*proc print data=imlout1 (firstobs=1 obs=30); title 'imlout1'; run; *n=13500;
-*proc print data=imlout1 (firstobs=13400 obs=13500); title 'imlout1'; run; *n=13500;
+*proc print data=imlout1 (firstobs=1 obs=30); title 'imlout1'; run; *n=13750;
+*proc print data=imlout1 (firstobs=13400 obs=13500); title 'imlout1'; run; *n=13750;
 *proc contents data=imlout1; run;
 *rowid, plotnum, quad, spnum, yearnum, count;
 
@@ -265,7 +265,7 @@ data temp1; merge imlout1 splist2; by spnum; run;
 proc sort data=temp1; by rowid plotnum quad spnum yearnum;
 proc sort data=plotid3; by plotnum;
 data temp2; merge temp1 plotid3; by plotnum; run;
-*proc print data=temp2 (firstobs=9500 obs=10000); title 'temp2'; run;
+*proc print data=temp2 (firstobs=1 obs=100); title 'temp2'; run;
 
 * merge back in environmental vars;
 proc sort data=temp2; by plotnum;
@@ -295,6 +295,15 @@ data herbbyquad; merge herbbyquad1 plotcov2; by plotnum yearnum;
   if count=0 then pa=0; if count>0 then pa=1;
 run;
 *proc print data=herbbyquad (firstobs=100 obs=200); title 'herbbyquad'; run;
+*proc contents data=herbbyquad; run;
+
+/*
+proc export data=herbbyquad
+   outfile='E:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbbyquadLEDU.csv'
+   dbms=csv
+   replace;
+run;
+*/
 
 /*
 proc contents data=herbbyquad; run;
@@ -381,7 +390,7 @@ run;
 
 * proc print data=imlout2 (firstobs=1 obs=100); title 'imlout2'; run; *n=2700;
 * proc print data=imlout2 (firstobs=2601 obs=2700); title 'imlout2'; run;
-* proc contents data=imlout2; run; *rowid, plotnum, quad, spnum, counts1-5;
+* proc contents data=imlout2; run; *rowid, plotnum quad, spnum, counts1-5;
 
 *----- merge back into one data set -----------------;
 * merge back in species codes;
@@ -428,7 +437,7 @@ proc contents data=herbbyquad; run;
 
 /*
 proc export data=quadhistory
-   outfile='Desktop\work2a.csv'
+   outfile='E:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistoryLEDU.csv'
    dbms=csv
    replace;
 run;

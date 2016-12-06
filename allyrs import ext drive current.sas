@@ -28,7 +28,7 @@ out=spcomp dbms=csv replace; getnames=yes;run;
 
 *--------------------------------------- POST-BURN SEVERITY ASSESSMENT AND PLOT HISTORY -----------------------------------------------------;
 *Data were collected in all plots in 2011, and one plot in 2008. Data for 2012 included but blank.;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\postburnsev.csv"
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\postburnsev.csv"
 out=postsev dbms=csv replace; getnames=yes; run;  * N = 1227;
 /* proc print data = postsev; run;
 proc contents data = postsev; run;
@@ -107,7 +107,7 @@ proc contents data=postsev2x5; run;
 * Plot history: This comes from my own document, not FFI;
 * Includes hydromulch, rx burn history, and burn severity variables. Burn severity is only for plots 1227-5300--these are the new plots
 that were not included in the initial post-burn assessment. Qualitative assessment was done in summer 2012.;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothistory.csv"  
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothistory.csv"  
 out=hist dbms=csv replace; getnames=yes; 
 run;  * N = 56;
 /*proc contents data=hist; title 'plot history'; run;
@@ -117,7 +117,7 @@ proc print data=hist; run;  * N = 56; */
 * variables: 
    burnsev (u, s, l, m, h) = wildfire severity
    hydr (n, l, h) = post-wildfire (2012) hydromulch [n = none, l = light, h = heavy]
-   hydrn = 2012 hydromulch given numbers for iml [n = 0, l = 0, h = 2]--'l' category eliminated
+   hydrn = 2012 hydromulch given numbers for iml [n = 1, l = 2, h = 2] --combining light and heavy
    hyyr = year of hydromulch application. Variable added when more was applied in 2014.
 		NOTE that 2012 hydro was a different mix:
 		2012 (Triticale, Leptochloa dubia), 2014 (Schizachryium scoparium)
@@ -134,9 +134,9 @@ proc print data=hist; run;  * N = 56; */
                                                               
 *plot history cleanup;
 data hist2; set hist (rename=(aspect=oldaspect));
-   if hydr = 'n' then hydrn = 0;
-   if hydr = 'l' then hydrn = 0;
-   if hydr = 'h' then hydrn = 1;
+   if hydr = 'n' then hydrn = 1;
+   if hydr = 'l' then hydrn = 2;
+   if hydr = 'h' then hydrn = 2;
    drop soil1;
    soil = soil2;
    drop soil2;
@@ -218,20 +218,20 @@ data plothistx (drop=_TYPE_ _FREQ_); set plothist1;
 	if meansev = 5     then burnsev = 'u';
 	if meansev = 9 	   then delete;
 	* makes new set of treatment names with natural ordering for graphs and constrasts;
-    if burnsev = 'u' then burn = 0;
-    if burnsev = 's' then burn = 1;
-    if burnsev = 'l' then burn = 2;
-    if burnsev = 'm' then burn = 3;
-    if burnsev = 'h' then burn = 4;
+    if burnsev = 'u' then burn = 1;
+    if burnsev = 's' then burn = 2;
+    if burnsev = 'l' then burn = 3;
+    if burnsev = 'm' then burn = 4;
+    if burnsev = 'h' then burn = 5;
 	* poolingA - scorch, light, moderate;
-    if (burnsev = 'h' | burnsev = 'm') then bcat1 = 2;
-    if (burnsev = 'l' | burnsev = 's') then bcat1 = 1;
-    if (burnsev = 'u') then bcat1 = 0;
+    if (burnsev = 'h' | burnsev = 'm') then bcat = 3;
+    if (burnsev = 'l' | burnsev = 's') then bcat = 2;
+    if (burnsev = 'u') then bcat = 1;
     * poolingB - combine scorch + light;
-    if (burnsev = 'h') then bcat2 = 3;
-    if (burnsev = 'm') then bcat2 = 2;
-    if (burnsev = 's' | burnsev = 'l') then bcat2 = 1;	
-    if (burnsev = 'u') then bcat2 = 0;
+    if (burnsev = 'h') then bcat2 = 4;
+    if (burnsev = 'm') then bcat2 = 3;
+    if (burnsev = 's' | burnsev = 'l') then bcat2 = 2;	
+    if (burnsev = 'u') then bcat2 = 1;
 	*typecat for new plots--all forest;
 	if typecat = '' then typecat = 'f';
 run;
@@ -243,7 +243,7 @@ proc freq data=plothist; tables soileb*plot; run;
 
 *making a printout for EK;
 proc export data=plothist
-   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\plothist.csv'
+   outfile='E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plothist.csv'
    dbms=csv
    replace;
 run;
@@ -255,18 +255,23 @@ Burnsev for all other plots was calculated from veg and subs values in the post-
 
 *--------------------------------------- CANOPY COVER -----------------------------------------------------;
 /*proc import datafile="D:\FFI CSV files\CanopyCoverallyrs.csv"*/
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\cc.csv"
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\CanopyCover.csv"
 out=canopy dbms=csv replace; getnames=yes;
 run;  
 proc sort data = canopy; by plot year; run;	
-/* proc contents data = canopyx; title 'canopyx'; run; * N = 197;
-proc print data = canopyx; title 'canopyx'; run;  
+
+/* proc contents data = canopy; title 'canopy'; run; * N = 242;
+proc print data = canopy; title 'canopy'; run;  
 
 *Variables: 
 	plot
-	qu1a-qu1d, same for qu2-qu4 and ori: 4 measurements at each corner and at origin;
+	year
+	qua1-qua4, orig: 4 measurements at each corner and at origin;
+	covm: average canopy cover
 */
 
+/* 
+*removing this section; already incorporated in csv file (9-28-2015);
 * canopy cover calculations;
 data canopy2; set canopy;
 	*removing plots 1242 and 1244-1247. These plots are not in BSP;
@@ -288,19 +293,31 @@ data canopy2; set canopy;
 	*getting mean canopy cover per plot;
 	covm = ((cov1 + cov2 + cov3 + cov4 + orig)/5);
 run;
-data canopy3 (keep = year plot covm); set canopy2;
+*/
+
+data canopy3 (keep = year plot covm); set canopy;
 proc sort data=canopy3; by plot year; run;
-/* proc print data=canopy3; title 'plothist'; run; *N = 192; 
+/* proc print data=canopy3; title 'plothist'; run; *N = 242; 
 proc contents data=canopy3; run;*/
 
 *----------------------------------------- TREES --------------------------------------------------;
 *******SEEDLINGS (INCLUDES RESPROUTS AND FFI 'SEEDLINGS', DBH < 2.5);
 /*proc import datafile="D:\FFI CSV files\seedlings-allyrs.csv" */
 
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings-allyrs.csv"
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings-allyrs.csv"
 out=seedlings dbms=csv replace; getnames=yes;
-run;  * N = 1285;
+run;  * N = 1555;
 *proc print data=seedlings; title 'seedlings'; run;
+
+/* 
+*checking where seedlings were planted: 5300, 1236, 1222, 1188, 1235,
+	1221, 1237;
+proc sql;
+	select MacroPlot_Name
+	from seedlings
+    where Comment = 'p';
+quit;
+*/
 
 * cleanup;
 data seedlings1; set seedlings;
@@ -315,26 +332,29 @@ data dat2; set seedlings1;
 *proc print data=dat2; run;
 
 data seedlings2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp) 
-				 rename=(SizeClHt=heig) rename=(Count=coun));
-	set dat2;
-data seedlings3 (keep=plot year sspp heig coun subp); set seedlings2; run;
+				 rename=(SizeClHt=heig) rename=(Count=coun) rename=(Comment=pltd));
+	set dat2; 
+data seedlings3 (keep=plot year sspp heig coun subp pltd); set seedlings2; 
 proc sort data = seedlings3; by plot year; run;
+*proc print data=seedlings3; title 'seedlings3'; run;
+*proc contents data=seedlings3; run;
+
 
 *merging with canopy cover;
 data seedlings3x; merge seedlings3 canopy3; by plot year; 
-run;  *N=1079;
+run;  *N=1459;
 *merging with plothist;
 data seedlings3xx; merge seedlings3x plothist; by plot; run;
 proc sort data=seedlings3xx; by plot year;	run;
 /*
 proc print data=seedlings3xx; title 'seedlings3xx'; run;
-proc contents data=seedlings3xx; run;  * N = 1079;
+proc contents data=seedlings3xx; run;  * N = 1310;
 proc freq data=seedlings3xx; tables year*covm; run; 
 
 proc sql;
-	select plot, year, sspp, subp, covm, slope, elev
+	select plot, year, sspp, subp, covm
 	from seedlings3x
-	where covm = '.';
+	where covm eq .;
 quit;
 
 *variables:
@@ -352,17 +372,17 @@ XXXX = 10, meaning 10 observations of plots with no seedlings;
 *two sets, one with consistent trees, the other with inconsistent spp; 
 data seedlings4; set seedlings3xx;
 	if (sspp NE "CAAM2" & sspp NE "ILVOx");
-run; *N=1068;
+run; *N=1303;
 data seedlingprobspp; set seedlings3xx;
 	if (sspp  = "CAAM2" | sspp  = "ILVOx");
 	subp = 'seep';
 run; *N=11;
-/*proc contents data=seedlings4; title 'seedlings4' run;
+/*proc contents data=seedlings4; title 'seedlings4'; run;
 proc print data=seedlings4; title 'seedlings4'; run;
 proc print data=seedlingprobspp; title 'seedling prob spp'; run;
 
 proc sql;
-	select sspp, coun, plot	, date
+	select sspp, coun, plot, notes, date
 	from seedlings4
 	where sspp in ('PITA', 'QUMA', 'QUMA3', 'XXXX') and
 	 year eq '2014';
@@ -372,12 +392,28 @@ proc freq data=seedlings4; tables sspp*plot; title 'seedlings4'; run; * N = 1022
 proc freq data=seedlingprobspp; tables sspp; title 'seedlingprobspp'; run; * N = 11; 
 * all ilvo and caam are from 1999.;	 */
 
+/*
+proc sql;
+	select plot, bcat, sspp, coun
+	from seedlings4
+    where pltd = 'y';
+quit;
+*/
+
 ******POLE TREES (SAPLINGS, DBH >=2.5 and < 15.1);
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Saplings-allyrs.csv"
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Saplings-allyrs.csv"
 out=saplings dbms=csv replace; getnames=yes;
 run;
 /*proc print data=saplings; title 'saplings'; run; *N=2560;
 proc contents data=saplings; run; */
+
+/*
+proc sql;
+	select MacroPlot_Name, Date, Species_Symbol, Count
+	from saplings
+	where Species_Symbol eq 'XXXX';
+quit;
+*/
 
 *Variables:
 	Date, MacroPlot, Species_Symbol, 
@@ -390,15 +426,15 @@ data saplings1;	set saplings;
  	year = year(date);
 	subp = 'sapl';
 	if Status = 'D' then delete;
-	if Species_Symbol='' then delete;
+	if Species_Symbol='' then delete; 
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set saplings1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data saplings2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
-				rename=(SizeClDia=diam) rename=(AvgHt=heig));
+				rename=(SizeClDia=diam) rename=(AvgHt=heig) rename=(Count=coun));
 	set dat2;
-data saplings3 (keep=plot year sspp diam heig subp);
+data saplings3 (keep=plot year sspp diam heig subp coun);
 	set saplings2;
 run;
 proc sort data=saplings3; by plot year; run;
@@ -436,17 +472,17 @@ data saplingprobspp; set saplings4;
 	subp = 'sapp';
 run;
 
-/* proc freq data=saplings5; tables sspp; title 'saplings5'; run; * N = 2351;
+/* proc freq data=saplings5; tables sspp; title 'saplings5'; run; * N = 2445;
 proc print data=saplings5; run;
 proc freq data=saplingprobspp; tables sspp; title 'saplingprobspp'; run; * N = 3; 
 proc print data=saplingprobspp; run;*/
 
 ******OVERSTORY (MATURE TREES, DBH >= 15.1);
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\overstory-allyrs.csv"
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Overstory-allyrs.csv"
 out=overstory dbms=csv replace; getnames=yes;
 run;  
 
-/* proc print data=overstory; run; * N = 6817;
+/* proc print data=overstory; run; * N = 7159;
 proc contents data=overstory; run; */
 
 *Variables to use:
@@ -461,27 +497,28 @@ proc contents data=overstory; run; */
 data overstory1; set overstory;
 	if Status = 'D' then delete;
 	if Species_Symbol='' then delete; 
-	subp = 'tree';
+	subp = 'tree'; 
+	coun = .;
 	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
 data dat2; set overstory1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data overstory2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
 				 rename=(DBH=diam) rename=(CrwnRto=crwn));
-	set dat2;
-data overstory3 (keep=plot year sspp diam crwn subp);	
+	set dat2; run;
+data overstory3 (keep=plot year sspp diam crwn coun subp); set overstory2;	
 	year = year(date); 
-	if year = '.' then year = 1999;
-	set overstory2;
+	if year = '.' then year = 1999;	
 run;
-proc sort data=overstory3; by plot year; run;
+proc sort data=overstory3; by plot year; run;  *N=5278;
 *merging with canopy cover;
 data overstory3x; merge overstory3 canopy3; by plot year; 
-run;  *N=6571;
+run;  *N=5312;
 *merging with plothist;
 data overstory3xx; merge overstory3x plothist; by plot; run;
 proc sort data=overstory3xx; by plot year;	run;
-/*proc contents data=overstory3xx; title 'overstory3xx'; run;  * N = 6571;
+
+/*proc contents data=overstory3xx; title 'overstory3xx'; run;  * N =5316;
 proc print data=overstory3xx; title 'overstory3xx'; run;
 proc freq data=overstory3xx; tables sspp; run;  */
 
@@ -505,14 +542,14 @@ quit; */
 data overstory4; set overstory3xx;
 	if sspp = "PINUS" then sspp = "PITAx";
 run;
-/* proc freq data = overstory4; tables sspp; run;  *N = 6571; */
+/* proc freq data = overstory4; tables sspp; run;  *N = 5316; */
 
 *--------------------------------------- SHRUBS -----------------------------------------------------;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\shrubs-allyrs.csv"
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Shrubs-allyrs.csv"
 out=shrubs dbms=csv replace; getnames=yes;
 run; 
 
-/* proc print data=shrubs; run; * N = 1129;
+/* proc print data=shrubs; run; * N = 1373;
 proc contents data=shrubs; run;	*/
 
 *Variables to use:
@@ -526,27 +563,26 @@ data shrubs1; set shrubs;
 	if Species_Symbol='' then delete; 
 	if Status = 'D' then delete;
 	subp = 'shru';
-	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything;
+	char2 = trim(Species_Symbol)||'x'; * char2 has x's added to everything; run;
 data dat2; set shrubs1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data shrubs2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)	
 			  rename=(AgeCl=agec) rename=(Count=coun));
-	set dat2;
-data shrubs3 (keep=plot year sspp agec coun subp);
-	year = year(date);
+	set dat2; run;
+data shrubs3 (keep=plot year sspp agec coun subp); set shrubs2;
+	year = year(Date);
 	if year = '.' then year = 1999;
-	set shrubs2;
 run;
-proc sort data=shrubs3; by plot year; run; 
+proc sort data=shrubs3; by plot year; run; 	
 *merging with canopy cover;
 data shrubs3x; merge shrubs3 canopy3; by plot year; 
-run;  *N=932;
+run;  *N=1147;
 *merging with plothist;
 data shrubs3xx; merge shrubs3x plothist; by plot; run;
 proc sort data=shrubs3xx; by plot year;	run;
 
-/*proc contents data=shrubs3xx; title 'shrubs3xx'; run;  * N = 932;
+/*proc contents data=shrubs3xx; title 'shrubs3xx'; run;  * N = 1146;
 proc print data=shrubs3xx; title 'shrubs3xx'; run;
 proc freq data=shrubs3xx; tables sspp*coun; run; 	*/
 
@@ -581,7 +617,7 @@ data shrubsprobspp; set shrubs4;
 	subp = 'shrp';
 run;
 
-/* proc freq data=shrubs5; tables sspp; title 'shrubs5'; run; * N = 916;
+/* proc freq data=shrubs5; tables sspp; title 'shrubs5'; run; * N = 1130;
 proc print data=shrubs5; run;
 proc freq data=shrubsprobspp; tables sspp * year; title 'shrubsprobspp'; run; * N = 15;
 proc print data=shrubsprobspp; run;
@@ -601,9 +637,9 @@ SILA2: 5, 2002;
 /*proc print data=shrubs5; run; */
 
 *--------------------------------------- HERBACEOUS -----------------------------------------------------;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbaceous-allyrs.csv"
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbaceous-allyrs.csv"
 out=herbaceous dbms=csv replace; getnames=yes;
-run;  * N = 8674;
+run;  * N = 12878;
 
 /* proc print data=herbaceous; title 'herbaceous'; run;
 proc contents data=herbaceous; title 'herbaceous'; run;	*/
@@ -624,14 +660,13 @@ data dat2; set herb1;
 	char3 = char2; run;
 data herb2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp) rename=(Count=coun));
 	set dat2;
-data herb3 (keep=plot year sspp coun subp);
-	year = year(date);
-	set herb2;
+data herb3 (keep=plot year sspp coun subp);	set herb2;
+	year = year(date);	
 run;
 proc sort data = herb3; by plot year; run; 
 *merging with canopy cover;
 data herb3x; merge herb3 canopy3; by plot year; 
-run;  *N=8674;
+run;  *N=12872;
 *merging with plothist;
 data herb3xx; merge herb3x plothist; by plot; run;
 proc sort data=herb3xx; by plot year;	run;
@@ -651,10 +686,11 @@ RUBUS and SMILA2 are shrubs
 5 UNSE1	(Unknown seedling) (2003, plot 1195)
 1 XXXX -- 2005, plot 1203. Nothing in herbaceous quadrats.;
 
-/*proc sql;
-	select *
-	from herb2
-	where sspp eq 'XXXX';
+/*
+proc sql;
+	select plot, year, sspp
+	from herb3xx
+	where sspp eq 'LEMUx';
 quit;
 */
 
@@ -669,14 +705,14 @@ data herbprobspp; set herb4;
 	subp='herp';
 run;
 
-/* proc contents data=herb5; title 'herb5'; run;  * N = 8421;
+/* proc contents data=herb5; title 'herb5'; run;  * N = 12652;
 proc print data=herb5; run;
 proc freq data=herb5; tables sspp; run; 
 proc print data=herbprobspp; title 'herb prob spp'; run; *N = 4;*/
 	
 
 *--------------------------------------- POINT INTERCEPT -----------------------------------------------------;
-proc import datafile="g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\PointIntercept-allyrs.csv"
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\PointIntercept-allyrs.csv"
 out=transect dbms=csv replace; getnames=yes;
 run;  
 
@@ -701,10 +737,9 @@ data dat2; set trans1;
 data trans1x (rename=(MacroPlot_Name=plot) 
 			rename=(char3=sspp) rename=(Height=heig));
 	set dat2;
-data trans2 (keep=plot year sspp heig subp);
+data trans2 (keep=plot year sspp heig subp); set trans1x;
 	year = year(date);
-	if year = '.' then year = 1999;
-	set trans1x;
+	if year = '.' then year = 1999;	
 run;
 proc sort data = trans2; by plot year; run;	
 *merging with canopy cover;
@@ -723,16 +758,17 @@ data alld; set seedlings4 seedlingprobspp saplings5 saplingprobspp
 			   overstory4 shrubs5 shrubsprobspp herb5 herbprobspp trans3; 
 	*dropping all data from 1999. useless sfa data;
 	if year = 1999 then delete;
+	if (plot = 1242 | plot = 1244 |plot = 1245 |plot = 1246 |plot = 1247) then delete;
 	*splitting to into pre/post fire variable 'prpo';
 	if year < 2011  then prpo = 1;
    	if year >= 2011 then prpo = 2;
 	* 12 'missing' years that come from postburn severity metric, all come from 2011;
 	if year = '.' 	then year = 2011;
-run; *N = 59195;
+run; *N = 72763;
 proc sort data=alld; by plot year subp; run;
 
 /* proc contents data=alld; title 'all'; run;
-*Variables:			    #    Variable    Type    Len    Format     Informat
+*Variables:			   #    Variable    Type    Len    Format     Informat
 					  32    agec        Char      1    $1.        $1.
                       24    aspect      Num       8
                       28    bcat        Num       8
@@ -781,7 +817,7 @@ proc sql;
 	where sspp = 'CAAMx';
 quit; 
 
-PROC PRINTTO PRINT='g:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\alld.csv' NEW;
+PROC PRINTTO PRINT='E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\alld.csv' NEW;
 RUN; 
 */
 
@@ -792,73 +828,22 @@ data post; set alld; if year > 2010; run;
 data pre; set alld; if year < 2010; run;
 */
 
-****************putting seedlings and shrubs together to have pines, oaks, and ilex in the same set;
-data piquil; set alld;
-	if (subp = 'seed') | (subp = 'shrp') | (subp = 'shru') | (subp = 'seep');
-	keep aspect bcat coun covm elev heig hydrn plot slope soileb sspp subp year prpo; 
-run;  
-proc sort data=piquil; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo; run;
-proc means data=piquil noprint sum; by subp plot sspp year bcat covm coun heig soileb elev slope aspect hydrn prpo; var coun; 
-  output out=piquil2 sum=nperspp; run; *N=1753;
-/* proc print data=piquil2; title 'pi-qu-il numplantdata';   run;
-  var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
-* N = 442 species-plot-year combinations;
-* piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
-  nperspp = # of sdlngs/stems per species per plot/year;  */
 
-*reassigning nperspp to nquma3, nqumax, npitax, nilvox. This gives num per species where each species
-has its own variable for count;
-data holdquma3; set piquil2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'QUMA3'); nquma3 = nperspp; 
-	proc sort data=holdquma3; by plot bcat year; 
-data holdqumax; set piquil2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'QUMAx'); nqumax = nperspp;
-	proc sort data=holdqumax; by plot bcat year; 
-data holdpitax; set piquil2; if (subp = 'seed' | subp = 'shrp') & (sspp = 'PITAx'); npitax = nperspp; 
-	proc sort data=holdpitax; by plot bcat year; 
-data holdilvox; set piquil2; if (subp = 'seep' | subp = 'shru') & (sspp = 'ILVOx'); nilvox = nperspp; 
-run;
-/* proc print data=holdquma3; run; 	*N=231;
-   proc print data=holdqumax; run; 	*N=170;	
-   proc print data=holdpitax; run; 	*N=166;
-   proc print data=holdilvox; run; 	*N=207; */
-
-proc sort data=piquil2; by plot bcat year; run;
-*n(spp) is count, pa(spp) is presence/absence;
-data piquil3; merge holdquma3 holdqumax holdpitax holdilvox piquil2; by plot bcat year;
-  if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
-  if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
-  if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
-  if (nilvox = .) then nilvox=0; if (nilvox=0) then pailvox=0; if (nilvox ^= 0) then pailvox=1; 
-  drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
-run;
-
-/* proc print data=piquil3; title 'piquil'; run;  * N = 1753; 
-proc contents data = piquil3; run;
-proc freq data=piquil3; tables soileb*npitax; title 'piquil'; run;
-proc freq data=piquil3; tables soileb*npitax; title 'piquil'; run;
-
-*finding whether each is counted more than once
-proc sql;
-	select year, plot, sspp, subp
-	from piquil
-	where year eq 2002 and
-		  sspp = 'QUMA3';
-quit;
-*A: NO, they are not counted twice. Won't affect abundance.
-
-*/
-
-* relative abundance;
+/* *relative abundance;
 proc sort data=piquil2; by plot bcat prpo;
 proc means data=piquil2 noprint sum; by plot bcat prpo; var nperspp; 
 	output out=numperplot sum=nperplot;	run;
+*/
 /* proc print data=numperplot; title 'totals per plot'; var plot bcat prpo nperplot; run;    
 * N = 84 plot-prpo combinations;
 * numperplot contains: obs, plot, burn, prpo, nperplot
   nperplot = # of all sdlngs in the plot; */
-
+/*
 *merging to get both nperspp and nperplot in same dataset;
 proc sort data = numperplot; by plot bcat prpo;
 data numperplot2; merge piquil2 numperplot; by plot bcat prpo; run;
+*/
+
 /* proc print data = numperplot2; title 'numperplot2'; run;  
 *back to N=342;
 *numperplot2 contains: obs, plot, year, sspp, burn, prpo, nperspp, nperplot; */
@@ -894,8 +879,8 @@ proc freq data=relabund; tables sspp*burn; run;
 proc freq data=relabund; tables sspp*prpo; run;
 */
 
-/**--------------------------------demographic data;
-proc import datafile="G:\Research\Demography\demogdata3.csv"
+/**--------------------------------demographic data; 
+proc import datafile="E:\Research\FMH Raw Data, SAS, Tables\FFI long-term data\demogdata3.csv"
 out=demog dbms=csv replace;getnames=yes; run;  * N = 363;
 
 proc print data=demog; run;
