@@ -1,7 +1,5 @@
-OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
-
 /*
-proc import datafile="F:\grad student backup files\Emily Booth\Research\Excel Files\seedlings2.csv"
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings2.csv"
 out=seed
 dbms=csv replace; 
 getnames=yes;
@@ -24,7 +22,7 @@ proc print data=seed; run;  * N = 42;
 data seed; set seedlings4; keep bcat burnsev burn year heig hydrn coun plot sspp;  
 rename hydrn=hydromulch heig=hgt coun=num; run;
 * proc print data=seed; title 'seed'; run;
-*proc print data=seedlings4; run;
+*proc print data=seedlings4 (firstobs=1 obs=4); run;
 
 *---- # of obs of each plot -------------------;
 proc sort data=seed; by plot hydromulch burnsev;
@@ -46,7 +44,7 @@ proc means data=pita sum noprint; by plot burnsev burn bcat hydromulch;
  output out=pita2 sum = spitapre spita12 spita13 spita14 spita15;
 *proc print data=pita2; title 'pita2';  * N = 43 non-zero plots;
 run;
-*proc freq data=pita2; tables burnsev*hydromulch;
+*proc freq data=pita2; *tables burnsev*hydromulch;
 run;
 
 data quma; set seed; if sspp="QUMAx"; 
@@ -60,9 +58,22 @@ proc means data=quma sum noprint; by plot burnsev hydromulch;
  output out=quma2 sum = squmapre squma12 squma13 squma14 squma15;
 *proc print data=quma2; title 'quma2';  * N = 31 plots;
 run;
-*proc freq data=quma2; tables burnsev*hydromulch;
+*proc freq data=quma2; *tables burnsev*hydromulch;
 run;
 
+data quma3; set seed; if sspp="QUMA3"; 
+  if year<2011 then nquma3pre = num; if year=2012 then nquma312 = num; 
+  if year=2013 then nquma313 = num;  if year=2014 then nquma314 = num; 
+  if year=2015 then nquma315 = num;
+*proc print data=quma; title 'quma3';  * N = 19 obs;
+run;
+proc means data=quma3 sum noprint; by plot burnsev hydromulch; 
+ var nquma3pre nquma312 nquma313 nquma314 nquma315;
+ output out=quma32 sum = squma3pre squma312 squma313 squma314 squma315;
+*proc print data=quma32; title 'quma32';  * N = 30 plots;
+run;
+*proc freq data=quma2; *tables burnsev*hydromulch;
+run;
 /*
 *checking;
 data empty; set seed; if sspp="x";
@@ -71,9 +82,11 @@ proc print data=empty; title 'empty';
 run;	*0;
 */
 
-data datreorg; merge pita2 quma2; by plot;
-proc print data=datreorg; title 'datreorg';
+data datreorg; merge pita2 quma2 quma32; by plot;
+*proc print data=datreorg; title 'datreorg';
 run; *n=46;
+*proc freq data=datreorg; *tables burnsev*hydromulch;
+run;
 
 /*
 This is no longer relevant--EB changed it 12/6/16 for year-by-year counts,
@@ -93,52 +106,60 @@ data dattotn; set datreorg;
 run; *n=46;
 */
 
-* --- analyze only plots without mulch, no pooling----;
+* --- analyze only plots without mulch, burn is pooled----;
 data nomulch; set datreorg; if hydromulch = 1;  * N = 31;
 *proc print data=nomulch; title 'nomulch';
 run;
 
-* pita - genmod;
-proc genmod data=nomulch; class burnsev;
-  model spita12 = burnsev/ dist = negbin link=log type1 type3;
-run;
-* dispersion =  2.2050; 
-* burnsev  df=4, X2 = 9.85, P = 0.0430;  * df issues!;
-* quma - genmod;
-
-proc genmod data=nomulch; class burnsev;
-  model totquma = burnsev/ dist = negbin link=log type1 type3;
-run; * NS;
-
-* ---- analyze only plots without mulch, with pooling;
 data nomulchpool; set nomulch;
-  if (burnsev='u'|burnsev='s') then burn='L1';
-  if (burnsev='l') then burn='L2';
+  if (burnsev='u'|burnsev='s') then burn='1';
+  if (burnsev='l') then burn='2';
 *  if (burnsev='m'|burnsev='h') then burn='L3'; * not used;
-  if (burnsev='m') then burn='L3';
-  if (burnsev='h') then burn='L4';
+  if (burnsev='m') then burn='3';
+  if (burnsev='h') then burn='4';
 run;
 
 * pita - genmod;
-proc genmod data=nomulch; class burnsev;
-  model totpita = burn / dist = negbin link=log type1 type3;
+proc genmod data=nomulchpool; class burn;
+  *model spitapre = burn / dist = negbin link=log type1 type3;
+  *model spita13 = burn / dist = negbin link=log type1 type3;
+  *model spita14 = burn / dist = negbin link=log type1 type3;
+  model spita15 = burn / dist = negbin link=log type1 type3;
+  lsmeans burn / ilink cl;
 run;
 * dispersion =  2.7647;
 * burn df=3 X2 = 7.17  P = 0.0666;
 
+*quma
 proc genmod data=nomulchpool; class burn;
-  model totquma = burn/ dist = negbin link=log type1 type3;
+  *model squmapre = burn/ dist = negbin link=log type1 type3;
+  *model squma13 = burn/ dist = negbin link=log type1 type3;
+  *model squma14 = burn/ dist = negbin link=log type1 type3;
+  model squma15 = burn/ dist = negbin link=log type1 type3;
+  lsmeans burn / ilink cl;
 run; * NS;
 
+*quma3;
+proc genmod data=nomulchpool; class burn;
+  model squma3pre = burn/ dist = negbin link=log type1 type3;
+  *model squma313 = burn/ dist = negbin link=log type1 type3;
+  *model squma314 = burn/ dist = negbin link=log type1 type3;
+  *model squma315 = burn/ dist = negbin link=log type1 type3;
+  lsmeans burn / ilink cl;
+run; * NS;
 
 * ---- analyze only burned plots ------;
-data allburn; set dattotn;
+data allburn; set datreorg;
   if (burnsev='l'|burnsev='m'|burnsev='h'); * N = 41;
 *proc print data=allburn; title 'allburn';
 run;
 * pita;
 proc genmod data=allburn; class burnsev hydromulch;
-  model spita14 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  *model spitapre = burnsev hydromulch / dist = negbin link=log type1 type3;
+  *model spita13 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  *model spita14 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  model spita15 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  lsmeans burnsev hydromulch / ilink cl;
 run;
 * dispersion =  1.7247
   type 1
@@ -147,24 +168,29 @@ run;
   type 3 - use these - order does not matter for type3 -  
   burnsev df=2, X2 = 11.02 P = 0.0040
   hydromulch df=2 X2 = 14.34  P = 0.0008;
-proc genmod data=allburn; class burnsev hydromulch;
-  model totpita =  hydromulch burnsev / dist = negbin link=log type1 type3;
-run;
 
-proc genmod data=allburn; class burnsev hydromulch;
-  model totpita =  hydromulch burnsev hydromulch*burnsev/
-     dist = negbin link=log type1 type3;
-* interaction NS;
-run;
 * oak; 
 proc genmod data=allburn; class burnsev hydromulch;
-  model squma12 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  *model squmapre = burnsev hydromulch / dist = negbin link=log type1 type3;
+  *model squma13 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  *model squma14 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  model squma15 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  lsmeans/ilink cl;
 run;
 * type 3 burnsev df=2 X2=3.71 P = 0.1567
          hydromulch  df=2  X2=10.91 P=0.0043;
 
 proc genmod data=allburn; class burnsev hydromulch;
-  model totquma = burnsev hydromulch  burnsev*hydromulch/ dist = poisson link=log type1 type3;
+  *model squma3pre = burnsev hydromulch / dist = negbin link=log type1 type3;
+  model squma313 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  *model squma314 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  *model squma315 = burnsev hydromulch / dist = negbin link=log type1 type3;
+  lsmeans/ilink cl;
+run;
+
+**not enough DF;
+proc genmod data=allburn; class burnsev hydromulch;
+  model squma12 = burnsev hydromulch  burnsev*hydromulch/ dist = negbin link=log type1 type3;
 run;
 * use this - note type 1 not type 3 - no type3 reported.
 * type 1 burnsev df=2 X2=3.66 P = 0.1603

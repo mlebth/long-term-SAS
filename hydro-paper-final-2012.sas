@@ -1,8 +1,8 @@
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
-proc import datafile="G:\Research\seedlings2.xls"
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings2.csv"
 out=seed
-dbms=excel replace; sheet=sheet1;
+dbms=csv replace; 
 getnames=yes;
 run;
 proc contents data=seed; run;
@@ -20,7 +20,7 @@ proc print data=seed; run;  * N = 42;
 *---- # of obs of each plot -------------------;
 proc sort data=seed; by hydromulch burnsev plot;
 proc means data=seed noprint n; by hydromulch burnsev plot;
-  output out=mout1 n=n;
+  output out=mout1 n=n; run;
 proc print data=mout1; title 'mout1'; * N = 25 plots;
 run;
 
@@ -105,28 +105,32 @@ data nomulchpool; set nomulch;
   if (burnsev='l') then burn='L2';
 *  if (burnsev='m'|burnsev='h') then burn='L3'; * not used;
   if (burnsev='m') then burn='L3';
-  if (burnsev='h') then burn='L4';
+  if (burnsev='h') then burn='L4'; run;
 
 * pita - genmod;
 proc genmod data=nomulchpool; class burn;
   model totpita = burn/ dist = negbin link=log type1 type3;
+  lsmeans burn / ilink cl;
 run;
 * dispersion =  2.7647;
 * burn df=3 X2 = 7.17  P = 0.0666;
 
 proc genmod data=nomulchpool; class burn;
   model totquma = burn/ dist = negbin link=log type1 type3;
+  lsmeans burn / ilink cl;
 run; * NS;
 
 
 * ---- analyze only burned plots ------;
 data allburn; set dattotn;
   if (burnsev='l'|burnsev='m'|burnsev='h'); * N = 19;
+  if (hydromulch='l'|hydromulch='n') then hydromulch='n';
 proc print data=allburn; title 'allburn';
 run;
 * pita;
 proc genmod data=allburn; class burnsev hydromulch;
   model totpita = burnsev hydromulch / dist = negbin link=log type1 type3;
+  lsmeans burnsev hydromulch / ilink cl;
 run;
 * dispersion =  1.7247
   type 1
@@ -135,9 +139,6 @@ run;
   type 3 - use these - order does not matter for type3 -  
   burnsev df=2, X2 = 11.02 P = 0.0040
   hydromulch df=2 X2 = 14.34  P = 0.0008;
-proc genmod data=allburn; class burnsev hydromulch;
-  model totpita =  hydromulch burnsev / dist = negbin link=log type1 type3;
-run;
 
 proc genmod data=allburn; class burnsev hydromulch;
   model totpita =  hydromulch burnsev hydromulch*burnsev/
@@ -146,16 +147,23 @@ proc genmod data=allburn; class burnsev hydromulch;
 run;
 * oak; 
 proc genmod data=allburn; class burnsev hydromulch;
-  model totquma = burnsev hydromulch / dist = poisson link=log type1 type3;
+  model totquma = burnsev hydromulch / dist = negbin link=log type1 type3;
+  lsmeans burnsev hydromulch / ilink cl;
 run;
 * type 3 burnsev df=2 X2=3.71 P = 0.1567
          hydromulch  df=2  X2=10.91 P=0.0043;
 
+/*
+*had done this in 2013 using poisson. negbin is a better fit, and in it
+interaction is NS;
+
 proc genmod data=allburn; class burnsev hydromulch;
-  model totquma = burnsev hydromulch  burnsev*hydromulch/ dist = poisson link=log type1 type3;
+  model totquma = burnsev hydromulch  burnsev*hydromulch/ dist = negbin link=log type1 type3;
+  lsmeans burnsev hydromulch / ilink cl;
 run;
 * use this - note type 1 not type 3 - no type3 reported.
 * type 1 burnsev df=2 X2=3.66 P = 0.1603
          hydromulch  df=2  X2=10.91 P=0.0043
          int df=3 X2=17.59 P = 0.0005;
+*/
 

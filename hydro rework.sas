@@ -1,12 +1,22 @@
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
-proc import datafile="G:\Research\seedlings2.xls"
-out=seed
-dbms=excel replace; sheet=sheet1;
+proc import datafile="E:\Werk\Research\REU stuff\seedlings2013.csv"
+out=seed1
+dbms=csv replace; 
 getnames=yes;
 run;
-proc contents data=seed; run;
-proc print data=seed; run;  * N = 42;
+*proc contents data=seed1; run;
+*proc print data=seed1; run;  * N = 224;
+proc sort data=seed1; by plot; run;
+proc means data=seed1 noprint ; by plot; var date plot shgt snum sspp;
+	  output out=seed2 n=n;
+run; *N=46;
+*import hist2 (plothistory.csv);
+proc sort data=hist2; by plot; run;
+data seed3; merge seed2 hist2; by plot; run; *n=56;
+data seed; set seed3; keep bcat1 shgt hydro snum plot sspp; run;
+*proc contents data=seed1; run;
+*proc print data=seed; run;
 * tree data in this file;
 * variables: 
    burnsev (u,s,l,m,h)
@@ -25,9 +35,9 @@ proc print data=mout1; title 'mout1'; * N = 25 plots;
 run;
 
 *---- subset the data by species and reorg-------------;
-proc sort data=seed; by plot;
+proc sort data=seedlings4; by plot;
 
-data pita; set seed; if spp="pita"; 
+data pita; set seedlings4; if spp="pita"; 
   if hgt=1 then npita1 = num; if hgt=2 then npita2 = num;
   if hgt=3 then npita3 = num; if hgt=4 then npita4 = num;
   if hgt=5 then npita5 = num; 
@@ -75,7 +85,6 @@ data dattotn; set datreorg;
   if (squma5=.) then squma5=0;
   totpita = spita1 + spita2 + spita3 + spita4 + spita5;
   totquma = squma1 + squma2 + squma3 + squma4 + squma5;
-run;
 
 
 * --- analyze only plots without mulch, no pooling----;
