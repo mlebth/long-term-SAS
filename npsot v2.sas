@@ -5,8 +5,8 @@ out=seed
 dbms=excel replace; sheet=sheet1;
 getnames=yes;
 run;
-proc contents data=seed; run;
-proc print data=seed; run;  * N = 42;
+*proc contents data=seed; run;
+*proc print data=seed; run;  * N = 42;
 * tree data in this file;
 * variables: 
    burnsev (u,s,l,m,h)
@@ -21,7 +21,7 @@ proc print data=seed; run;  * N = 42;
 proc sort data=seed; by hydromulch burnsev plot;
 proc means data=seed noprint n; by hydromulch burnsev plot;
   output out=mout1 n=n;
-proc print data=mout1; title 'mout1'; * N = 25 plots;
+*proc print data=mout1; title 'mout1'; * N = 25 plots;
 run;
 
 *---- subset the data by species and reorg-------------;
@@ -31,38 +31,38 @@ data pita; set seed; if spp="pita";
   if hgt=1 then npita1 = num; if hgt=2 then npita2 = num;
   if hgt=3 then npita3 = num; if hgt=4 then npita4 = num;
   if hgt=5 then npita5 = num; 
-proc print data=pita; title 'pita';  * N = 19 obs;
+*proc print data=pita; title 'pita';  * N = 19 obs;
 run;
 proc means data=pita sum noprint; by plot burnsev hydromulch; 
  var npita1-npita5;
  output out=pita2 sum = spita1-spita5;
-proc print data=pita2; title 'pita2';  * N = 12 non-zero plots;
+*proc print data=pita2; title 'pita2';  * N = 12 non-zero plots;
 run;
-proc freq data=pita2; tables burnsev*hydromulch;
+*proc freq data=pita2; *tables burnsev*hydromulch;
 run;
 
 data quma; set seed; if spp="quma"; 
   if hgt=1 then nquma1 = num; if hgt=2 then nquma2 = num;
   if hgt=3 then nquma3 = num; if hgt=4 then nquma4 = num;
   if hgt=5 then nquma5 = num; 
-proc print data=quma; title 'quma';  * N = 19 obs;
+*proc print data=quma; title 'quma';  * N = 19 obs;
 run;
 proc means data=quma sum noprint; by plot burnsev hydromulch; 
  var nquma1-nquma5;
  output out=quma2 sum = squma1-squma5;
-proc print data=quma2; title 'quma2';  * N = 13 plots;
+*proc print data=quma2; title 'quma2';  * N = 13 plots;
 run;
-proc freq data=quma2; tables burnsev*hydromulch;
+*proc freq data=quma2; *tables burnsev*hydromulch;
 run;
 
 data empty; set seed; if spp="x";
  holder = 0; * N = 5;
-proc print data=empty; title 'empty';
+*proc print data=empty; title 'empty';
 run;
 
 data datreorg; merge pita2 quma2 empty; by plot;
   drop num hgt;
-proc print data=datreorg; title 'datreorg';
+*proc print data=datreorg; title 'datreorg';
 run;
 
 *---- analysis of total number --------------;
@@ -80,7 +80,7 @@ run;
 
 * --- analyze only plots without mulch, no pooling----;
 data nomulch; set dattotn; if hydromulch = 'n';  * N = 14;
-proc print data=nomulch; title 'nomulch';
+*proc print data=nomulch; title 'nomulch';
 run;
 * pita - ols;
 proc glm data=nomulch; class bcat;
@@ -101,32 +101,55 @@ run; * NS;
 
 * ---- analyze only plots without mulch, with pooling;
 data nomulchpool; set nomulch;
-  if (burnsev='u'|burnsev='s') then burn='L1';
-  if (burnsev='l') then burn='L2';
+  if (burnsev='u'|burnsev='s') then burn='1';
+  if (burnsev='l') then burn= '2';
 *  if (burnsev='m'|burnsev='h') then burn='L3'; * not used;
-  if (burnsev='m') then burn='L3';
-  if (burnsev='h') then burn='L4';
+  if (burnsev='m') then burn='3';
+  if (burnsev='h') then burn='4'; run;
 
 * pita - genmod;
 proc genmod data=nomulchpool; class burn;
-  model totpita = burn/ dist = negbin link=log type1 type3;
+  model totpita = burn/ dist = negbin link=log type1 type3; 
+  contrast 'burn-scorch v light' burn -1 1 0 0;  
+  contrast 'burn-scorch v mod' burn -1 0 1 0;
+  contrast 'burn-scorch v hi' burn -1 0 0 1;
+  contrast 'burn-light v mod' burn 0 -1 1 0;
+  contrast 'burn-light v hi' burn 0 -1 0 1;
+  contrast 'burn-mod v hi' burn 0 0 -1 1;
 run;
 * dispersion =  2.7647;
 * burn df=3 X2 = 7.17  P = 0.0666;
 
 proc genmod data=nomulchpool; class burn;
   model totquma = burn/ dist = negbin link=log type1 type3;
+  contrast 'burn-scorch v light' burn -1 1 0 0;  
+  contrast 'burn-scorch v mod' burn -1 0 1 0;
+  contrast 'burn-scorch v hi' burn -1 0 0 1;
+  contrast 'burn-light v mod' burn 0 -1 1 0;
+  contrast 'burn-light v hi' burn 0 -1 0 1;
+  contrast 'burn-mod v hi' burn 0 0 -1 1;
 run; * NS;
 
 
 * ---- analyze only burned plots ------;
 data allburn; set dattotn;
   if (burnsev='l'|burnsev='m'|burnsev='h'); * N = 19;
-proc print data=allburn; title 'allburn';
-run;
+  if (burnsev='l') then burn='1';
+  if (burnsev='m') then burn='2';
+  if (burnsev='h') then burn='3';
+  if (hydromulch='h') then hydro='y';
+  if (hydromulch='l'|hydromulch='n') then hydro='n'; *low category was almost none, not directly applied--pooling;
+*proc print data=allburn; title 'allburn';
+run;  
+proc print data=allburn; run;
 * pita;
-proc genmod data=allburn; class burnsev hydromulch;
-  model totpita = burnsev hydromulch / dist = negbin link=log type1 type3;
+proc genmod data=allburn; class burn hydro;
+  model totpita = burn hydro / dist = negbin link=log type1 type3;
+  contrast 'burn-lo v mod' burn -1 1 0;
+  contrast 'burn-lo v hi' burn -1 0 1;
+  contrast 'burn-mod v hi' burn 0 -1 1;
+  contrast 'hydro-no v yes' hydro -1 1;
+  lsmeans burn hydro/ilink cl;
 run;
 * dispersion =  1.7247
   type 1
@@ -139,14 +162,14 @@ proc genmod data=allburn; class burnsev hydromulch;
   model totpita =  hydromulch burnsev / dist = negbin link=log type1 type3;
 run;
 
-proc genmod data=allburn; class burnsev hydromulch;
-  model totpita =  hydromulch burnsev hydromulch*burnsev/
-     dist = negbin link=log type1 type3;
-* interaction NS;
-run;
 * oak; 
-proc genmod data=allburn; class burnsev hydromulch;
-  model totquma = burnsev hydromulch / dist = poisson link=log type1 type3;
+proc genmod data=allburn; class burn hydro;
+  model totquma = burn hydro / dist = negbin link=log type1 type3;
+  contrast 'burn-lo v mod' burn -1 1 0;
+  contrast 'burn-lo v hi' burn -1 0 1;
+  contrast 'burn-mod v hi' burn 0 -1 1;
+  contrast 'hydro-no v yes' hydro -1 1;
+  lsmeans burn hydro / ilink cl;
 run;
 * type 3 burnsev df=2 X2=3.71 P = 0.1567
          hydromulch  df=2  X2=10.91 P=0.0043;

@@ -1,4 +1,5 @@
 /*
+***use this file, and reorg from 'npsot v2.sas' for 2012 data--it's the data collected in may 2012;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings2.csv"
 out=seed
 dbms=csv replace; 
@@ -85,7 +86,7 @@ run;	*0;
 data datreorg; merge pita2 quma2 quma32; by plot;
 *proc print data=datreorg; title 'datreorg';
 run; *n=46;
-*proc freq data=datreorg; *tables burnsev*hydromulch;
+*proc freq data=datreorg; tables burnsev*hydromulch;
 run;
 
 /*
@@ -122,9 +123,9 @@ run;
 * pita - genmod;
 proc genmod data=nomulchpool; class burn;
   *model spitapre = burn / dist = negbin link=log type1 type3;
-  model spita13 = burn / dist = negbin link=log type1 type3;
+  *model spita13 = burn / dist = negbin link=log type1 type3;
   *model spita14 = burn / dist = negbin link=log type1 type3;
-  *model spita15 = burn / dist = negbin link=log type1 type3;
+  model spita15 = burn / dist = negbin link=log type1 type3;
   contrast 'burn-scorch v light' burn -1 1 0 0;  
   contrast 'burn-scorch v mod' burn -1 0 1 0;
   contrast 'burn-scorch v hi' burn -1 0 0 1;
@@ -141,8 +142,14 @@ proc genmod data=nomulchpool; class burn;
   *model squmapre = burn/ dist = negbin link=log type1 type3;
   *model squma13 = burn/ dist = negbin link=log type1 type3;
   *model squma14 = burn/ dist = negbin link=log type1 type3;
-  model squma15 = burn/ dist = negbin link=log type1 type3;
-  lsmeans burn / ilink cl;
+  model squma15 = burn/ dist = negbin link=log type1 type3;  
+  contrast 'burn-scorch v light' burn -1 1 0 0;  
+  contrast 'burn-scorch v mod' burn -1 0 1 0;
+  contrast 'burn-scorch v hi' burn -1 0 0 1;
+  contrast 'burn-light v mod' burn 0 -1 1 0;
+  contrast 'burn-light v hi' burn 0 -1 0 1;
+  contrast 'burn-mod v hi' burn 0 0 -1 1;
+  *lsmeans burn / ilink cl;
 run; * NS;
 
 *quma3;
@@ -157,6 +164,9 @@ run; * NS;
 * ---- analyze only burned plots ------;
 data allburn; set datreorg;
   if (burnsev='l'|burnsev='m'|burnsev='h'); * N = 41;
+  if (burnsev='l') then burn='1';
+  if (burnsev='m') then burn='2';
+  if (burnsev='h') then burn='3';
 *proc print data=allburn; title 'allburn';
 run;
 * pita;
@@ -164,8 +174,8 @@ proc genmod data=allburn; class burn hydromulch;
   *model spitapre = burn hydromulch / dist = negbin link=log type1 type3;
   *model spita13 = burn hydromulch / dist = negbin link=log type1 type3;
   *model spita14 = burn hydromulch / dist = negbin link=log type1 type3;
-  *model spita15 = burnsev hydromulch / dist = negbin link=log type1 type3;
-  *lsmeans burn hydromulch / ilink cl;
+  *model spita15 = burn hydromulch / dist = negbin link=log type1 type3;
+  lsmeans burn hydromulch / ilink cl;
   contrast 'burn-lo v mod' burn -1 1 0;
   contrast 'burn-lo v hi' burn -1 0 1;
   contrast 'burn-mod v hi' burn 0 -1 1;
@@ -178,14 +188,18 @@ run;
   type 3 - use these - order does not matter for type3 -  
   burnsev df=2, X2 = 11.02 P = 0.0040
   hydromulch df=2 X2 = 14.34  P = 0.0008;
-
+proc print data=allburn; run;
 * oak; 
-proc genmod data=allburn; class burnsev hydromulch;
-  *model squmapre = burnsev hydromulch / dist = negbin link=log type1 type3;
-  *model squma13 = burnsev hydromulch / dist = negbin link=log type1 type3;
-  *model squma14 = burnsev hydromulch / dist = negbin link=log type1 type3;
-  model squma15 = burnsev hydromulch / dist = negbin link=log type1 type3;
-  lsmeans/ilink cl;
+proc genmod data=allburn; class burn hydromulch;
+  *model squmapre = burn hydromulch / dist = negbin link=log type1 type3;
+  *model squma13 = burn hydromulch / dist = negbin link=log type1 type3;
+  *model squma14 = burn hydromulch / dist = negbin link=log type1 type3;
+  model squma15 = burn hydromulch / dist = negbin link=log type1 type3;  
+  contrast 'burn-lo v mod' burn -1 1 0;
+  contrast 'burn-lo v hi' burn -1 0 1;
+  contrast 'burn-mod v hi' burn 0 -1 1;
+  contrast 'hydro-no v yes' hydromulch -1 1;
+  lsmeans burn hydromulch / ilink cl;
 run;
 * type 3 burnsev df=2 X2=3.71 P = 0.1567
          hydromulch  df=2  X2=10.91 P=0.0043;
