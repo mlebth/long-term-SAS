@@ -86,7 +86,7 @@ run;	*0;
 data datreorg; merge pita2 quma2 quma32; by plot;
 *proc print data=datreorg; title 'datreorg';
 run; *n=46;
-*proc freq data=datreorg; tables burnsev*hydromulch;
+*proc freq data=datreorg; *tables burnsev*hydromulch;
 run;
 
 /*
@@ -122,10 +122,10 @@ run;
 
 * pita - genmod;
 proc genmod data=nomulchpool; class burn;
-  *model spitapre = burn / dist = negbin link=log type1 type3;
+  model spitapre = burn / dist = negbin link=log type1 type3;
   *model spita13 = burn / dist = negbin link=log type1 type3;
   *model spita14 = burn / dist = negbin link=log type1 type3;
-  model spita15 = burn / dist = negbin link=log type1 type3;
+  *model spita15 = burn / dist = negbin link=log type1 type3;
   contrast 'burn-scorch v light' burn -1 1 0 0;  
   contrast 'burn-scorch v mod' burn -1 0 1 0;
   contrast 'burn-scorch v hi' burn -1 0 0 1;
@@ -139,10 +139,10 @@ run;
 
 *quma
 proc genmod data=nomulchpool; class burn;
-  *model squmapre = burn/ dist = negbin link=log type1 type3;
+  model squmapre = burn/ dist = negbin link=log type1 type3;
   *model squma13 = burn/ dist = negbin link=log type1 type3;
   *model squma14 = burn/ dist = negbin link=log type1 type3;
-  model squma15 = burn/ dist = negbin link=log type1 type3;  
+  *model squma15 = burn/ dist = negbin link=log type1 type3;  
   contrast 'burn-scorch v light' burn -1 1 0 0;  
   contrast 'burn-scorch v mod' burn -1 0 1 0;
   contrast 'burn-scorch v hi' burn -1 0 0 1;
@@ -180,6 +180,7 @@ proc genmod data=allburn; class burn hydromulch;
   contrast 'burn-lo v hi' burn -1 0 1;
   contrast 'burn-mod v hi' burn 0 -1 1;
   contrast 'hydro-no v yes' hydromulch -1 1;
+  estimate 'hydro in light burn' burn*hydromulch 
 run;
 * dispersion =  1.7247
   type 1

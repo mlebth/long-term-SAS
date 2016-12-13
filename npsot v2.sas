@@ -36,7 +36,7 @@ run;
 proc means data=pita sum noprint; by plot burnsev hydromulch; 
  var npita1-npita5;
  output out=pita2 sum = spita1-spita5;
-*proc print data=pita2; title 'pita2';  * N = 12 non-zero plots;
+*proc print data=pita2; title 'pita2';  * N = 13 non-zero plots;
 run;
 *proc freq data=pita2; *tables burnsev*hydromulch;
 run;
@@ -82,6 +82,7 @@ run;
 data nomulch; set dattotn; if hydromulch = 'n';  * N = 14;
 *proc print data=nomulch; title 'nomulch';
 run;
+
 * pita - ols;
 proc glm data=nomulch; class bcat;
   model pita12 = bcat;
@@ -142,6 +143,14 @@ data allburn; set dattotn;
 *proc print data=allburn; title 'allburn';
 run;  
 proc print data=allburn; run;
+
+proc freq data=allburn; tables burn*hydro; run;
+proc sort data=allburn; by burn hydro plot; run;
+proc means data=allburn mean noprint; by burn hydro plot; var totpita totquma; 
+	output out=allburnout mean=mtotpita mtotquma;
+run;
+proc print data=allburnout; run;
+
 * pita;
 proc genmod data=allburn; class burn hydro;
   model totpita = burn hydro / dist = negbin link=log type1 type3;
