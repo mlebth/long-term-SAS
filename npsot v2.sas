@@ -1,8 +1,8 @@
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
-proc import datafile="G:\Research\seedlings2.xls"
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings2.csv"
 out=seed
-dbms=excel replace; sheet=sheet1;
+dbms=csv replace; 
 getnames=yes;
 run;
 *proc contents data=seed; run;
@@ -111,12 +111,12 @@ data nomulchpool; set nomulch;
 * pita - genmod;
 proc genmod data=nomulchpool; class burn;
   model totpita = burn/ dist = negbin link=log type1 type3; 
-  contrast 'burn-scorch v light' burn -1 1 0 0;  
-  contrast 'burn-scorch v mod' burn -1 0 1 0;
-  contrast 'burn-scorch v hi' burn -1 0 0 1;
-  contrast 'burn-light v mod' burn 0 -1 1 0;
-  contrast 'burn-light v hi' burn 0 -1 0 1;
-  contrast 'burn-mod v hi' burn 0 0 -1 1;
+  *contrast 'burn-scorch v light' burn -1 1 0 0;  
+  *contrast 'burn-scorch v mod' burn -1 0 1 0;
+  *contrast 'burn-scorch v hi' burn -1 0 0 1;
+  *contrast 'burn-light v mod' burn 0 -1 1 0;
+  *contrast 'burn-light v hi' burn 0 -1 0 1;
+  *contrast 'burn-mod v hi' burn 0 0 -1 1;
 run;
 * dispersion =  2.7647;
 * burn df=3 X2 = 7.17  P = 0.0666;
@@ -153,12 +153,12 @@ proc print data=allburnout; run;
 
 * pita;
 proc genmod data=allburn; class burn hydro;
-  model totpita = burn hydro / dist = negbin link=log type1 type3;
-  contrast 'burn-lo v mod' burn -1 1 0;
-  contrast 'burn-lo v hi' burn -1 0 1;
-  contrast 'burn-mod v hi' burn 0 -1 1;
-  contrast 'hydro-no v yes' hydro -1 1;
-  lsmeans burn hydro/ilink cl;
+  model totpita = burn hydro burn*hydro / dist = negbin link=log type1 type3;
+  *contrast 'burn-lo v mod' burn -1 1 0;
+  *contrast 'burn-lo v hi' burn -1 0 1;
+  *contrast 'burn-mod v hi' burn 0 -1 1;
+  *contrast 'hydro-no v yes' hydro -1 1;
+  lsmeans burn*hydro/ilink cl;
 run;
 * dispersion =  1.7247
   type 1
@@ -173,12 +173,12 @@ run;
 
 * oak; 
 proc genmod data=allburn; class burn hydro;
-  model totquma = burn hydro / dist = negbin link=log type1 type3;
-  contrast 'burn-lo v mod' burn -1 1 0;
-  contrast 'burn-lo v hi' burn -1 0 1;
-  contrast 'burn-mod v hi' burn 0 -1 1;
-  contrast 'hydro-no v yes' hydro -1 1;
-  lsmeans burn hydro / ilink cl;
+  model totquma = burn hydro burn*hydro / dist = negbin link=log type1 type3;
+  *contrast 'burn-lo v mod' burn -1 1 0;
+  *contrast 'burn-lo v hi' burn -1 0 1;
+  *contrast 'burn-mod v hi' burn 0 -1 1;
+  *contrast 'hydro-no v yes' hydro -1 1;
+  lsmeans burn*hydro / ilink cl;
 run;
 * type 3 burnsev df=2 X2=3.71 P = 0.1567
          hydromulch  df=2  X2=10.91 P=0.0043;

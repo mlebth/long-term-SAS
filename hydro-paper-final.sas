@@ -20,6 +20,12 @@ proc print data=seed; run;  * N = 42;
 
 *import seedlings4 from allyrsimport;
 
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings4.csv"
+out=seedlings4
+dbms=csv replace; 
+getnames=yes;
+run;
+
 data seed; set seedlings4; keep bcat burnsev burn year heig hydrn coun plot sspp;  
 rename hydrn=hydromulch heig=hgt coun=num; run;
 * proc print data=seed; title 'seed'; run;
@@ -171,16 +177,16 @@ data allburn; set datreorg;
 run;
 * pita;
 proc genmod data=allburn; class burn hydromulch;
-  *model spitapre = burn hydromulch / dist = negbin link=log type1 type3;
-  *model spita13 = burn hydromulch / dist = negbin link=log type1 type3;
-  *model spita14 = burn hydromulch / dist = negbin link=log type1 type3;
-  *model spita15 = burn hydromulch / dist = negbin link=log type1 type3;
-  lsmeans burn hydromulch / ilink cl;
-  contrast 'burn-lo v mod' burn -1 1 0;
-  contrast 'burn-lo v hi' burn -1 0 1;
-  contrast 'burn-mod v hi' burn 0 -1 1;
-  contrast 'hydro-no v yes' hydromulch -1 1;
-  estimate 'hydro in light burn' burn*hydromulch 
+  *model spitapre = burn hydromulch burn*hydromulch/ dist = negbin link=log type1 type3;
+  *model spita13 = burn hydromulch burn*hydromulch/ dist = negbin link=log type1 type3;
+  *model spita14 = burn hydromulch burn*hydromulch / dist = negbin link=log type1 type3;
+  model spita15 = burn hydromulch burn*hydromulch / dist = negbin link=log type1 type3;
+  *lsmeans burn*hydromulch/ ilink cl;
+  *contrast 'burn-lo v mod' burn -1 1 0;
+  *contrast 'burn-lo v hi' burn -1 0 1;
+  *contrast 'burn-mod v hi' burn 0 -1 1;
+  *contrast 'hydro-no v yes' hydromulch -1 1;
+  contrast 'hydro v burn' hydromulch*burn 1 0 -1 0 0 ;
 run;
 * dispersion =  1.7247
   type 1
@@ -189,21 +195,22 @@ run;
   type 3 - use these - order does not matter for type3 -  
   burnsev df=2, X2 = 11.02 P = 0.0040
   hydromulch df=2 X2 = 14.34  P = 0.0008;
-proc print data=allburn; run;
 * oak; 
 proc genmod data=allburn; class burn hydromulch;
-  *model squmapre = burn hydromulch / dist = negbin link=log type1 type3;
-  *model squma13 = burn hydromulch / dist = negbin link=log type1 type3;
-  *model squma14 = burn hydromulch / dist = negbin link=log type1 type3;
-  model squma15 = burn hydromulch / dist = negbin link=log type1 type3;  
-  contrast 'burn-lo v mod' burn -1 1 0;
-  contrast 'burn-lo v hi' burn -1 0 1;
-  contrast 'burn-mod v hi' burn 0 -1 1;
-  contrast 'hydro-no v yes' hydromulch -1 1;
-  lsmeans burn hydromulch / ilink cl;
+  model squmapre = burn hydromulch burn*hydromulch/ dist = negbin link=log type1 type3;
+  *model squma13 = burn hydromulch burn*hydromulch/ dist = negbin link=log type1 type3;
+  *model squma14 = burn hydromulch burn*hydromulch/ dist = negbin link=log type1 type3;
+  *model squma15 = burn hydromulch burn*hydromulch / dist = negbin link=log type1 type3; 
+  *contrast 'burn-lo v mod' burn -1 1 0;
+  *contrast 'burn-lo v hi' burn -1 0 1;
+  *contrast 'burn-mod v hi' burn 0 -1 1;
+  *contrast 'hydro-no v yes' hydromulch -1 1;
+  lsmeans burn*hydromulch / ilink cl;
 run;
 * type 3 burnsev df=2 X2=3.71 P = 0.1567
          hydromulch  df=2  X2=10.91 P=0.0043;
+proc sort data=allburn; by burn hydromulch; run;
+proc print data=allburn;run;
 
 proc genmod data=allburn; class burnsev hydromulch;
   *model squma3pre = burnsev hydromulch / dist = negbin link=log type1 type3;
@@ -217,8 +224,4 @@ run;
 proc genmod data=allburn; class burnsev hydromulch;
   model squma12 = burnsev hydromulch  burnsev*hydromulch/ dist = negbin link=log type1 type3;
 run;
-* use this - note type 1 not type 3 - no type3 reported.
-* type 1 burnsev df=2 X2=3.66 P = 0.1603
-         hydromulch  df=2  X2=10.91 P=0.0043
-         int df=3 X2=17.59 P = 0.0005;
 

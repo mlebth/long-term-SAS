@@ -377,6 +377,15 @@ data seedlingprobspp; set seedlings3xx;
 	if (sspp  = "CAAM2" | sspp  = "ILVOx");
 	subp = 'seep';
 run; *N=11;
+/*
+*seedlings4 export;
+proc export data=seedlings4
+   outfile='D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedlings4.csv'
+   dbms=csv
+   replace;
+run;
+*/
+
 /*proc contents data=seedlings4; title 'seedlings4'; run;
 proc print data=seedlings4; title 'seedlings4'; run;
 proc print data=seedlingprobspp; title 'seedling prob spp'; run;
