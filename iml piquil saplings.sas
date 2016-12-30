@@ -5,8 +5,8 @@ data piquilsap; set alld;
 run; 
 proc sort data=piquilsap; by subp plot sspp year bcat covm coun diam heig soileb elev slope aspect hydrn prpo; run;
 proc means data=piquilsap noprint sum; by subp plot sspp year bcat covm coun diam heig soileb elev slope aspect hydrn prpo; var coun; 
-  output out=piquilsap2 sum=nperspp; run; *N=1673;
-/* proc print data=piquilsap2; title 'pi-qu-il numplantdata';    run;
+  output out=piquilsap2 sum=nperspp; run; *N=1654;
+/* proc print data=piquilsap2 (firstobs=1 obs=30); title 'pi-qu-il numplantdata';    run;
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
   nperspp = # of sdlngs/stems per species per plot/year;  */
@@ -134,7 +134,7 @@ proc means data=piquilsap4 mean noprint; by year plot bcat aspect hydrn soileb;
   output out=piquilsap5 mean = mpitax mquma3 mqumax mcov elev slope mhgt mdbh;
 run;
 data piquilsap6; set piquilsap5; drop _TYPE_; 
-*proc print data=piquilsap6; title 'piquil6'; run; *N=246;
+*proc print data=piquilsap6; title 'piquil6'; run; *N=241;
 
 *IML to re-organize data;
 proc iml;
@@ -219,7 +219,7 @@ append from mat2;
 quit; run;
 
 /* 
-proc print data=sappairs; title 'sappairs'; run; *N=246;
+proc print data=sappairs; title 'sappairs'; run; *N=241;
 proc freq data=sappairs; tables soil; run; 	     *N=206 sand, 63 gravel;
 */
 

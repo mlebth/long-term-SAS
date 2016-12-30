@@ -410,17 +410,91 @@ quit;
 */
 
 ******POLE TREES (SAPLINGS, DBH >=2.5 and < 15.1);
-proc import datafile="d:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Saplings-allyrs.csv"
-out=saplings dbms=csv replace; getnames=yes;
+***12-28-16--changed import because it was truncating species to 4 characters;
+/*
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Saplings-allyrs.csv"
+out=saplings dbms=csv replace format Species_Symbol $5. ; getnames=yes; 
 run;
-/*proc print data=saplings; title 'saplings'; run; *N=2560;
+*/
+
+/*proc print data=saplings; title 'saplings'; run; *N=2939;
 proc contents data=saplings; run; */
+      data WORK.SAPLINGS    ;
+     %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+     infile 'D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Saplings-allyrs.csv' delimiter = ',' MISSOVER DSD lrecl=32767 firstobs=2 ;
+        informat MacroPlot_Name best32. ;
+        informat Monitoring_Status $6. ;
+        informat Date mmddyy10. ;
+        informat SizeClDia best32. ;
+        informat Status $1. ;
+        informat Count best32. ;
+        informat AvgHt best32. ;
+        informat AvgCrwnRto $1. ;
+        informat SubFrac best32. ;
+        informat Comment $1. ;
+        informat UV1 best32. ;
+        informat UV2 $1. ;
+        informat UV3 $1. ;
+        informat MacroPlotSize best32. ;
+        informat FieldTeam $1. ;
+        informat EntryTeam $1. ;
+        informat UV1Desc $1. ;
+        informat UV2Desc $1. ;
+        informat UV3Desc $1. ;
+        informat Species_Symbol $5. ;
+        informat Visited $4. ;
+        format MacroPlot_Name best12. ;
+        format Monitoring_Status $6. ;
+        format Date mmddyy10. ;
+        format SizeClDia best12. ;
+        format Status $1. ;
+        format Count best12. ;
+        format AvgHt best12. ;
+        format AvgCrwnRto $1. ;
+        format SubFrac best12. ;
+        format Comment $1. ;
+        format UV1 best12. ;
+        format UV2 $1. ;
+        format UV3 $1. ;
+        format MacroPlotSize best12. ;
+        format FieldTeam $1. ;
+        format EntryTeam $1. ;
+        format UV1Desc $1. ;
+        format UV2Desc $1. ;
+        format UV3Desc $1. ;
+        format Species_Symbol $5. ;
+        format Visited $4. ;
+     input
+                 MacroPlot_Name
+                 Monitoring_Status $
+                 Date
+                 SizeClDia
+                 Status $
+                 Count
+                 AvgHt
+                 AvgCrwnRto $
+                 SubFrac
+                 Comment $
+                 UV1
+                 UV2 $
+                 UV3 $
+                 MacroPlotSize
+                 FieldTeam $
+                 EntryTeam $
+                 UV1Desc $
+                 UV2Desc $
+                 UV3Desc $
+                 Species_Symbol $
+                 Visited $
+     ;
+     if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+     run;
 
 /*
 proc sql;
 	select MacroPlot_Name, Date, Species_Symbol, Count
 	from saplings
-	where Species_Symbol eq 'XXXX';
+	where Species_Symbol eq 'QUMA3';
 quit;
 */
 
