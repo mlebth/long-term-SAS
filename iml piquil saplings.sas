@@ -67,10 +67,10 @@ data holdxxxxx; set piquilsap2; if (subp = 'sapl') 				   & (sspp = 'XXXXx');
 	nquma3 = nperspp; nqumax = nperspp; npitax = nperspp; 
 	proc sort data=holdxxxxx; by plot bcat year; 
 run;
-/* proc print data=holdquma3; run; 	*N=299;
+/* proc print data=holdquma3; run; 	*N=298;
    proc print data=holdqumax; run; 	*N=534;	
-   proc print data=holdpitax; run; 	*N=499;
-   proc print data=holdxxxxx; run; 	*N=101; */
+   proc print data=holdpitax; run; 	*N=497;
+   proc print data=holdxxxxx; run; 	*N=100; */
 
 /*   *ran with other species; none are very common (but JUVI? 122);
 data holdquin; set piquilsap2; if (subp = 'sapl' | subp = 'shrp') & (sspp = 'QUINx'); nquma3 = nperspp; 
@@ -91,7 +91,7 @@ data piquilsap3; merge holdquma3 holdqumax holdpitax holdxxxxx piquilsap2; by pl
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
   drop _TYPE_ _FREQ_ subp sspp nperspp;  * dropping sspp & nperspp - become garbage;
-run; *N=1674;
+run; *N=1661;
 
 /* proc print data=piquilsap3; title 'piquilsap3'; run;  * N = 1674; 
 proc contents data = piquilsap3; run;
@@ -102,7 +102,7 @@ proc freq data=piquilsap3; tables soileb*npitax; title 'piquil'; run;
 
 data piquilsap4; set piquilsap3; 		
 	keep aspect bcat covm elev diam heig hydrn npitax nquma3 nqumax plot year prpo slope soileb;
-run;  * N = 2736;
+run;  * N = 1661;
 proc sort data=piquilsap4; by year prpo plot bcat aspect slope hydrn soileb; run;
 /* proc freq data=piquilsap4; tables soileb; run; *1233 sand, 441 gravel;
    proc contents data=piquilsap4; run; 
@@ -254,7 +254,7 @@ proc sort data=msappref; by plot bcat elev hydr slope soil aspect; run;
 data sapmerge1; merge sappost msappref; by plot bcat elev hydr slope soil aspect; 	
 	drop _TYPE_ _FREQ_ yrcat; 
 run;
-*proc print data=sapmerge1; title 'sapmerge1'; run;	*N=180;
+*proc print data=sapmerge1; title 'sapmerge1'; run;	*N=176;
 *proc contents data=sapmerge1; run;
 
 
