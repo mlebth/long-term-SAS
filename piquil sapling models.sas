@@ -8,9 +8,9 @@ proc univariate data=glmout plot normal; var ehat pita14; run; *very very non-no
 *bcat models;
 proc glimmix data=sapmerge2 ; title 'bcat models';
   class bcat;
-  *model pita15 = bcat / distribution=negbin link=log solution DDFM=bw;
+  model pita15 = bcat / distribution=negbin link=log solution DDFM=bw;
   *model quma15 = bcat / distribution=negbin link=log solution DDFM=bw;
-  model qum313 = bcat / distribution=negbin link=log solution DDFM=bw;
+  *model qum313 = bcat / distribution=negbin link=log solution DDFM=bw;
   lsmeans bcat / ilink cl;
   output out=glmout2 resid=ehat;
 run;

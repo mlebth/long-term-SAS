@@ -1,7 +1,8 @@
 *bcat models;
+*remember--bcat 1=unburned, bcat 2=s/l, bcat 3=m/h;
 proc glimmix data=treemerge2; title 'bcat models';
   class bcat;
-  model pita15 = bcat / distribution=poisson link=log solution DDFM=bw;	*poisson a better fit than negbin;
+  model pita13tr = bcat / distribution=negbin link=log solution DDFM=bw;
   *model quma15 = bcat / distribution=poisson link=log solution DDFM=bw;
   *model qum313 = bcat / distribution=poisson link=log solution DDFM=bw;
   lsmeans bcat / ilink cl;
@@ -11,19 +12,19 @@ run;
 ************11/24/15;
 proc sort data=treemerge2; by bcat soil; run;
 proc means data=treemerge2 mean noprint; 
-	by bcat soil; var pita15 quma15 qum315;
-	output out=mout1 n=npita15 nquma15 nquma315;
+	by bcat soil; var pita15tr quma15tr qum315tr;
+	output out=mout1 n=npita15tr nquma15tr nquma315tr;
 run;
 proc print data=mout1; run;	 *no data for bcat=1 (unburned) -- no unburned plots sampled post-fire;
 
 proc means data=treemerge2 mean noprint; 
-	by bcat; var pita15 quma15 qum315;
+	by bcat; var pita15tr quma15tr qum315tr;
 	output out=mout2 mean=mpita15 mquma15 mquma315;
 run;
 proc print data=mout2; run;	
 
 proc means data=treemerge2 mean noprint; 
-	by bcat ; var mpitapre pita12 pita13 pita14 pita15;
+	by bcat ; var mpitapretr pita12tr pita13tr pita14tr pita15tr;
 	output out=mout2 mean=pitapre mpita12 mpita13 mpita14 mpita15;
 run;
 proc print data=mout2; run;	
@@ -31,8 +32,14 @@ proc print data=mout2; run;
 
 
 *11/29/15--merging seedling+overstory;
-proc sort data=seedsmerge2; by plot aspect bcat elev hydr; run;
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedsmerge2.csv"
+out=seedsmerge2
+dbms=csv replace; 
+getnames=yes;
+run;
+
 proc sort data=treemerge2;	by plot aspect bcat elev hydr; run;
+proc contents data=treemerge2; run;
 data seedtree; merge seedsmerge2 treemerge2; by plot aspect bcat elev hydr;
 run;
 proc print data=seedtree; title 'seedtree'; run;
@@ -46,7 +53,7 @@ proc export data=seedtree
 run;
 */
 
-proc plot data=seedtree; plot pita15sd*mpitapretr; run;
+proc plot data=seedtree; plot pita15*pita12tr; run;
 
 proc glimmix data=seedtree; title 'seed v tree';
 	model pita15sd = mpitapretr / distribution=negbin link=log solution DDFM=bw;

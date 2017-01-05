@@ -1,14 +1,14 @@
 ****************putting saplings and shrubs together to have pines, oaks, and ilex in the same set;
 data piquiltrees; set alld;
 	if (subp = 'tree');		
-	if sspp =  'XXXXx' then coun=0;
-					   else coun=1;
-	keep aspect bcat covm coun elev diam crwn hydrn plot slope soileb sspp subp year prpo; 
+	if (sspp = 'XXXXx' | stat='D') then coun=0;
+					  			   else coun=1;
+	keep aspect bcat covm coun elev diam crwn hydrn plot slope soileb sspp subp year prpo stat; 
 run; 
-proc sort data=piquiltrees; by subp plot sspp year bcat covm coun diam crwn soileb elev slope aspect hydrn prpo; run;
-proc means data=piquiltrees noprint sum; by subp plot sspp year bcat covm coun diam crwn soileb elev slope aspect hydrn prpo; var coun; 
-  output out=piquiltrees2 sum=nperspp; run; *N=4479;
-/* proc print data=piquiltrees2; title 'pi-qu-il numplantdata';    run;
+proc sort data=piquiltrees; by subp plot sspp year bcat covm coun diam crwn soileb elev slope aspect hydrn prpo stat; run;
+proc means data=piquiltrees noprint sum; by subp plot sspp year bcat covm coun diam crwn soileb elev slope aspect hydrn prpo stat; var coun; 
+  output out=piquiltrees2 sum=nperspp; run; *N=5674;
+/* proc print data=piquiltrees (firstobs=1 obs=100); title 'pi-qu-il numplantdata';    run;
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
   nperspp = # of sdlngs/stems per species per plot/year;  */
@@ -28,7 +28,7 @@ proc freq data=piquiltrees2; tables sspp; run;
 PROC sql;
 	select sspp, plot, year
 	from piquiltrees2
-	where sspp = 'QUMA2';
+	where sspp = 'QUMA3';
 quit; 
   *Quercus macrocarpa (bur oak), plots 1191 and 1221 in 2010 and 2011;
 */
@@ -51,32 +51,70 @@ data holdxxxxx; set piquiltrees2; if (sspp = 'XXXXx');
 run;
 /* proc print data=holdquma3; run; 	*N=261;
    proc print data=holdqumax; run; 	*N=1024;	
-   proc print data=holdpitax; run; 	*N=2426;
+   proc print data=holdpitax (firstobs=1 obs=30); run; 	*N=2426;
    proc print data=holdqustx; run; 	*N=265; 
    proc print data=holdjuvix; run; 	*N=383; 
    proc print data=holdxxxxx; run; 	*N=81; */
 
+proc sort data=holdquma3; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdquma3 n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam crwn nperspp nquma3;
+	output out=quma3mean n = ndiam ncrwn numperplot numquma3 sum=sumdiam sumcrwn nperspp nquma3 mean= mdiam mcrwn meanperplot mquma3;
+data quma3; set quma3mean; drop _TYPE_ _FREQ_ ndiam ncrwn numperplot numquma3 sumdiam sumcrwn nperspp meanperplot mquma3; run;
+*proc print data=quma3; run; *n=89;
+
+proc sort data=holdqumax; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdqumax n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam crwn nperspp nqumax;
+	output out=qumaxmean n = ndiam ncrwn numperplot numqumax sum=sumdiam sumcrwn nperspp nqumax mean= mdiam mcrwn meanperplot mqumax;
+data qumax; set qumaxmean; drop _TYPE_ _FREQ_ ndiam ncrwn numperplot numqumax sumdiam sumcrwn nperspp meanperplot mqumax; run;
+*proc print data=qumax; run; *n=132;
+
+proc sort data=holdpitax; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdpitax n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam crwn nperspp npitax;
+	output out=pitamean n = ndiam ncrwn numperplot numpitax sum=sumdiam sumcrwn nperspp npitax mean= mdiam mcrwn meanperplot mpitax;
+data pita; set pitamean; drop _TYPE_ _FREQ_ ndiam ncrwn numperplot numpitax sumdiam sumcrwn nperspp meanperplot mpitax; run;
+*proc print data=pita; run; *n=153;
+
+proc sort data=holdqustx; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdqustx n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam crwn nperspp nqustx;
+	output out=qustmean n = ndiam ncrwn numperplot numqustx sum=sumdiam sumcrwn nperspp nqustx mean= mdiam mcrwn meanperplot mqustx;
+data qust; set qustmean; drop _TYPE_ _FREQ_ ndiam ncrwn numperplot numqustx sumdiam sumcrwn nperspp meanperplot mqustx; run;
+*proc print data=qust; run; *n=40;
+
+proc sort data=holdjuvix; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdjuvix n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam crwn nperspp njuvix;
+	output out=juvimean n = ndiam ncrwn numperplot numjuvix sum=sumdiam sumcrwn nperspp njuvix mean= mdiam mcrwn meanperplot mjuvix;
+data juvi; set juvimean; drop _TYPE_ _FREQ_ ndiam ncrwn numperplot numjuvix sumdiam sumcrwn nperspp meanperplot mjuvix; run;
+*proc print data=juvi; run; *n=52;
+
+proc sort data=holdxxxxx; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdxxxxx n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam crwn nperspp ;
+	output out=xxxxmean n = ndiam ncrwn numperplot  sum=sumdiam sumcrwn nperspp  mean= mdiam mcrwn meanperplot ;
+data xxxx; set xxxxmean; drop _TYPE_ _FREQ_ ndiam ncrwn numperplot sumdiam sumcrwn meanperplot ; run;
+*proc print data=xxxx; run; *n=81;
+
 proc sort data=piquiltrees2; by plot bcat year; run;
 *n(spp) is count, pa(spp) is presence/absence;
-data piquiltrees3; merge holdquma3 holdqumax holdpitax holdqustx holdjuvix holdxxxxx piquiltrees2; by plot bcat year;
+data piquiltrees3; merge quma3 quma pita qust juvi xxxx piquiltrees2; by plot bcat year;
   if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
   if (nqustx = .) then nqustx=0; if (nqustx=0) then paqustx=0; if (nqustx ^= 0) then paqustx=1; 
-  if (njuvix = .) then njuvix=0; if (njuvix=0) then pajuvix=0; if (njuvix ^= 0) then pajuvix=1;  
-  drop _TYPE_ _FREQ_ sspp nperspp;  * dropping sspp & nperspp - become garbage;
-run; *N=4479;
-/* proc print data=piquiltrees3; title 'piquilsap3'; run;  * N = 4479; 
+  if (njuvix = .) then njuvix=0; if (njuvix=0) then pajuvix=0; if (njuvix ^= 0) then pajuvix=1; 
+  if (stat='D')	  then nquma3=0 & nqumax=0 & npitax=0 & nqustx=0 & njuvix=0
+					 & paquma3=0 & paqumax=0 & papitax=0 & paqustx=0 & pajuvix=0;
+  drop _TYPE_ _FREQ_ subp sspp nperspp;  * dropping sspp & nperspp - become garbage;
+run; *N=4477;
+/* proc print data=piquiltrees3 (firstobs=1 obs=200); title 'piquiltrees3'; run;  * N = 4477; 
 proc contents data = piquiltrees3; run;
 */
 
 data piquiltrees4; set piquiltrees3; 		
-	keep aspect bcat covm elev diam crwn hydrn njuvix npitax nquma3 nqumax nqustx plot year prpo slope soileb;
+	keep aspect bcat covm elev mdiam mcrwn hydrn njuvix npitax nquma3 nqumax nqustx plot year prpo slope soileb stat;
 run;  * N = 2736;
-proc sort data=piquiltrees4; by year prpo plot bcat aspect hydrn soileb; run;
+proc sort data=piquiltrees4; by plot year; run;
 /* proc freq data=piquiltrees4; tables soileb; run; *3818 sand, 661 gravel;
    proc contents data=piquiltrees4; run; 
-   proc print data=piquiltrees4; title 'piquil4'; run; */
+   proc print data=piquiltrees4 (firstobs=1 obs=150); title 'piquil4'; run; */
 
 * Contents:
  				   	   #    Variable    Type    Len    Format     Informat
@@ -98,13 +136,21 @@ proc sort data=piquiltrees4; by year prpo plot bcat aspect hydrn soileb; run;
                         7    soileb      Num       8    BEST12.    BEST32.
                         2    year        Num       8    BEST12.    BEST32.
 ;
-
-proc means data=piquiltrees4 mean noprint; by year plot bcat aspect hydrn soileb;
+/* 1-5-17--the means for count are wrong, use n (mean is how many trees of a certain DBH per plot, which is
+why they're all very low)--keeping means for plot-level variables though;
+proc means data=piquiltrees4 n mean noprint; by year plot bcat aspect hydrn soileb;
   var npitax nquma3 nqumax nqustx njuvix covm elev slope crwn diam;
   output out=piquiltrees5 mean = mpitax mquma3 mqumax mqustx mjuvix mcov elev slope mcrn mdbh;
 run;
-data piquiltrees6; set piquiltrees5; drop _TYPE_; 
-*proc print data=piquiltrees6; title 'piquil6'; run; *N=272;
+*/
+proc sort data=piquiltrees4; by year plot bcat aspect hydrn soileb stat; run;
+proc means data=piquiltrees4 mean noprint; by year plot bcat aspect hydrn soileb stat;
+  var npitax nquma3 nqumax nqustx njuvix covm elev slope mcrwn mdiam;
+  output out=piquiltrees5 mean = mpitax mquma3 mqumax mqustx mjuvix mcov melev mslope mcrn mdbh;
+run;
+data piquiltrees6; set piquiltrees5; drop _TYPE_ ; 
+proc sort data=piquiltrees6; by plot year; run;
+*proc print data=piquiltrees6; title 'piquil6'; run; *N=263;
 
 *IML to re-organize data;
 proc iml;
@@ -138,8 +184,9 @@ nyr2obs = sum(mattemp[,2]); *print nyr2obs;  * how many year2? (49);
   variables that change each year: _FREQ_, covm, mdbh, mhgt, year, milvox, mpitax, mqumax,
 								mquma3;
 
-*order of variables in mat1: year, plot, bcat, aspect, hydr, soileb, _FREQ_, pita, quma3, qumax, 
-	qust, juvi, mcov, elev, slope, mcrn, mdbh;
+*order of variables in mat1: 
+	year, plot, bcat, aspect, hydr, soileb, _FREQ_, mpita, mquma3, mqumax, 
+	mqust, mjuvi, mcov, melev, mslope, mcrwn, mdiam;
 
 * fill mat2; * col1 already has first yr;
 do i = 1 to nrecords;    * record by record loop;
@@ -154,11 +201,11 @@ do i = 1 to nrecords;    * record by record loop;
   mat2[i,9] = mat1[i,6];   * soileb;
   mat2[i,10] = mat1[i,14]; * elev;
   mat2[i,11] = mat1[i,15]; * slope;
-  mat2[i,12] = mat1[i,8];  * mpita1;
-  mat2[i,14] = mat1[i,9];  * mqum31;
-  mat2[i,16] = mat1[i,10]; * mqumx1;
-  mat2[i,18] = mat1[i,11]; * mqust1;
-  mat2[i,20] = mat1[i,12]; * mjuvi1;
+  mat2[i,12] = mat1[i,8];  * pita1;
+  mat2[i,14] = mat1[i,9];  * qum31;
+  mat2[i,16] = mat1[i,10]; * qumx1;
+  mat2[i,18] = mat1[i,11]; * qust1;
+  mat2[i,20] = mat1[i,12]; * juvi1;
   mat2[i,22] = mat1[i,13]; * covm1;
   mat2[i,24] = mat1[i,16]; * mcrn1;
   mat2[i,26] = mat1[i,17]; * mdbh1;
@@ -193,10 +240,10 @@ append from mat2;
 quit; run;
 
 /* 
-proc print data=treepairs; title 'treepairs'; run; *N=272;
-proc freq data=treepairs; tables soil; run; 	   * 214 sand, 58 gravel;
+proc print data=treepairs; title 'treepairs'; run; *N=408;
+proc freq data=treepairs; tables soil; run; 	   * 322 sand, 86 gravel;
 */
-
+proc sort data=treepairs; by year1; *proc print data=treepairs; run;
 
 *reorganizing treepairs;
 data treepairssp; set treepairs;
@@ -219,7 +266,7 @@ proc means data=treepref n mean noprint; by plot bcat elev hydr slope soil aspec
 	output out=mtreepref n=npit nqm3 nqma nqst njuv ncov ncrn ndbh
 		   			  mean=mpit mqm3 mqma mqst mjuv mcov mcrn mdbh;
 run;
-*proc print data=mtreepref; title 'mtreepref'; run; *N=47;
+*proc print data=mtreepref; title 'mtreepref'; run; *N=37;
 
 *structure 1;
 proc sort data=treepost; by plot bcat elev hydr slope soil aspect;
@@ -234,19 +281,19 @@ run;
 *structure 2;
 proc sort data=treepost; by plot year;	run;
 data dat2012; set treepost; if year=2012; 
-	 rename pita=pita12tr quma=quma12tr qum3=qum312tr qust=qust12tr juvi=juvi12tr caco=cov12;  
+	 rename pita=pita12tr quma=quma12tr qum3=qum312tr qust=qust12tr juvi=juvi12tr caco=cov12; *n=49; 
 data dat2013; set treepost; if year=2013; 
-	 rename pita=pita13tr quma=quma13tr qum3=qum313tr qust=qust13tr juvi=juvi13tr caco=cov13; 
+	 rename pita=pita13tr quma=quma13tr qum3=qum313tr qust=qust13tr juvi=juvi13tr caco=cov13; *n=54;
 data dat2014; set treepost; if year=2014; 
-	 rename pita=pita14tr quma=quma14tr qum3=qum314tr qust=qust14tr juvi=juvi14tr caco=cov14;  
+	 rename pita=pita14tr quma=quma14tr qum3=qum314tr qust=qust14tr juvi=juvi14tr caco=cov14; *n=57;
 data dat2015; set treepost; if year=2015; 
-	 rename pita=pita15tr quma=quma15tr qum3=qum315tr qust=qust15tr juvi=juvi15tr caco=cov15; 
+	 rename pita=pita15tr quma=quma15tr qum3=qum315tr qust=qust15tr juvi=juvi15tr caco=cov15; *n=51;
 data prefavg; set mtreepref; 
 	 rename npit=npitapretr nqm3=nquma3pretr nqma=nqumapretr nqst=nqustpretr njuv=njuvipretr ncov=ncovpre ncrn=ncrnpre ndbh=ndbhpre
 		   	mpit=mpitapretr mqm3=mquma3pretr mqma=mqumapretr mqst=mqustpretr mjuv=mjuvipretr mcov=mcovpre mcrn=mcrnpre mdbh=mdhbpre;
-run;
+run; *n=37;
 data treemerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
-*proc print data=treemerge2; title 'sapmerge2'; run; 
+*proc print data=treemerge2; title 'treemerge2'; run; 
 	*N=52 -- no data for plots 1211, 1212, 1218, 1219 b/c they are brush plots;
 
 /*

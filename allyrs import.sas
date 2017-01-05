@@ -372,9 +372,13 @@ XXXX = 10, meaning 10 observations of plots with no seedlings;
 *two sets, one with consistent trees, the other with inconsistent spp; 
 data seedlings4; set seedlings3xx;
 	if (sspp NE "CAAM2" & sspp NE "ILVOx");
+	if pltd = '' then pltd = '0';
+	if pltd = 'p' then pltd = '1';
 run; *N=1303;
 data seedlingprobspp; set seedlings3xx;
 	if (sspp  = "CAAM2" | sspp  = "ILVOx");
+	if pltd = '' then pltd = '0';
+	if pltd = 'p' then pltd = '1';
 	subp = 'seep';
 run; *N=11;
 /*
@@ -387,14 +391,13 @@ run;
 */
 
 /*proc contents data=seedlings4; title 'seedlings4'; run;
-proc print data=seedlings4; title 'seedlings4'; run;
+proc print data=seedlings4 (firstobs=950 obs=960); title 'seedlings4'; run;
 proc print data=seedlingprobspp; title 'seedling prob spp'; run;
 
 proc sql;
-	select sspp, coun, plot, notes, date
+	select sspp, coun, plot, pltd, year
 	from seedlings4
-	where sspp in ('PITA', 'QUMA', 'QUMA3', 'XXXX') and
-	 year eq '2014';
+	where sspp in ('PITAx', 'QUMAx', 'QUMA3', 'XXXXx');
 quit; 
 
 proc freq data=seedlings4; tables sspp*plot; title 'seedlings4'; run; * N = 1022;
@@ -561,9 +564,191 @@ proc freq data=saplingprobspp; tables sspp; title 'saplingprobspp'; run; * N = 3
 proc print data=saplingprobspp; run;*/
 
 ******OVERSTORY (MATURE TREES, DBH >= 15.1);
+/*
 proc import datafile="d:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Overstory-allyrs.csv"
 out=overstory dbms=csv replace; getnames=yes;
 run;  
+*/
+ /**********************************************************************
+ *   PRODUCT:   SAS
+ *   VERSION:   9.4
+ *   CREATOR:   External File Interface
+ *   DATE:      04JAN17
+ *   DESC:      Generated SAS Datastep Code
+ *   TEMPLATE SOURCE:  (None Specified.)
+ ***********************************************************************/
+    data WORK.OVERSTORY    ;
+    %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+    infile 'd:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\Overstory-allyrs.csv' delimiter = ',' MISSOVER DSD lrecl=32767 firstobs=2 ;
+       informat MacroPlot_Name best32. ;
+       informat Monitoring_Status $6. ;
+       informat Date mmddyy10. ;
+       informat IsVerified $4. ;
+       informat QTR best32. ;
+       informat SubFrac best32. ;
+       informat TagNo best32. ;
+       informat Status $1. ;
+       informat DBH best32. ;
+       informat Ht best32. ;
+       informat CrwnRto best32. ;
+       informat CrwnCl $1. ;
+       informat LiCrBHt $1. ;
+       informat CrFuBHt $1. ;
+       informat CrwnRad $1. ;
+       informat Age $1. ;
+       informat GrwthRt $1. ;
+       informat Mort $1. ;
+       informat DecayCl $1. ;
+       informat LaddBaseHt $1. ;
+       informat LaddMaxHt $1. ;
+       informat DRC $1. ;
+       informat NuLiStems $1. ;
+       informat NuDeStems $1. ;
+       informat EqDia $1. ;
+       informat XCoord $1. ;
+       informat YCoord $1. ;
+       informat CKR $1. ;
+       informat CharHt $1. ;
+       informat ScorchHt $1. ;
+       informat CrScPct $1. ;
+       informat DamCd1 $4. ;
+       informat DamSev1 $1. ;
+       informat DamCd2 $4. ;
+       informat DamSev2 $1. ;
+       informat DamCd3 $1. ;
+       informat DamSev3 $1. ;
+       informat DamCd4 $1. ;
+       informat DamSev4 $1. ;
+       informat DamCd5 $1. ;
+       informat DamSev5 $1. ;
+       informat Comment $1. ;
+       informat UV1 $1. ;
+       informat UV2 $1. ;
+       informat UV3 $1. ;
+       informat MacroPlotSize best32. ;
+       informat SnagPlotSize best32. ;
+       informat BrkPntDia best32. ;
+       informat FieldTeam $1. ;
+       informat EntryTeam $1. ;
+       informat UV1Desc $1. ;
+       informat UV2Desc $1. ;
+       informat UV3Desc $1. ;
+       informat Species_Symbol $5. ;
+       informat Visited $4. ;
+       format MacroPlot_Name best12. ;
+       format Monitoring_Status $6. ;
+       format Date mmddyy10. ;
+       format IsVerified $4. ;
+       format QTR best12. ;
+       format SubFrac best12. ;
+       format TagNo best12. ;
+       format Status $1. ;
+       format DBH best12. ;
+       format Ht best12. ;
+       format CrwnRto best12. ;
+       format CrwnCl $1. ;
+       format LiCrBHt $1. ;
+       format CrFuBHt $1. ;
+       format CrwnRad $1. ;
+       format Age $1. ;
+       format GrwthRt $1. ;
+       format Mort $1. ;
+       format DecayCl $1. ;
+       format LaddBaseHt $1. ;
+       format LaddMaxHt $1. ;
+       format DRC $1. ;
+       format NuLiStems $1. ;
+       format NuDeStems $1. ;
+       format EqDia $1. ;
+       format XCoord $1. ;
+       format YCoord $1. ;
+       format CKR $1. ;
+       format CharHt $1. ;
+       format ScorchHt $1. ;
+       format CrScPct $1. ;
+       format DamCd1 $4. ;
+       format DamSev1 $1. ;
+       format DamCd2 $4. ;
+       format DamSev2 $1. ;
+       format DamCd3 $1. ;
+       format DamSev3 $1. ;
+       format DamCd4 $1. ;
+       format DamSev4 $1. ;
+       format DamCd5 $1. ;
+       format DamSev5 $1. ;
+       format Comment $1. ;
+       format UV1 $1. ;
+       format UV2 $1. ;
+       format UV3 $1. ;
+       format MacroPlotSize best12. ;
+       format SnagPlotSize best12. ;
+       format BrkPntDia best12. ;
+       format FieldTeam $1. ;
+       format EntryTeam $1. ;
+       format UV1Desc $1. ;
+       format UV2Desc $1. ;
+       format UV3Desc $1. ;
+       format Species_Symbol $5. ;
+       format Visited $4. ;
+    input
+                MacroPlot_Name
+                Monitoring_Status $
+                Date
+                IsVerified $
+                QTR
+                SubFrac
+                TagNo
+                Status $
+                DBH
+                Ht
+                CrwnRto
+                CrwnCl $
+                LiCrBHt $
+                CrFuBHt $
+                CrwnRad $
+                Age $
+                GrwthRt $
+                Mort $
+                DecayCl $
+                LaddBaseHt $
+                LaddMaxHt $
+                DRC $
+                NuLiStems $
+                NuDeStems $
+                EqDia $
+                XCoord $
+                YCoord $
+                CKR $
+                CharHt $
+                ScorchHt $
+                CrScPct $
+                DamCd1 $
+                DamSev1 $
+                DamCd2 $
+                DamSev2 $
+                DamCd3 $
+                DamSev3 $
+                DamCd4 $
+                DamSev4 $
+                DamCd5 $
+                DamSev5 $
+                Comment $
+                UV1 $
+                UV2 $
+                UV3 $
+                MacroPlotSize
+                SnagPlotSize
+                BrkPntDia
+                FieldTeam $
+                EntryTeam $
+                UV1Desc $
+                UV2Desc $
+                UV3Desc $
+                Species_Symbol $
+                Visited $
+    ;
+    if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+    run;
 
 /* proc print data=overstory; run; * N = 7159;
 proc contents data=overstory; run; */
@@ -578,7 +763,7 @@ proc contents data=overstory; run; */
 
 * cleanup;
 data overstory1; set overstory;
-	if Status = 'D' then delete;
+	*if Status = 'D' then delete;
 	if Species_Symbol='' then delete; 
 	subp = 'tree'; 
 	coun = .;
@@ -587,9 +772,9 @@ data dat2; set overstory1;
 	length char3 $ 5;         * char3 has x's only in place of blanks;
 	char3 = char2; run;
 data overstory2 (rename=(MacroPlot_Name=plot) rename=(char3=sspp)
-				 rename=(DBH=diam) rename=(CrwnRto=crwn));
+				 rename=(DBH=diam) rename=(CrwnRto=crwn) rename=(Status=stat));
 	set dat2; run;
-data overstory3 (keep=plot year sspp diam crwn coun subp); set overstory2;	
+data overstory3 (keep=plot year sspp diam crwn coun subp stat); set overstory2;	
 	year = year(date); 
 	if year = '.' then year = 1999;	
 run;
@@ -602,15 +787,15 @@ data overstory3xx; merge overstory3x plothist; by plot; run;
 proc sort data=overstory3xx; by plot year;	run;
 
 /*proc contents data=overstory3xx; title 'overstory3xx'; run;  * N =5316;
-proc print data=overstory3xx; title 'overstory3xx'; run;
+proc print data=overstory3xx (firstobs=1 obs=100); title 'overstory3xx'; run;
 proc freq data=overstory3xx; tables sspp; run;  */
 
 *PINUS (1x) = unspecified species of Pinus;
 
 /*proc sql;
 	select *
-	from overstory3
-	where sspp eq 'PINUS';
+	from overstory3xx
+	where sspp eq 'QUMA3';
 quit; */
 
 *PINUS was recorded in plot 1199, in 11/1999. Can reasonably change them to PITA.
