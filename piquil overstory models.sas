@@ -1,11 +1,11 @@
 *bcat models;
 *remember--bcat 1=unburned, bcat 2=s/l, bcat 3=m/h;
 proc glimmix data=treemerge2; title 'bcat models';
-  class bcat;
-  model pita13tr = bcat / distribution=negbin link=log solution DDFM=bw;
+  class bcat soil;
+  model pita12tr = bcat soil cov12/ distribution=negbin link=log solution DDFM=bw;
   *model quma15 = bcat / distribution=poisson link=log solution DDFM=bw;
   *model qum313 = bcat / distribution=poisson link=log solution DDFM=bw;
-  lsmeans bcat / ilink cl;
+  lsmeans bcat soil/ ilink cl;
   output out=glmout2 resid=ehat;
 run;
 

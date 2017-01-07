@@ -109,7 +109,7 @@ proc contents data = piquiltrees3; run;
 */
 
 data piquiltrees4; set piquiltrees3; 		
-	keep aspect bcat covm elev mdiam mcrwn hydrn njuvix npitax nquma3 nqumax nqustx plot year prpo slope soileb stat;
+	keep aspect bcat covm elev mdiam mcrwn hydrn njuvix npitax nquma3 nqumax nqustx plot year prpo slope soileb;
 run;  * N = 2736;
 proc sort data=piquiltrees4; by plot year; run;
 /* proc freq data=piquiltrees4; tables soileb; run; *3818 sand, 661 gravel;
@@ -143,14 +143,14 @@ proc means data=piquiltrees4 n mean noprint; by year plot bcat aspect hydrn soil
   output out=piquiltrees5 mean = mpitax mquma3 mqumax mqustx mjuvix mcov elev slope mcrn mdbh;
 run;
 */
-proc sort data=piquiltrees4; by year plot bcat aspect hydrn soileb stat; run;
-proc means data=piquiltrees4 mean noprint; by year plot bcat aspect hydrn soileb stat;
+proc sort data=piquiltrees4; by year plot bcat aspect hydrn soileb; run;
+proc means data=piquiltrees4 mean noprint; by year plot bcat aspect hydrn soileb;
   var npitax nquma3 nqumax nqustx njuvix covm elev slope mcrwn mdiam;
   output out=piquiltrees5 mean = mpitax mquma3 mqumax mqustx mjuvix mcov melev mslope mcrn mdbh;
 run;
 data piquiltrees6; set piquiltrees5; drop _TYPE_ ; 
 proc sort data=piquiltrees6; by plot year; run;
-*proc print data=piquiltrees6; title 'piquil6'; run; *N=263;
+*proc print data=piquiltrees6; title 'piquil6'; run; *N=279;
 
 *IML to re-organize data;
 proc iml;

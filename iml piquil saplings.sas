@@ -5,7 +5,7 @@ data piquilsap; set alld;
 run; 
 proc sort data=piquilsap; by subp plot sspp year bcat covm coun diam heig soileb elev slope aspect hydrn prpo; run;
 proc means data=piquilsap noprint sum; by subp plot sspp year bcat covm coun diam heig soileb elev slope aspect hydrn prpo; var coun; 
-  output out=piquilsap2 sum=nperspp; run; *N=1654;
+  output out=piquilsap2 sum=nperspp; run; *N=1822;
 /* proc print data=piquilsap2 (firstobs=1 obs=30); title 'pi-qu-il numplantdata';    run;
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
@@ -83,10 +83,34 @@ data holdjuvi; set piquilsap2; if (subp = 'sapl' | subp = 'shrp') & (sspp = 'JUV
 	proc sort data=holdjuvi; by plot bcat year;  *N=122;
 run;
 */
+proc sort data=holdquma3; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdquma3 n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam heig nperspp nquma3;
+	output out=quma3mean n = ndiam nhgt numperplot numquma3 sum=sumdiam sumhgt nperspp nquma3 mean= mdiam mhgt meanperplot mquma3;
+data quma3; set quma3mean; drop _TYPE_ _FREQ_ ndiam nhgt numperplot numquma3 sumdiam sumhgt nperspp meanperplot mquma3; run;
+*proc print data=quma3; run; *n=71;
+
+
+proc sort data=holdqumax; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdqumax n sum mean noprint;  by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam heig nperspp nqumax;
+	output out=qumaxmean n = ndiam nhgt numperplot numqumax sum=sumdiam sumhgt nperspp nqumax mean= mdiam mhgt meanperplot mqumax;
+data qumax; set qumaxmean; drop _TYPE_ _FREQ_ ndiam nhgt numperplot numqumax sumdiam sumhgt nperspp meanperplot mqumax; run;
+*proc print data=qumax; run; *n=93;
+
+proc sort data=holdpitax; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdpitax n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam heig nperspp npitax;
+	output out=pitamean n = ndiam nhgt numperplot numpitax sum=sumdiam sumhgt nperspp npitax mean= mdiam mhgt meanperplot mpitax;
+data pita; set pitamean; drop _TYPE_ _FREQ_ ndiam nhgt numperplot numpitax sumdiam sumhgt nperspp meanperplot mpitax; run;
+*proc print data=pita; run; *n=78;
+
+proc sort data=holdxxxxx; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; run;
+proc means data=holdxxxxx n sum mean noprint; by plot sspp year bcat covm soileb elev slope aspect hydrn prpo; var diam heig nperspp ;
+	output out=xxxxmean n = ndiam nhgt numperplot  sum=sumdiam sumhgt nperspp  mean= mdiam mhgt meanperplot ;
+data xxxx; set xxxxmean; drop _TYPE_ _FREQ_ ndiam nhgt numperplot sumdiam sumhgt meanperplot ; run;
+*proc print data=xxxx; run; *n=100;
 
 proc sort data=piquilsap2; by plot bcat year; run;
 *n(spp) is count, pa(spp) is presence/absence;
-data piquilsap3; merge holdquma3 holdqumax holdpitax holdxxxxx piquilsap2; by plot bcat year;
+data piquilsap3; merge quma3 qumax pita xxxx piquilsap2; by plot bcat year;
   if (nquma3 = .) then nquma3=0; if (nquma3=0) then paquma3=0; if (nquma3 ^= 0) then paquma3=1;
   if (nqumax = .) then nqumax=0; if (nqumax=0) then paqumax=0; if (nqumax ^= 0) then paqumax=1;
   if (npitax = .) then npitax=0; if (npitax=0) then papitax=0; if (npitax ^= 0) then papitax=1;
@@ -101,7 +125,7 @@ proc freq data=piquilsap3; tables soileb*npitax; title 'piquil'; run;
 */
 
 data piquilsap4; set piquilsap3; 		
-	keep aspect bcat covm elev diam heig hydrn npitax nquma3 nqumax plot year prpo slope soileb;
+	keep aspect bcat covm elev mdiam mhgt hydrn npitax nquma3 nqumax plot year prpo slope soileb;
 run;  * N = 1661;
 proc sort data=piquilsap4; by year prpo plot bcat aspect slope hydrn soileb; run;
 /* proc freq data=piquilsap4; tables soileb; run; *1233 sand, 441 gravel;
@@ -130,10 +154,11 @@ proc sort data=piquilsap4; by year prpo plot bcat aspect slope hydrn soileb; run
 ;
 
 proc means data=piquilsap4 mean noprint; by year plot bcat aspect hydrn soileb;
-  var npitax nquma3 nqumax covm elev slope heig diam;
+  var npitax nquma3 nqumax covm elev slope mhgt mdiam;
   output out=piquilsap5 mean = mpitax mquma3 mqumax mcov elev slope mhgt mdbh;
 run;
 data piquilsap6; set piquilsap5; drop _TYPE_; 
+proc sort data=piquilsap6; by plot year; run;
 *proc print data=piquilsap6; title 'piquil6'; run; *N=241;
 
 *IML to re-organize data;
@@ -220,7 +245,7 @@ quit; run;
 
 /* 
 proc print data=sappairs; title 'sappairs'; run; *N=241;
-proc freq data=sappairs; tables soil; run; 	     *N=206 sand, 63 gravel;
+proc freq data=sappairs; tables soil; run; 	     *N=183 sand, 58 gravel;
 */
 
 
