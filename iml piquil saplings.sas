@@ -286,24 +286,25 @@ run;
 *structure 2;
 proc sort data=sappost; by plot year;	run;
 data dat2012; set sappost; if year=2012; 
-	 rename pita=pita12 quma=quma12 qum3=qum312 caco=cov12;   
+	 rename pita=pita12p quma=quma12p qum3=qum312p caco=cov12;   
 data dat2013; set sappost; if year=2013; 
-	 rename pita=pita13 quma=quma13 qum3=qum313 caco=cov13;   
+	 rename pita=pita13p quma=quma13p qum3=qum313p caco=cov13;   
 data dat2014; set sappost; if year=2014; 
-	 rename pita=pita14 quma=quma14 qum3=qum314 caco=cov14;  
+	 rename pita=pita14p quma=quma14p qum3=qum314p caco=cov14;  
 data dat2015; set sappost; if year=2015; 
-	 rename pita=pita15 quma=quma15 ilvo=ilvo15 qum3=qum315 caco=cov15;  
+	 rename pita=pita15p quma=quma15p qum3=qum315p caco=cov15;  
 data prefavg; set msappref; 
-	 rename npit=npitapre nqm3=nquma3pre nqma=nqumapre ncov=ncovpre nhgt=nhgtpre ndbh=ndbhpre
-		   	mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtpre mdbh=mdhbpre;
+	 rename npit=npitapre nqm3=nquma3pre nqma=nqumapre ncov=ncovpre nhgt=nhgtprep ndbh=ndbhprep
+		   	mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtprep mdbh=mdhbprep;
 run; 														  
 data sapmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
-* proc print data=sapmerge2; title 'sapmerge2'; run; 	 	  
+* proc print data=sapmerge2; title 'sapmerge2'; run; 
+*proc contents data=sapmerge2; run; 
 	*N=52 -- no data for plots 1211, 1212, 1218, 1219 b/c they are brush plots;
 
 /*
 proc export data=sapmerge2
-   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\sapmerge2.csv'
+   outfile='d:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\sapmerge2.csv'
    dbms=csv
    replace;
 run;
