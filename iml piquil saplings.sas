@@ -294,8 +294,8 @@ data dat2014; set sappost; if year=2014;
 data dat2015; set sappost; if year=2015; 
 	 rename pita=pita15p quma=quma15p qum3=qum315p caco=cov15;  
 data prefavg; set msappref; 
-	 rename npit=npitapre nqm3=nquma3pre nqma=nqumapre ncov=ncovpre nhgt=nhgtprep ndbh=ndbhprep
-		   	mpit=mpitapre mqm3=mquma3pre mqma=mqumapre mcov=mcovpre mhgt=mhgtprep mdbh=mdhbprep;
+	 rename npit=npitaprep nqm3=nquma3prep nqma=nqumaprep ncov=ncovpre nhgt=nhgtprep ndbh=ndbhprep
+		   	mpit=mpitaprep mqm3=mquma3prep mqma=mqumaprep mcov=mcovpre mhgt=mhgtprep mdbh=mdhbprep;
 run; 														  
 data sapmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
 * proc print data=sapmerge2; title 'sapmerge2'; run; 
