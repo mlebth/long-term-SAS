@@ -1,3 +1,12 @@
+
+OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
+
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\sapmerge2.csv"
+out=sapmerge2
+dbms=csv replace; 
+getnames=yes;
+run;
+
 proc glm data=sapmerge2; title 'bcat glm';
   class bcat;
   model pita14 = bcat;

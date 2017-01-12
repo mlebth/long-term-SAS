@@ -1,3 +1,6 @@
+
+OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
+
 *import mature trees file;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\treemerge3.csv"
 out=treemerge2
@@ -38,40 +41,33 @@ proc export data=seedtree
 run;
 */
 
+/*
 ************11/24/15 -- data exploration;
-proc sort data=treemerge2; by bcat soil; run;
+proc sort data=treemerge2; by burnsev soil; run;
 proc means data=treemerge2 mean noprint; 
-	by bcat soil; var pita15tr quma15tr qum315tr;
+	by burnsev soil; var pita15tr quma15tr qum315tr;
 	output out=mout1 n=npita15tr nquma15tr nquma315tr;
 run;
-proc print data=mout1; run;	 *no data for bcat=1 (unburned) -- no unburned plots sampled post-fire;
+proc print data=mout1; run;	 
 
 proc means data=treemerge2 mean noprint; 
-	by bcat; var pita15tr quma15tr qum315tr;
+	by burnsev; var pita15tr quma15tr qum315tr;
 	output out=mout2 mean=mpita15 mquma15 mquma315;
 run;
 proc print data=mout2; run;	
 
 proc means data=treemerge2 mean noprint; 
-	by bcat ; var mpitapretr pita12tr pita13tr pita14tr pita15tr;
+	by burnsev ; var mpitapretr pita12tr pita13tr pita14tr pita15tr;
 	output out=mout2 mean=pitapre mpita12 mpita13 mpita14 mpita15;
 run;
 proc print data=mout2; run;	
 
 proc plot data=seedtree; plot pita15*pita12tr; run;
-***********************;
-proc contents data=seedtree; run;
-*bcat models;
-*remember--bcat 1=unburned, bcat 2=s/l, bcat 3=m/h;
-proc glimmix data=treemerge2; title 'bcat models';
-  class burn soil;
-  model pita12tr = burn soil cov12/ distribution=negbin link=log solution DDFM=bw;
-  *model quma15 = bcat / distribution=poisson link=log solution DDFM=bw;
-  *model qum313 = bcat / distribution=poisson link=log solution DDFM=bw;
-  lsmeans bcat soil/ ilink cl;
-  output out=glmout2 resid=ehat;
-run;
+*/
 
+***********************;
+
+******seedling = tree models;
 proc glimmix data=seedtree; title 'seed v tree';
 	*class burnsev;
 	*model pita15 = pita15tr burnsev/ distribution=negbin link=log solution  DDFM=bw;
@@ -104,30 +100,23 @@ proc glimmix data=seedtree; title 'seed v tree';
     *lsmeans burnsev / ilink cl;
 	output out=glmout resid=ehat;
 run;
-
-*soil models;
-proc glimmix data=seedtree; title 'bcat models';
-  class  burnsev;
-  model pita15tr =  burnsev pita14p burnsev*pita14p/ distribution=poisson link=log solution DDFM=bw;
-  *model qum15tr = soil / distribution=poisson link=log solution DDFM=bw;
-  lsmeans  burnsev / ilink cl;
-  output out=glmout2 resid=ehat;
-run;
+***********;
 
 *bcat models;
-proc glimmix data=treemerge2; title 'bcat models';
-  class bcat ;
-  *model pita13tr = bcat  / distribution=poisson link=log solution DDFM=bw;
-  model quma12tr = bcat / distribution=poisson link=log solution DDFM=bw;
-  lsmeans bcat  / ilink cl;
+*remember--bcat 1=unburned, 2=s/l, 3=m/h;
+	   *burnsev 1=unburned/scorched, 2=light, 3=moderate, 4=high;
+proc glimmix data=seedtree; title 'pita tree models';
+  class burnsev soil;
+  *model mpitapretr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
+  *model mqumapretr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
+  model mquma3pretr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
+ * lsmeans burnsev soil / ilink cl;
+*  contrast 'burn: u/scorch v light' burnsev -1 1 0 0;  
+*  contrast 'burn: scorch v mod' burnsev -1 0 1 0;
+*  contrast 'burn: scorch v hi' burnsev -1 0 0 1;
+*  contrast 'burn: light v mod' burnsev 0 -1 1 0;
+ * contrast 'burn: light v hi' burnsev 0 -1 0 1;
+*  contrast 'burn: mod v hi' burnsev 0 0 -1 1;
+ * contrast 'soil: sand v gravel' soil -1 1;
   output out=glmout2 resid=ehat;
 run;
-
-*canopy cover models;
-proc glimmix data=treemerge2 ;  title 'bcat models';
-  *model pita15 = cov15 / distribution=negbin link=log solution DDFM=bw;
-  model quma14 = cov14 / distribution=negbin link=log solution DDFM=bw;
-  *model mquma3pre = mcovpre / distribution=negbin link=log solution DDFM=bw;
-  output out=glmout2 resid=ehat;
-run;
-
