@@ -1,6 +1,7 @@
 
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
+/*
 *import mature trees file;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\treemerge3.csv"
 out=treemerge2
@@ -32,6 +33,13 @@ run;
 *proc print data=seedtree; title 'seedtree'; run;
 *proc contents data=seedtree; run;
 proc sort data=seedtree; by bcat burnsev; run;
+*/
+
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedtree.csv"
+out=seedtree
+dbms=csv replace; 
+getnames=yes;
+run;
 
 /*
 proc export data=seedtree
@@ -73,7 +81,7 @@ proc glimmix data=seedtree; title 'seed v tree';
 	*model pita15 = pita15tr burnsev/ distribution=negbin link=log solution  DDFM=bw;
 	*model pita14 = mpitapretr / distribution=negbin link=log solution  DDFM=bw;
 	*model pita13 = pita12tr / distribution=negbin link=log solution  DDFM=bw;
-	model pita12 = pita12tr / distribution=negbin link=log solution  DDFM=bw;
+	*model pita12 = pita12tr / distribution=negbin link=log solution  DDFM=bw;
 	*model mpitapre = mpitapretr / distribution=negbin link=log solution  DDFM=bw;
     *lsmeans burnsev / ilink cl;
 	output out=glmout resid=ehat;
@@ -93,10 +101,10 @@ run;
 proc glimmix data=seedtree; title 'seed v tree';
 	*class burnsev;
 	*model qum315 = mquma3pretr  / distribution=negbin link=log solution DDFM=bw;
-	*model qum314 = qum313tr / distribution=negbin link=log solution DDFM=bw;
-	*model quma313 = mqumapretr / distribution=negbin link=log solution DDFM=bw;
-	*model quma312 = mqumapretr / distribution=negbin link=log solution DDFM=bw;
-	*model mquma3pre = mqumapretr / distribution=negbin link=log solution DDFM=bw;
+	*model qum314 = mquma3pretr / distribution=negbin link=log solution DDFM=bw;
+	*model qum313 = qum313tr / distribution=negbin link=log solution DDFM=bw;
+	*model qum312 = qum312tr / distribution=negbin link=log solution DDFM=bw;
+	*model mquma3pre = mquma3pretr / distribution=negbin link=log solution DDFM=bw;
     *lsmeans burnsev / ilink cl;
 	output out=glmout resid=ehat;
 run;
@@ -119,4 +127,21 @@ proc glimmix data=seedtree; title 'pita tree models';
 *  contrast 'burn: mod v hi' burnsev 0 0 -1 1;
  * contrast 'soil: sand v gravel' soil -1 1;
   output out=glmout2 resid=ehat;
+run;
+
+proc glimmix data=seedtree method=laplace; title 'tree v prior tree';
+	*model pita12tr = mpitapretr  / distribution=negbin link=log solution DDFM=bw;
+	*model quma12tr = mqumaprep / distribution=negbin link=log solution DDFM=bw;
+	model qum312tr = mquma3prep / distribution=negbin link=log solution DDFM=bw;
+	output out=glmout resid=ehat;
+run;
+
+proc plot data=seedtree; plot qum313tr*qum312tr; run;
+
+proc glimmix data=seedtree method=laplace; title 'tree v prior tree';
+	*class aspect;
+	model pita15tr =  elev  / distribution=negbin link=log solution DDFM=bw;
+	*model quma12tr = mqumaprep / distribution=negbin link=log solution DDFM=bw;
+	*model qum312tr = mquma3prep / distribution=negbin link=log solution DDFM=bw;
+	output out=glmout resid=ehat;
 run;

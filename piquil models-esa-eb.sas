@@ -48,24 +48,43 @@ proc glimmix data=seedsmerge2; title 'ilvo models';
   output out=glmout2 resid=ehat;
 run;
 
-*****************bcat models;
-proc glimmix data=seedsmerge2; title 'bcat models';
-  class bcat;  
-  *model pita14 = bcat / distribution=negbin link=log solution DDFM=residual; 
-  *model quma14 = bcat / distribution=negbin link=log solution DDFM=residual; 
-  *model qum314 = bcat / distribution=negbin link=log solution DDFM=residual; 
-  model ilvo14 = bcat / distribution=negbin link=log solution DDFM=residual;  
-  output out=glmout2 resid=ehat;
+*****************bcat (or burnsev) models;
+proc glimmix data=seedtree; title 'burnsev models';
+  class burnsev;  
+  *model mpitapre = burnsev / distribution=negbin link=log solution DDFM=residual; 
+  *model mqumapre = burnsev / distribution=negbin link=log solution DDFM=residual; 
+  *model mquma3pre = burnsev / distribution=negbin link=log solution DDFM=residual; 
+  model milvopre = burnsev / distribution=negbin link=log solution DDFM=residual;  
+  lsmeans burnsev / ilink cl; 
+  contrast 'burn: u/scorch v light' burnsev -1 1 0 0;  
+  contrast 'burn: scorch v mod' burnsev -1 0 1 0;
+  contrast 'burn: scorch v hi' burnsev -1 0 0 1;
+  contrast 'burn: light v mod' burnsev 0 -1 1 0;
+  contrast 'burn: light v hi' burnsev 0 -1 0 1;
+  contrast 'burn: mod v hi' burnsev 0 0 -1 1;
+  output out=glmout resid=ehat;
 run;
+
+proc glimmix data=seedtree; title 'pltd models';
+	class pltd;
+	model pita15=pltd/distribution=negbin link=log solution DDFM=bw;
+    lsmeans pltd / ilink cl; 
+    output out=glmout resid=ehat;
+run;
+
+*pltd: 1=no, 2=yes;
+proc freq data=seedtree; tables pltd*plot; run;
+*39 not planted, 7 planted;
 
 *****************soil models;
 proc glimmix data=seedsmerge2; title 'soil models'; 
   class soil;  
-  *model mpitapre = soil / distribution=negbin link=log solution DDFM=residual; 
-  *model mqumapre = soil / distribution=negbin link=log solution DDFM=residual; 
+  *model pita15 = soil / distribution=negbin link=log solution DDFM=residual; 
+  *model quma15 = soil / distribution=negbin link=log solution DDFM=residual; 
   *model mquma3pre = soil / distribution=negbin link=log solution DDFM=residual; 
-  model milvopre = soil / distribution=negbin link=log solution DDFM=residual; 
+  model ilvo15 = soil / distribution=negbin link=log solution DDFM=residual; 
   output out=glmout2 resid=ehat;
+  lsmeans soil / ilink cl; 
 run; 
 
 *****************caco models;
