@@ -1,14 +1,16 @@
 *****************Interaction-only models (bcat*soil);
 *PITA;
-proc glimmix data=seedsmerge2; title 'pita models';
-  class bcat soil; 
-  *model pita14 = pita13 bcat*soil
-       / distribution=negbin link=log solution DDFM=residual; 
-  *model pita13 = pita12 bcat*soil
-       / distribution=negbin link=log solution DDFM=residual;  
-  model pita12 = mpitapre bcat*soil
-       / distribution=negbin link=log solution DDFM=residual;  
-output out=glmout2 resid=ehat;
+proc glimmix data=seedtree; title 'pita models';
+  class burnsev soil; 
+  *model pita14 = pita13 bcat*soil / distribution=negbin link=log solution DDFM=residual; 
+  *model pita13 = pita12 bcat*soil / distribution=negbin link=log solution DDFM=residual;  
+  model pita15 =  burnsev*soil / distribution=negbin link=log solution DDFM=residual;  
+  lsmeans burnsev*soil / ilink cl;
+  contrast '11 v 21 - effect of fire in sand' burnsev*soil 1 0 -1 0;
+  contrast '21 v 22 - effect of soil in hifire' burnsev*soil 0 0 1 -1;
+  contrast '11 v 12 - effect of soil in lofire' burnsev*soil 1 -1 0 0;
+  contrast '12 v 22 - effect of fire in gravel' burnsev*soil 0 1 0 -1;
+  output out=glmout2 resid=ehat;
 run;
 
 *QUMA;
@@ -77,12 +79,12 @@ proc freq data=seedtree; tables pltd*plot; run;
 *39 not planted, 7 planted;
 
 *****************soil models;
-proc glimmix data=seedsmerge2; title 'soil models'; 
+proc glimmix data=seedtree method=laplace; title 'soil models'; 
   class soil;  
-  *model pita15 = soil / distribution=negbin link=log solution DDFM=residual; 
+  model pita15 = soil / distribution=negbin link=log solution DDFM=bw; 
   *model quma15 = soil / distribution=negbin link=log solution DDFM=residual; 
   *model mquma3pre = soil / distribution=negbin link=log solution DDFM=residual; 
-  model ilvo15 = soil / distribution=negbin link=log solution DDFM=residual; 
+  *model ilvo15 = soil / distribution=negbin link=log solution DDFM=residual; 
   output out=glmout2 resid=ehat;
   lsmeans soil / ilink cl; 
 run; 
