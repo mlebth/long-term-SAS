@@ -264,13 +264,16 @@ data dat2015; set seedspost; if year=2015;
 data prefavg; set mseedspref; 
 	 rename milv=milvopresd mpit=mpitapresd mqm3=mquma3presd mqst=mqustpresd mqma=mqumapresd mcov=mcovpre mhgt=mhgtpre;
 run;
-data seedsmerge3; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
-*proc print data=seedsmerge3; title 'seedsmerge2'; run; 
+data seedsmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop year; run;
+*proc print data=seedsmerge2; title 'seedsmerge2'; run; 
 	*N=55----not 56 like all the others b/c 1226 was never surveyed for seedlings or shrubs;
+
+data seedsmerge2x; set seedsmerge2; drop hydr soil;
+data seedsmerge3; merge seedsmerge2x plothist; by plot; run;
 
 /*
 proc export data=seedsmerge3
-   outfile='\\austin.utexas.edu\disk\eb23667\ResearchSASFiles\seedsmerge3.csv'
+   outfile='d:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedsmerge3.csv'
    dbms=csv
    replace;
 run;

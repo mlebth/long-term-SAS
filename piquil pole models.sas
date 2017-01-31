@@ -28,11 +28,11 @@ run;
 
 *prior veg models;
 proc glimmix data=seedtree ; title 'pita tree models';
-  model pita15p = pita12p/ distribution=negbin link=log solution DDFM=bw;
+  *model pita15p = pita12p/ distribution=negbin link=log solution DDFM=bw;
   *model pita12p = mpitapre/ distribution=negbin link=log solution DDFM=bw;
-  *model quma14p = quma13p / distribution=negbin link=log solution DDFM=bw;
+  *model quma13p = mqumapretr / distribution=negbin link=log solution DDFM=bw;
   *model quma12p = mqumapre / distribution=negbin link=log solution DDFM=bw;
-  *model qum312p = mquma3prep / distribution=negbin link=log solution DDFM=bw;
+  model qum313p = mquma3pretr / distribution=negbin link=log solution DDFM=bw;
   *model qum315p = mquma3pre / distribution=negbin link=log solution DDFM=bw;
   output out=glmout resid=ehat;
 run;

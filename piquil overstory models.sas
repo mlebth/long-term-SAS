@@ -9,7 +9,7 @@ dbms=csv replace;
 getnames=yes;
 run;
 *11/29/15--merging seedling+overstory;
-proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedsmerge2.csv"
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedsmerge3.csv"
 out=seedsmerge2
 dbms=csv replace; 
 getnames=yes;
@@ -36,7 +36,7 @@ proc sort data=seedtree; by bcat burnsev; run;
 */
 
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedtree.csv"
-out=seedtree
+out=seedtree2
 dbms=csv replace; 
 getnames=yes;
 run;
