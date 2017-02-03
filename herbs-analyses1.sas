@@ -69,7 +69,7 @@ proc glimmix data=quadhistory3; by spnum;
 	*year2: slope only included for species 1 and 3, other species' models are better without.
 		none of the interactions are sig.;
 	*year1: soil, cover1m, slope, elev;
-	model count1s =  slope   / dist=negbin solution;
+	model count1s =  slope  / dist=negbin solution;
 	*model count2s = bcat soil slope / dist=negbin solution;
 	*model count2s = bcat soil aspect / dist=negbin solution;
 	*model count2s = bcat soil hydr / dist=negbin solution;
@@ -82,15 +82,17 @@ run;
 
 *breaking down modeling per species;
 proc sort data=quadhistory3; by spnum;
-data quadhistoryDILI; set quadhistory3; if spnum=1; run;
-data quadhistoryDIOL; set quadhistory3; if spnum=2; run;
-data quadhistoryDISP; set quadhistory3; if spnum=3; run;
-data quadhistoryHELA; set quadhistory3; if spnum=4; run;
-data quadhistoryLETE; set quadhistory3; if spnum=5; run;
+data quadhistoryDIAN; set quadhistory3; if spnum=1; run;
+data quadhistoryERSP; set quadhistory3; if spnum=2; run;
+data quadhistoryLEDU; set quadhistory3; if spnum=3; run;
+data quadhistoryPAPL; set quadhistory3; if spnum=4; run;
+data quadhistorySCSC; set quadhistory3; if spnum=5; run;
 
+PROC PRINT data=quadhistoryledu; run; 
+proc freq data=quadhistoryledu; run;
 * coverm yearnum bcat soil hydr aspect elev slope;
 
-proc glimmix data=quadhistoryDILI; 
+proc glimmix data=quadhistoryLEDU; 
 	class bcat ;  
 	*NS: bcat*soil, soil*yearnum;
 	*model count2s = bcat soil yearnum elev bcat*soil soil*elev / dist=negbin solution; 

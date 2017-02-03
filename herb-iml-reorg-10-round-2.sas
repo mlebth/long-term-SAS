@@ -6,11 +6,11 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 * proc datasets library=work kill noprint; run; 
 
 *import herb data;
-proc import datafile="E:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbx1.csv"
-out=herbx dbms=csv replace; getnames=yes; run;  * N = 12547;
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbx1.csv"
+out=herbx1 dbms=csv replace; getnames=yes; run;  * N = 12547;
 
 * creating a set of herbs;
-data herb1x; set herbx;
+data herb1x; set herbx1;
 	* removing blank lines;
 	if sspp='     ' then delete;
 	* removing 1999--data are of extremely poor quality;
@@ -24,6 +24,12 @@ run; * n = 12,543;
 proc sort data=herb1x; by sspp plot quad year bcat cover count soil elev slope aspect hydr; run; 
 * proc print data=herb1x (firstobs=1 obs=20); title 'herb1x'; run;
 * proc contents data=herb1x; run;
+
+proc sql;
+	select plot, hydr
+	from herb1x
+	where year=2012;
+quit;
 
 /*
 * getting stem counts to look at;

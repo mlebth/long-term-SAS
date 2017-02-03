@@ -71,6 +71,8 @@ run;
 proc print data=mout2; run;	
 
 proc plot data=seedtree; plot pita15*pita12tr; run;
+
+proc freq data=seedtree; tables mpitapretr; run;
 */
 
 ***********************;
