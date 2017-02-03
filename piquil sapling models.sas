@@ -1,44 +1,20 @@
 
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
-*mature trees;
-proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\treemerge3.csv"
-out=treemerge2
-dbms=csv replace; 
-getnames=yes;
-run;
-*seedlings;
-proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedsmerge2.csv"
-out=seedsmerge2
-dbms=csv replace; 
-getnames=yes;
-run;
-*saplings;
-proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\sapmerge2.csv"
-out=sapmerge2
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedtree.csv"
+out=seedtree
 dbms=csv replace; 
 getnames=yes;
 run;
 
-*merging;
-proc sort data=treemerge2;	by plot; run;
-*proc contents data=treemerge2; run;
-data seedtree; merge seedsmerge2 treemerge2 sapmerge2; by plot;
-	if plot=1211 then burnsev = 1;
-	if plot=1212 then burnsev = 3;
-	if plot=1218 then burnsev = 1;
-	if plot=1219 then burnsev = 2;
-run;
-*proc print data=seedtree; title 'seedtree'; run;
-*proc contents data=seedtree; run;
-proc sort data=seedtree; by bcat burnsev; run;
+proc plot data=seedtree; plot quma15p*quma14p quma14p*quma13p quma13p*quma12p; run;
 
 *bcat models;
 proc glimmix data=seedtree ; title 'bcat models';
-  class burnsev soil;
+  *class burnsev soil;
   *model pita12p = burnsev soil / distribution=negbin link=log solution DDFM=bw;
   	*no pita models at all sig. tested cover too, not sig.;
-  model quma12p = cov12 / distribution=negbin link=log solution DDFM=bw;
+  model quma14p = quma13p / distribution=negbin link=log solution DDFM=bw;
   *model mquma3prep = burnsev soil/ distribution=negbin link=log solution DDFM=bw;
 	*no quma3 models at all sig.;
   /*

@@ -389,7 +389,7 @@ proc export data=seedlings4
    replace;
 run;
 */
-proc freq data=seedlings4; table sspp; run;
+*proc freq data=seedlings4; *table sspp; run;
 data oaks; set seedlings4; if (sspp = 'QUMA3'| sspp='QUSTx'| sspp='QUMAx'); run;
 proc sort data=oaks; by  sspp; run;
 proc means data=oaks noprint; by  sspp; var coun; run;

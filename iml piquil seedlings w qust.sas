@@ -108,7 +108,7 @@ run;
 data piquilseed6; set piquilseed5; drop _TYPE_; 
 proc sort data=piquilseed6; by plot; run;
 *proc print data=piquilseed6; title 'piquil6'; run; *N=267;
-
+*proc contents data=piquilseed6; run;
 /* 
 *Just messing around with dataset;
 data piquil7; set piquil6; if year >2011; run;
@@ -218,6 +218,8 @@ data seedpairspp; set seedpairs;
 	if (year1>=2011) then yrcat='post';	
 	drop time1 time2 year2 ilvo2 pita2 quma32 qust2 quma2 covm2 mhgt2; 
 	rename year1=year covm1=caco ilvo1=ilvo pita1=pita quma31=qum3 qust1=qust quma1=quma mhgt1=heig;
+	if (plot=1188 | plot=1221 | plot=1222 | plot=1235 | plot=1236 | plot=1237 | plot=5300) then pltd=1;
+	if pltd='' then pltd='0'; run;
 run;
 data seedspref;  set seedpairspp;
 	if yrcat='pref';
@@ -268,11 +270,8 @@ data seedsmerge2; merge prefavg dat2012 dat2013 dat2014 dat2015; by plot; drop y
 *proc print data=seedsmerge2; title 'seedsmerge2'; run; 
 	*N=55----not 56 like all the others b/c 1226 was never surveyed for seedlings or shrubs;
 
-data seedsmerge2x; set seedsmerge2; drop hydr soil;
-data seedsmerge3; merge seedsmerge2x plothist; by plot; run;
-
 /*
-proc export data=seedsmerge3
+proc export data=seedsmerge2
    outfile='d:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedsmerge3.csv'
    dbms=csv
    replace;

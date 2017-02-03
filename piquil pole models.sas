@@ -1,7 +1,7 @@
 
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
-*11/29/15--merging seedling+overstory;
+*11/29/15 import seedtree;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedtree.csv"
 out=seedtree
 dbms=csv replace; 

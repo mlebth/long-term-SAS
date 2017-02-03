@@ -1,14 +1,14 @@
 ****************putting saplings and shrubs together to have pines, oaks, and ilex in the same set;
 data piquiltrees; set alld;
 	if (subp = 'tree');		
-	if (sspp = 'XXXXx' | stat='D') then coun=0;
-					  			   else coun=1;
+	if (sspp = 'XXXXx') then coun=0; else coun=1;
+	if stat='D' then delete;
 	keep aspect burnsev covm coun elev diam crwn hydrn plot slope soileb sspp subp year prpo stat; 
 run; 
 proc sort data=piquiltrees; by subp plot sspp year burnsev covm coun diam crwn soileb elev slope aspect hydrn prpo stat; run;
 proc means data=piquiltrees noprint sum; by subp plot sspp year burnsev covm coun diam crwn soileb elev slope aspect hydrn prpo stat; var coun; 
   output out=piquiltrees2 sum=nperspp; run; *N=5674;
-/* proc print data=piquiltrees (firstobs=1 obs=100); title 'pi-qu-il numplantdata';    run;
+/* proc print data=piquiltrees (firstobs=1 obs=20); title 'pi-qu-il numplantdata';    run;
   var plot sspp year burn prpo covm soil elev slope aspect hydr nperspp; run;   
 * piquil2 contains: obs, plot, sspp, year, burn, prpo, covm, soil, elev, slope, aspect, hydr, nperspp
   nperspp = # of sdlngs/stems per species per plot/year;  */
@@ -26,9 +26,9 @@ proc freq data=piquiltrees2; tables sspp; run;
 
  *what and where is quma2?
 PROC sql;
-	select sspp, plot, year
+	select sspp, plot, year, coun
 	from piquiltrees2
-	where sspp = 'QUMA3';
+	where sspp = 'QUMA3' and plot=1227;
 quit; 
   *Quercus macrocarpa (bur oak), plots 1191 and 1221 in 2010 and 2011;
 */
@@ -114,7 +114,7 @@ run;  * N = 2736;
 proc sort data=piquiltrees4; by plot year; run;
 /* proc freq data=piquiltrees4; tables soileb; run; *3818 sand, 661 gravel;
    proc contents data=piquiltrees4; run; 
-   proc print data=piquiltrees4 (firstobs=1 obs=150); title 'piquil4'; run; */
+   proc print data=piquiltrees4; title 'piquil4'; run; */
 
 * Contents:
  				   	   #    Variable    Type    Len    Format     Informat
@@ -241,8 +241,8 @@ end;    * end i loop;
 * print mat2;
 
 cnames1 = {'time1', 'time2', 'year1', 'year2', 'plot', 'burnsev', 'aspect', 'hydr', 'soil', 'elev', 
-			'slope', 'pita1', 'pita2', 'qum31', 'qum32', 'quma1', 'quma2', 'qust1', 'qust2', 
-			'juvi1', 'juvi2', 'covm1', 'covm2', 'mcrn1', 'mcrn2', 'mdbh1', 'mdbh2'};
+			'slope', 'pita1', 'pita2', 'qum31', 'qum32', 'quma1', 'quma2', 'qust1', 'qust2', 'juvi1',
+			'juvi2', 'covm1', 'covm2', 'mcrn1', 'mcrn2', 'mdbh1', 'mdbh2'};
 create treepairs from mat2 [colname = cnames1];
 append from mat2;
  

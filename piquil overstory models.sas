@@ -36,7 +36,7 @@ proc sort data=seedtree; by bcat burnsev; run;
 */
 
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedtree.csv"
-out=seedtree2
+out=seedtree
 dbms=csv replace; 
 getnames=yes;
 run;
@@ -77,8 +77,8 @@ proc plot data=seedtree; plot pita15*pita12tr; run;
 
 ******seedling = tree models;
 proc glimmix data=seedtree; title 'seed v tree';
-	*class burnsev;
-	*model pita15 = pita15tr burnsev/ distribution=negbin link=log solution  DDFM=bw;
+	class burnsev soil;
+	model pita15tr =  burnsev soil/ distribution=negbin link=log solution  DDFM=bw;
 	*model pita14 = mpitapretr / distribution=negbin link=log solution  DDFM=bw;
 	*model pita13 = pita12tr / distribution=negbin link=log solution  DDFM=bw;
 	*model pita12 = pita12tr / distribution=negbin link=log solution  DDFM=bw;
@@ -129,10 +129,10 @@ proc glimmix data=seedtree; title 'pita tree models';
   output out=glmout2 resid=ehat;
 run;
 
-proc glimmix data=seedtree method=laplace; title 'tree v prior tree';
+proc glimmix data=seedtree ; title 'tree v prior trees/poles';
 	*model pita12tr = mpitapretr  / distribution=negbin link=log solution DDFM=bw;
 	*model quma12tr = mqumaprep / distribution=negbin link=log solution DDFM=bw;
-	model qum312tr = mquma3prep / distribution=negbin link=log solution DDFM=bw;
+	model qum312tr = mqumapretr / distribution=negbin link=log solution DDFM=bw;
 	output out=glmout resid=ehat;
 run;
 
@@ -140,7 +140,7 @@ proc plot data=seedtree; plot qum313tr*qum312tr; run;
 
 proc glimmix data=seedtree method=laplace; title 'tree v prior tree';
 	*class aspect;
-	model pita15tr =  elev  / distribution=negbin link=log solution DDFM=bw;
+	model pita14 =  elev  / distribution=negbin link=log solution DDFM=bw;
 	*model quma12tr = mqumaprep / distribution=negbin link=log solution DDFM=bw;
 	*model qum312tr = mquma3prep / distribution=negbin link=log solution DDFM=bw;
 	output out=glmout resid=ehat;
