@@ -1,4 +1,13 @@
 
+OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
+
+*11/29/15 import seedtree;
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedtree.csv"
+out=seedtree
+dbms=csv replace; 
+getnames=yes;
+*proc print data=seedtree (firstobs=1 obs=10); title 'seedtree'; run;
+
 **added 1/27/17--per GC, testing effects of rx burns on seedling counts;
 *proc contents data=seedtree; run;
 data seedtreenoburnhydro; set seedsmerge; drop hydr burnsev; run;
@@ -81,6 +90,16 @@ proc glimmix data=seedsmerge2; title 'quma3 models';
 output out=glmout2 resid=ehat;
 run;
 
+*QUST;
+proc glimmix data=seedtree ; title 'qust models';
+	class soil;
+	*model qust13sd = qust12sd / distribution=negbin link=log solution DDFM=bw; 
+	*model qust15sd = pltd / distribution=negbin link=log solution DDFM=bw; 
+	model mqustpresd = soil / distribution=negbin link=log solution DDFM=bw; 
+output out=glmout2 resid=ehat;
+run;
+
+
 *ILVO;
 proc glimmix data=seedsmerge2; title 'ilvo models';
   class bcat soil;
@@ -123,15 +142,17 @@ proc freq data=seedtree; tables pltd*plot; run;
 *39 not planted, 7 planted;
 
 *****************soil models;
-proc glimmix data=seedtree method=laplace; title 'soil models'; 
+proc glimmix data=seedlings2; title 'soil models'; 
   class soil;  
-  model pita15 = soil / distribution=negbin link=log solution DDFM=bw; 
-  *model quma15 = soil / distribution=negbin link=log solution DDFM=residual; 
+ * model mpitapresd = soil / distribution=negbin link=log solution DDFM=bw; 
+  model mqumapresd = soil / distribution=negbin link=log solution DDFM=residual; 
   *model mquma3pre = soil / distribution=negbin link=log solution DDFM=residual; 
   *model ilvo15 = soil / distribution=negbin link=log solution DDFM=residual; 
   output out=glmout2 resid=ehat;
   lsmeans soil / ilink cl; 
 run; 
+
+proc print data=seedtree; run;
 
 *****************caco models;
 proc glimmix data=seedsmerge2; title 'caco models'; 
