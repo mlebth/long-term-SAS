@@ -91,7 +91,8 @@ run;
 
 proc glimmix data=seedtree; title 'seed v tree';
 	class burnsev soil;
-	model quma12tr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
+	model qust15tr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
+	*model quma12tr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
 	*model quma14 = mqumapretr / distribution=negbin link=log solution DDFM=bw;
 	*model quma13 = mqumapretr / distribution=negbin link=log solution DDFM=bw;
 	*model quma12 = mqumapretr / distribution=negbin link=log solution DDFM=bw;

@@ -80,13 +80,14 @@ run;
 
 *QUMA3;
 proc glimmix data=seedsmerge2; title 'quma3 models';
-  class bcat soil; 
-  *model qum314 = qum313 bcat*soil
+  *class  soil; 
+  model qum314sd = cov12
        / distribution=negbin link=log solution DDFM=residual;  
   *model qum313 = qum312 bcat*soil
        / distribution=negbin link=log solution DDFM=residual;  
-  model qum312 = mquma3pre bcat*soil
+  *model qum312 = mquma3pre bcat*soil
        / distribution=negbin link=log solution DDFM=residual;  
+  *lsmeans soil / ilink cl;
 output out=glmout2 resid=ehat;
 run;
 
