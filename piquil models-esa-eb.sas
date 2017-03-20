@@ -118,10 +118,11 @@ proc freq data=seedtree; tables pltd*plot; run;
 *39 not planted, 7 planted;
 
 *****************soil models;
-proc glimmix data=seedtree method=laplace; title 'soil models'; 
+proc glimmix data=seedtree ; title 'soil models'; 
   class soil;  
-  model pita15 = soil / distribution=negbin link=log solution DDFM=bw; 
-  *model quma15 = soil / distribution=negbin link=log solution DDFM=residual; 
+  *model pita15 = soil / distribution=negbin link=log solution DDFM=bw; 
+  *model quma13sd = soil / distribution=negbin link=log solution DDFM=residual; 
+  model qust15sd = soil / distribution=negbin link=log solution DDFM=residual; 
   *model mquma3pre = soil / distribution=negbin link=log solution DDFM=residual; 
   *model ilvo15 = soil / distribution=negbin link=log solution DDFM=residual; 
   output out=glmout2 resid=ehat;

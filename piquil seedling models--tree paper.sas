@@ -156,10 +156,11 @@ run;
 proc print data=seedtree; run;
 
 *****************caco models;
-proc glimmix data=seedsmerge2; title 'caco models'; 
-  *model mpitapre = caco / distribution=negbin link=log solution DDFM=residual; 
-  *model mqumapre = caco / distribution=negbin link=log solution DDFM=residual; 
-  *model mquma3pre = caco / distribution=negbin link=log solution DDFM=residual; 
-  model milvopre = caco / distribution=negbin link=log solution DDFM=residual;  
+proc glimmix data=seedtree; title 'caco models'; 
+  *model pita12sd = cov12 / distribution=negbin link=log solution DDFM=residual; 
+  *model quma13sd = cov12 / distribution=negbin link=log solution DDFM=residual; 
+  model qum314sd = cov13 / distribution=negbin link=log solution DDFM=residual; 
+  *model milvopre = caco / distribution=negbin link=log solution DDFM=residual;  
+  *model qust15sd = mcovpre / distribution=negbin link=log solution DDFM=residual;
   output out=glmout2 resid=ehat;
 run; 
