@@ -47,22 +47,64 @@ data herb3; set herb2;
 	rename coun=count soileb=soil hydrn=hydr covm=cover;
 run; * n = 12,543;
 proc sort data=herb3; by sspp plot quad year burn cover count soil elev slope aspect hydr fungroup; run; 
-* proc print data=herb3 (firstobs=1 obs=20); title 'herb3'; run;
+* proc print data=herb3 (firstobs=1 obs=15); title 'herb3'; run;
 * proc contents data=herb1x; run;
 
 proc sort data=herb3; by plot sspp year; run;
 proc means data=herb3 noprint sum mean; by plot sspp year; var quad burn cover count soil elev slope aspect hydr fungroup;
-	output out=herb4 sum=sumquad sumburn sumcov sumcount sumsoil sumelev sumslope sumaspect sumhydro sumfungroup
-	mean=mquad burn mcov mcount soil elev slope aspect hydr fungroup;
+	output out=herb4 sum=sumquad sumburn sumcov count sumsoil sumelev sumslope sumaspect sumhydro sumfungroup
+	mean=mquad burn cov mcount soil elev slope aspect hydr fungroup;
 run; *n=4811;
 data herb5; set herb4; 
 	*adding in a counter--1 for each species/plot/year. sumcount is the number of stems/tillers
 	for each species/plot per year (summed over all 10 quadrats);
 	counter=1;
-	keep plot sspp year sumcount burn mcov soil elev slope aspect hydr fungroup counter;
-*proc print data=herb5 (firstobs=1 obs=10); title 'herb5'; run; *n=4811;
+	keep plot sspp year count burn cov soil elev slope aspect hydr fungroup counter;
+*proc print data=herb5 (firstobs=1 obs=15); title 'herb5'; run; *n=4811;
+
+*proc freq data=herb5; *tables fungroup*counter burn*counter burn*counter*year*fungroup; run;
+*lines per fungroup: 3121 forbs, 1689 grasses, 1 plot with nothing;
+*lines by burn (fungroup1/2/3):
+	1-34 (18/16/0)
+	2-510 (317/193/0)
+	3-1030 (700/329/1)
+	4-958 (651/307/0)
+	5-2279 (1435/844/0)
+;
+
+*pooling pre-fire data;
+data herb5prefire; set herb5;
+	if year <2011; run;			*n=701;
+proc means data=herb5prefire mean noprint; by plot sspp burn soil elev slope aspect hydr fungroup counter; var count cov ;
+	output out=herb5premean mean= mcount mcov;
+run; 							*n=510; 
+data herb5prem; set herb5premean; year=1111; count=mcount; cov=mcov; run;
+*proc print data=herb5prem (firstobs=1 obs=10); title 'herb5prem'; run;
+
+*post-fire data separated out;
+data herb5postfire; set herb5; 
+	if year >=2011; run;		*n=4110;
+
+*merging post-fire data with pooled pre-fire data;
+proc sort data=herb5prem; by year plot sspp burn soil elev slope aspect hydr fungroup ;
+proc sort data=herb5postfire; by year plot sspp burn soil elev slope aspect hydr fungroup ;
+data herb6; merge herb5prem herb5postfire; by year plot sspp burn soil elev slope aspect hydr fungroup;
+	drop _TYPE_ _FREQ_;
+	if cov='' then cov=.;
+run; 							*n=4620;
+*proc print data=herb6 (firstobs=1 obs=20); title 'herb6'; run;
+*proc contents data=herb6; run;
+
+*to do with this: 
+pool pre-fire years
+fix counter
+do a proc contents and list all variables
+;
 
 /*
-proc freq data=herb5; tables form*counter burn*counter burn*counter*year*form; run;
-*3121 forbs, 1689 grasses, 1 plot with nothing;
+proc export data=herb6
+   outfile='d:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herb6.csv'
+   dbms=csv
+   replace;
+run;
 */
