@@ -92,7 +92,7 @@ data herb6; merge herb5prem herb5postfire; by year plot sspp burn soil elev slop
 	drop _TYPE_ _FREQ_;
 	if cov='' then cov=.;
 run; 							*n=4620;
-*proc print data=herb6 (firstobs=1 obs=20); title 'herb6'; run;
+*proc print data=herb6 (firstobs=1 obs=10); title 'herb6'; run;
 *proc contents data=herb6; run;
 
 *to do with this: 
