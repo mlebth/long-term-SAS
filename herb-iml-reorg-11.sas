@@ -6,7 +6,7 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 * proc datasets library=work kill noprint; run; 
 
 *import herb data;
-proc import datafile="C:\Users\Emily\Desktop\herbx1.csv"
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbx1.csv"
 out=herbx dbms=csv replace; getnames=yes; run;  * N = 122547;
 
 * creating a set of herbs;
@@ -45,10 +45,12 @@ data fivesp; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='
 */
 
 
+/*
 *work LEDU only;
 data fivesp; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='LETEx'| sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4'); 
 * proc print data=fivesp; title 'fivesp'; run; * n = 788;
 *********includes all vars for 5 species; 
+*/
 
 *work LEDU only;
 data fivesp; set herb1x; if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4'); 
@@ -57,9 +59,9 @@ data fivesp; set herb1x; if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='
 
 
 *import plot data;
-proc import datafile="C:\Users\Emily\Desktop\plotid3.csv"
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plotid3.csv"
 out=plotid3 dbms=csv replace; getnames=yes; run;  * N = 122547;
-proc print data=plotid3; run;
+*proc print data=plotid3; run;
 
 /*
 * --- plot translation dataset--orig plot names to nums 1-56;
@@ -255,7 +257,7 @@ data herbbyquad; merge temp2 plotvars2; by plotnum yearnum;
 	plotnum=38 | plotnum=39)) then count=.;
   if count=0 then pa=0; if count>0 then pa=1;
 run;
-*proc print data=herbbyquad (firstobs=1050 obs=1080); title 'herbbyquad'; run;
+*proc print data=herbbyquad (firstobs=1 obs=10); title 'herbbyquad'; run;
 
 /*
 proc contents data=herbbyquad; run;
@@ -263,6 +265,14 @@ proc contents data=herbbyquad; run;
 proc print data=herbbyquad; 
   var plot plotnum quad sspp spnum yearnum count bcat soil pa;
  title 'herbbyquad'; run;
+*/
+
+/*
+proc export data=herbbyquad
+   outfile='D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbbyquad.csv'
+   dbms=csv
+   replace;
+run;
 */
 
  * USE HERBBYQUAD FOR ANALYSES BY QUAD;
@@ -375,7 +385,7 @@ data quadhistory; merge temp3 plotid3 plotvars2; by plotnum;
   if count4=0 then pa4=0; if count4>0 then pa4=1;
   if count5=0 then pa5=0; if count5>0 then pa5=1;
 run; *n=2700;
-*proc print data=quadhistory; title 'quadhistory'; run;
+*proc print data=quadhistory (firstobs=1 obs=10); title 'quadhistory'; run;
 
 /*
 proc sort data=quadhistory; by rowid; run;
@@ -390,7 +400,7 @@ proc contents data=herbbyquad; run;
 
 /*
 proc export data=quadhistory
-   outfile='Desktop\quadhistorynew.csv'
+   outfile='D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistorynew.csv'
    dbms=csv
    replace;
 run;
