@@ -88,18 +88,30 @@ data herb5postfire; set herb5;
 *merging post-fire data with pooled pre-fire data;
 proc sort data=herb5prem; by year plot sspp burn soil elev slope aspect hydr fungroup ;
 proc sort data=herb5postfire; by year plot sspp burn soil elev slope aspect hydr fungroup ;
-data herb6; merge herb5prem herb5postfire; by year plot sspp burn soil elev slope aspect hydr fungroup;
+data herb5merge; merge herb5prem herb5postfire; by year plot sspp burn soil elev slope aspect hydr fungroup;
 	drop _TYPE_ _FREQ_;
 	if cov='' then cov=.;
 run; 							*n=4620;
-*proc print data=herb6 (firstobs=1 obs=10); title 'herb6'; run;
-*proc contents data=herb6; run;
+*proc print data=herb5merge (firstobs=1 obs=10); title 'herb5merge'; run;
+*proc contents data=herb5merge; run;
 
-*to do with this: 
-pool pre-fire years
-fix counter
-do a proc contents and list all variables
-;
+*plot translation--numbering them 1-56;
+data plotid; set herb5merge; dummy = 1; keep plot dummy;
+proc sort data=plotid; by plot; run;
+proc means data=plotid noprint mean; by plot; var dummy;
+  output out=plotid2 mean = mean;
+* proc print data=plotid2; title 'plotid2'; run;
+*merging plotnum back in;
+proc sort data=herb5merge; by plot;
+data plotid3; set plotid2; plotnum = _n_; keep plot plotnum;
+* proc print data=plotid3; title 'plotid3';
+run; * n = 54, max = 55;
+data herb6; merge plotid3 herb5merge; by plot; 
+	*year counter;
+	if (year < 2012) then yearnum = 1;
+  	if (year > 2011) then yearnum = year - 2010;
+run;
+*proc print data=herb6 (firstobs=1 obs=300); title 'herb6'; run;
 
 /*
 proc export data=herb6
