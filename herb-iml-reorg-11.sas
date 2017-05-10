@@ -38,25 +38,18 @@ proc sort data=sumstems1; by sumcount n;
 LEDUx (hydro plant), SCSCx (species of interest)
 */
 
-/*
+
 * work only top 5 species;
 data fivesp; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='LETEx'); 
 * proc print data=fivesp (firstobs=1 obs=10); title 'fivesp'; run; * n = 2908;
-*/
 
 
 /*
-*work LEDU only;
-data fivesp; set herb1x; if (sspp='DILI2' | sspp='DIOLx' | sspp='HELA5' | sspp='DISP2' | sspp='LETEx'| sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4'); 
-* proc print data=fivesp; title 'fivesp'; run; * n = 788;
-*********includes all vars for 5 species; 
-*/
-
-*work LEDU only;
+*work sp 6-10;
 data fivesp; set herb1x; if (sspp='LEDUx' | sspp='SCSCx' | sspp='ERSPx' | sspp='PAPL3' | sspp='DIAN4'); 
 * proc print data=fivesp; title 'fivesp'; run; * n = 788;
 *********includes all vars for 5 species; 
-
+*/
 
 *import plot data;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\plotid3.csv"
@@ -400,7 +393,7 @@ proc contents data=herbbyquad; run;
 
 /*
 proc export data=quadhistory
-   outfile='D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistorynew.csv'
+   outfile='D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-1strun.csv'
    dbms=csv
    replace;
 run;

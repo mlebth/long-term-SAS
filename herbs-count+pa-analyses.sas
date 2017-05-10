@@ -1,4 +1,10 @@
 
+*import herb data--rank 1-5;
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory.csv"
+out=quadhistory dbms=csv replace; getnames=yes; run;  * N = 2750;
+*proc print data=run2 (firstobs=1 obs=20); title 'run2'; run;
+*proc contents data=run2; run;
+
 proc glimmix data=quadhistory3; by spnum;
     class burn ;
     **tested yrs 3-5, NS: bcat*soil, hydr, aspect, slope, interactions;

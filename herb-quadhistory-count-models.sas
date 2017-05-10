@@ -1,3 +1,7 @@
+
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-1strun.csv"
+out=quadhistory dbms=csv replace; getnames=yes; run;  * N = 2700;
+
 *2 datasets (quadhistory, herbbyquad), both contain: 
 rowid, plot, plotnum, quad, sspp, spnum, bcat, soil, hydr, aspect, elev, slope
 	--reminder: bcat [1-u, 2-s/l, 3-m/h], soil [1-sandy, 2-gravelly], hydr [1-no 2-yes]
@@ -29,8 +33,8 @@ data quadhistory3; set quadhistory2; keep count1s count2s count3s count4s count5
 										  cover1m cover2m cover3m cover4m cover5m 
 										  spnum plotnum bcat soil hydr aspect elev slope;
 *proc print data=quadhistory3 (firstobs=1 obs=30); title 'quadhistory3'; run;
-*proc sort data=quadhistory3; by plotnum spnum; 
-proc print data=quadhistory3; title 'quadhistory3'; run;
+proc sort data=quadhistory3; by plotnum spnum; 
+*proc print data=quadhistory3; title 'quadhistory3'; run;
 
 proc sort data=quadhistory3; by spnum;
 proc glimmix data=quadhistory3; by spnum;
