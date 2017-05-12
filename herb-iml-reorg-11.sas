@@ -127,7 +127,7 @@ data fivesp3; set prefiremeans postfire;
 
 *----- create numerical data set for iml, called fivesp3 -------------;
 proc sort data=fivesp3; by plotnum quad spnum yearnum;
-*proc print data=fivesp3 (firstobs=1 obs=30); title 'fivesp3'; run; *n=2844; *765;
+*proc print data=fivesp3; title 'fivesp3'; run; *n=2844; *765;
 *proc contents data=fivesp3; run;
 * order in fivesp3 is plotnum, quad, spnum, yearnum, count;
 proc sort data=fivesp3; by plotnum yearnum; run;
@@ -150,7 +150,7 @@ use fivesp3; read all into matin;  * print matin;
 nrowsmatin = nrow(matin); * print nrowsmatin; *765;
 nplots = 54;
 nquadsperplot = 10; 
-nspecies = 10;
+nspecies = 5;
 nyrs = 5;  * assumes we will treat pre-fire as a single year;
 nrowsmatout = nquadsperplot * nplots * nspecies * nyrs;
 matcountquad = j(nrowsmatout,6,0); 
@@ -200,7 +200,7 @@ do i = 1 to nrowsmatin;   * going line by line through input matrix;
   matcountquad[outrow,5] = tempyr;
   matcountquad[outrow,6] = tempcount;
 end;
-* print (matcountquad[1:30,]);
+* print (matcountquad[500:600,]);
 * print matcountquad;
 
 cols = {rowid plotnum quad spnum yearnum count};
@@ -378,7 +378,7 @@ data quadhistory; merge temp3 plotid3 plotvars2; by plotnum;
   if count4=0 then pa4=0; if count4>0 then pa4=1;
   if count5=0 then pa5=0; if count5>0 then pa5=1;
 run; *n=2700;
-*proc print data=quadhistory (firstobs=1 obs=10); title 'quadhistory'; run;
+*proc print data=quadhistory; title 'quadhistory'; run;
 
 /*
 proc sort data=quadhistory; by rowid; run;

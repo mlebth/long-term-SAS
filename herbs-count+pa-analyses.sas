@@ -1,8 +1,8 @@
 
 *import herb data--rank 1-5;
-proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory.csv"
-out=quadhistory dbms=csv replace; getnames=yes; run;  * N = 2750;
-*proc print data=run2 (firstobs=1 obs=20); title 'run2'; run;
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-1strun.csv"
+out=run2 dbms=csv replace; getnames=yes; run;  * N = 2700;
+*proc print data=run2 ; title 'run2'; run;
 *proc contents data=run2; run;
 
 proc glimmix data=quadhistory3; by spnum;
@@ -41,6 +41,7 @@ out=plothist dbms=csv replace; getnames=yes; run;  * N = 2750;
 *proc print data=plothist (firstobs=1 obs=20); title 'plothist'; run;
 *proc contents data=plothist; run;
 
+*cover was imported as char, converting to numeric;
 data run3;set run2;
    orig1=cover1;orig2=cover2;orig3=cover3;orig4=cover4;orig5=cover5;
    new1 = input(orig1, best32.);new2 = input(orig2, best32.);new3 = input(orig3, best32.);
@@ -69,8 +70,8 @@ data plothistfinal; merge plotid3 plothist; by plot; keep plot plotnum burn; run
 *burn: 1=unburned, 2=scorch, 3=light, 4=mod, 5=heavy;
 proc sort data=run3; by plotnum;
 proc sort data=plothistfinal; by plotnum; 
-data quadhistory; merge run3 plothistfinal; by plot; drop rowid pplotnum; run; *N=2751;
-*proc print data=quadhistory (firstobs=1 obs=10); title 'quadhistory'; run;
+data quadhistory; merge run3 plothistfinal; by plot; drop rowid plotnum; run; *N=2751;
+*proc print data=quadhistory; title 'quadhistory'; run;
 
 
 *visualizing data;
@@ -117,8 +118,8 @@ proc glimmix data=herbbyquad;
 run;
 
 ***************quadhistory count models;
-proc sort data=quadhistory; by plotnum spnum burn soil hydr aspect elev slope;
-proc means data=quadhistory sum mean noprint; by plotnum spnum burn soil hydr aspect elev slope;
+proc sort data=quadhistory; by plot spnum burn soil hydr aspect elev slope;
+proc means data=quadhistory sum mean noprint; by plot spnum burn soil hydr aspect elev slope;
 	var count1 count2 count3 count4 count5 cov1 cov2 cov3 cov4 cov5;
 	output out=quadhistory2 sum=count1s count2s count3s count4s count5s  
 								cover1s cover2s cover3s cover4s cover5s 
@@ -127,10 +128,26 @@ proc means data=quadhistory sum mean noprint; by plotnum spnum burn soil hydr as
 run;
 data quadhistory3; set quadhistory2; keep count1s count2s count3s count4s count5s 
 										  cover1m cover2m cover3m cover4m cover5m 
-										  spnum plotnum burn soil hydr aspect elev slope;
+										  spnum plot burn soil hydr aspect elev slope;
 if spnum=. then delete;
-*proc print data=quadhistory3 (firstobs=1 obs=10); title 'quadhistory3'; run; *n=276;
+*proc print data=quadhistory3; title 'quadhistory3'; run; *n=270;
 
+*all these notes are for 1st run;
+proc sort data=quadhistory3; by spnum;
+proc glimmix data=quadhistory3; by spnum;
+	class  burn soil hydr aspect;
+	*model count1s =   cover1m / dist=negbin solution;
+*with all: sp1: soil, elev, sp2: soil but poor fit, sp3: none, sp4 and 5: na;
+*with soil and elev: sp1: less good. sp2: better. sp3-5: better, nothing sig.;
+	*model count2s =  burn soil hydr aspect slope elev cover / dist=negbin solution;
+	*model count3s =  burn soil  / dist=negbin solution;
+	*model count4s =  burn soil  / dist=negbin solution;
+	model count4s = burn soil burn*soil cover4m / dist=negbin solution;
+	*lsmeans  burn  soil burn*soil / ilink cl;
+	*output out=glmout resid=ehat;
+run;
+
+*all these notes are for 2nd run;
 proc sort data=quadhistory3; by spnum;
 proc glimmix data=quadhistory3; by spnum;
 	class  burn soil hydr aspect;
@@ -140,11 +157,11 @@ proc glimmix data=quadhistory3; by spnum;
 		none of the interactions are sig.;
 	*year1: soil, cover1m, slope, elev;
 	*model count1s =  burn soil slope  / dist=negbin solution;
-	*model count2s = bcat soil slope / dist=negbin solution;
+	model count2s = bcat soil slope / dist=negbin solution;
 	*model count2s = bcat soil aspect / dist=negbin solution;
 	*model count2s = bcat soil hydr / dist=negbin solution;
 	*model count2s = bcat soil bcat*soil / dist=negbin solution;
-	model count4s =  burn/ dist=negbin solution;
+	*model count4s =  burn/ dist=negbin solution;
 	*model count2s = bcat soil cover2m elev bcat*cover2m bcat*elev soil*cover3m soil*elev cover2m*elev/ dist=negbin solution;
 	*lsmeans  burn soil hydr aspect  / ilink cl;
 	*output out=glmout resid=ehat;
@@ -156,8 +173,8 @@ proc freq data=quadhistory3; tables bcat*soil / chisq ;  run;
 
 *continuous vars--Spearman/Pearson correlation coefficients;
 proc corr data=quadhistory3 spearman pearson; 
-   var  cover1m;
-   with slope;
+   var  cover2m;
+   with burn;
 run;
 
 *continuous*categorical--ANOVA, Kruskal-Wallis;
