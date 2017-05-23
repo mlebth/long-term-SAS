@@ -8,7 +8,7 @@ proc glimmix data=fundiv2; by yearnum; title 'hprime';
     output out=glmout resid=ehat;
 run;
 
-**************impo
+**************import;
 
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
@@ -18,7 +18,7 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 **************import herb data;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herb6.csv"
 out=herb6 dbms=csv replace; getnames=yes; run;  * N = 4620;
-*proc print data=herb6 (firstobs=1 obs=15); title 'herb6'; run;
+*proc print data=herb6 (firstobs=30 obs=40); title 'herb6'; run;
 *proc contents data=herb6; run;
 *proc freq data=herb6; *tables fungroup*burn; run;
 *3008 forb obs, 1611 gram obs, 1 plot with no plants;
@@ -42,11 +42,119 @@ out=herb6 dbms=csv replace; getnames=yes; run;  * N = 4620;
 the mcount and mcov columns in case they would be useful anyway
 ;
 
-**************count analyses;
+*herb7 gets rid of fungroup3;
+proc sort data=herb6; by plot fungroup year burn soil elev slope aspect hydr;
+proc means data=herb6 noprint mean; by plot fungroup year burn soil elev slope aspect hydr; var count cov;
+	output out=herb62 mean=meancount cov;
+run;
+data herb7; set herb62; if fungroup=3 then delete;
+*proc print data=herb7 (firstobs=30 obs=40); title 'herbs7'; run;
+*meancount=mean stems/plot/fungorup.
+use meancount for analyses;
+proc sql;
+	select sspp, fungroup, plot, year
+	from herb6
+	where fungroup=3;
+quit;
+*there is only one instance. deleting.;
+
+data forbs; set herb7; if fungroup=1;
+data grams; set herb7; if fungroup=2; run;
+proc print data=forbs; title 'forbs';
+proc print data=grams; title 'grams'; run;
+
+proc plot data=forbs; plot meancount*year; run;
+proc freq data=forbs; tables meancount*year; run;
+
+**************count analysis of forbs and grams separately;
+proc sort data=forbs; by year; run;
+proc glimmix data=forbs; by year; title 'forbs'; 
+class burn soil hydr aspect ;
+	model meancount =  soil hydr aspect elev cov/ dist=negbin solution;
+	lsmeans soil hydr aspect  / ilink cl;
+/*
+	contrast 'scorch v low' burn 1 -1 0 0;
+	contrast 'scorch v mod' burn 1 0 -1 0;
+	contrast 'scorch v hi' burn 1 0 0 -1;
+	contrast 'low v mod' burn 0 1 -1 0;
+	contrast 'low v hi' burn 0 1 0 -1;
+	contrast 'mod v hi' burn 0 0 1 -1;
+	*/
+	/*
+	contrast 'flat v N' aspect 1 -1 0 0 0 ;
+	contrast 'flat v E' aspect 1 0 -1 0 0 ;
+	contrast 'flat v S' aspect 1 0 0 -1 0 ;
+	contrast 'flat v W' aspect 1 0 0 0 -1 ;
+	contrast 'N v E' aspect 0 1 -1 0 0 ;
+	contrast 'N v S' aspect 0 1 0 -1 0 ;
+	contrast 'N v W' aspect 0 1 0 0 -1 ;
+	contrast 'E v S' aspect 0 0 1 -1 0 ;
+	contrast 'E v W' aspect 0 0 1 0 -1 ;
+	contrast 'S v W' aspect 0 0 0 1 -1;
+	*/
+	output out=glmout resid=ehat;
+run;
+
+proc sort data=grams; by year; run;
+proc glimmix data=grams; by year; title 'grams'; 
+class plot burn soil hydr aspect  ;
+	model meancount= soil  aspect cov / dist=negbin solution;
+	lsmeans soil aspect / ilink cl;
+	contrast 'flat v N' aspect 1 -1 0 0 0 ;
+	contrast 'flat v E' aspect 1 0 -1 0 0 ;
+	contrast 'flat v S' aspect 1 0 0 -1 0 ;
+	contrast 'flat v W' aspect 1 0 0 0 -1 ;
+	contrast 'N v E' aspect 0 1 -1 0 0 ;
+	contrast 'N v S' aspect 0 1 0 -1 0 ;
+	contrast 'N v W' aspect 0 1 0 0 -1 ;
+	contrast 'E v S' aspect 0 0 1 -1 0 ;
+	contrast 'E v W' aspect 0 0 1 0 -1 ;
+	contrast 'S v W' aspect 0 0 0 1 -1;
+	output out=glmout resid=ehat;
+run;
+
+
+
+
+
+
+
+
+
+
+**************count analyses using herb7;
+proc sort data=herb7; by year; run;
+proc glimmix data=herb7 method=laplace; by year; title 'herb7'; 
+*class plot fungroup burn soil hydr aspect ;
+class plot fungroup burn soil hydr aspect  ;
+	*model meancount=fungroup burn soil hydr aspect elev slope cov / dist=negbin solution;;
+*1&4: nonpd
+2: 561.39. fungroup, almost slope.
+3: 988.94. fungroup, burn, soil
+5: 847.01. fungroup, soil, aspect, cov ;	
+	*model meancount=fungroup burn soil aspect slope cov / dist=negbin solution;;
+*1&4: nonpd
+2: 558.74. fungroup, almost soil, almost slope. 
+3: 988.55. fungroup, burn, soil   **
+5: 844.98. fungroup, soil, almost aspect, cov;	 **;
+	*model meancount=fungroup  soil  aspect  / dist=negbin solution;;
+*1: 499.7. fungroup. **
+2: 551.82. fungroup. **	
+3: 994.1. fungroup, soil 
+4: 962.69, fungroup, soil.
+5: 864.92. fungroup, soil.;
+	model meancount=fungroup  soil plot(burn) / dist=negbin solution;
+	*random plot / subject = burn*soil;
+	*lsmeans fungroup  soil  / ilink cl;
+	output out=glmout resid=ehat;
+run;
+
+**************count analyses using herb6;
 proc sort data=herb6; by year; run;
 proc glimmix data=herb6  method=laplace; by year; title 'herb6'; 
 *class plot fungroup burn soil hydr aspect ;
 class plot fungroup burn soil aspect  ;
+	model count=fungroup soil aspect cov / dist=negbin solution;;
 	*model count = fungroup burn soil / dist=negbin solution; 
 		*good model;
 		**pre-fire: x2 ok. fungroup sig. 						  AIC 3390
