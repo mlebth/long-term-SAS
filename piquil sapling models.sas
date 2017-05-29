@@ -10,6 +10,17 @@ run;
 proc contents data=seedtree; run;
 proc plot data=seedtree; plot quma15p*quma14p quma14p*quma13p quma13p*quma12p; run;
 
+*5-24-17--rerunning for fewer models;
+
+proc glimmix data=seedtree ; title 'pole models';
+  class burnsev soil aspect;
+  model pita13p = burnsev pita12p/ distribution=negbin link=log solution DDFM=bw;
+  *lsmeans  soil aspect/ ilink cl;
+  output out=glmout2 resid=ehat;
+run;
+
+
+***from first runs, jan-feb 17;
 *bcat models;
 proc glimmix data=seedtree ; title 'bcat models';
   class burnsev soil;

@@ -1,4 +1,19 @@
 
+proc glimmix data=seedtree; title 'overstory';
+    class burnsev soil aspect;
+    model pita12tr =  burnsev soil mpitapretr/ distribution=negbin link=log solution  DDFM=bw;
+    lsmeans burnsev soil  / ilink cl;
+    /*
+    contrast 'scorch v low' burnsev 1 -1 0 0;
+    contrast 'scorch v mod' burnsev 1 0 -1 0;
+    contrast 'scorch v hi' burnsev 1 0 0 -1;
+    contrast 'low v mod' burnsev 0 1 -1 0;
+    contrast 'low v hi' burnsev 0 1 0 -1;
+    contrast 'mod v hi' burnsev 0 0 1 -1;
+*/
+    output out=glmout resid=ehat;
+run;
+
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
 /*
@@ -7,24 +22,28 @@ proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term d
 out=treemerge2
 dbms=csv replace; 
 getnames=yes;
-run;
+*proc print data=treemerge2; title 'treemerge2'; run;
+
 *11/29/15--merging seedling+overstory;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedsmerge3.csv"
 out=seedsmerge2
 dbms=csv replace; 
 getnames=yes;
-run;
+*proc print data=seedsmerge2; title 'seedsmerge2'; run;
+
 *1-11-17--bringing in saplings;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\sapmerge2.csv"
 out=sapmerge2
 dbms=csv replace; 
 getnames=yes;
-run;
+*proc print data=sapmerge2; title 'sapmerge2'; run;
+data sapmerge3; set sapmerge2; drop aspect; run;
+*proc print data=sapmerge3; title 'sapmerge3'; run;
 
 *merging seedlings and overstory;
 proc sort data=treemerge2;	by plot; run;
 *proc contents data=treemerge2; run;
-data seedtree; merge seedsmerge2 treemerge2 sapmerge2; by plot;
+data seedtree; merge seedsmerge2 treemerge2 sapmerge3; by plot;
 	if plot=1211 then burnsev = 1;
 	if plot=1212 then burnsev = 3;
 	if plot=1218 then burnsev = 1;
@@ -40,6 +59,7 @@ out=seedtree
 dbms=csv replace; 
 getnames=yes;
 run;
+*proc print data=seedtree ; title 'seedtree'; run;
 
 /*
 proc export data=seedtree
@@ -77,6 +97,25 @@ proc freq data=seedtree; tables mpitapretr; run;
 
 ***********************;
 
+*********5-23-17: re-running some models with all variables in one instead of treating them separately;
+*vars:
+burnsev, soil, aspect
+prev trees;
+proc glimmix data=seedtree; title 'overstory';
+	class bcat soil aspect;
+	model mquma3pretr =   soil / distribution=negbin link=log solution  DDFM=bw;
+	*lsmeans  bcat  / ilink cl;/*
+	contrast 'scorch v low' burnsev 1 -1 0 0;
+	contrast 'scorch v mod' burnsev 1 0 -1 0;
+	contrast 'scorch v hi' burnsev 1 0 0 -1;
+	contrast 'low v mod' burnsev 0 1 -1 0;
+	contrast 'low v hi' burnsev 0 1 0 -1;
+	contrast 'mod v hi' burnsev 0 0 1 -1; */
+	output out=glmout resid=ehat;	
+run; 
+
+
+*jan-feb 2017;
 ******seedling = tree models;
 proc glimmix data=seedtree; title 'seed v tree';
 	class soil ;

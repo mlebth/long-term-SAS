@@ -1,7 +1,7 @@
 proc print data=quadhistory3 (firstobs=1 obs=20); title 'quadhistory3'; run; *n=270;
 
 *import herb data--rank 1-5;
-proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-1strun.csv"
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-2ndrun.csv"
 out=run2 dbms=csv replace; getnames=yes; run;  * N = 2700;
 *proc print data=run2 ; title 'run2'; run;
 *proc contents data=run2; run;
@@ -151,20 +151,30 @@ run;
 *all these notes are for 2nd run;
 proc sort data=quadhistory3; by spnum;
 proc glimmix data=quadhistory3; by spnum;
-	class  burn soil hydr aspect;
+	class  bcat soil hydr aspect;
 	**tested yrs 3-5, NS: bcat*soil, hydr, aspect, slope, interactions;
 	*cover3m NS in any count3s models;
 	*year2: slope only included for species 1 and 3, other species' models are better without.
 		none of the interactions are sig.;
 	*year1: soil, cover1m, slope, elev;
 	*model count1s =  burn soil slope  / dist=negbin solution;
-	model count5s =  cover5m / dist=negbin solution;
+	*model count5s =  cover5m / dist=negbin solution;
 	*model count2s = burn soil aspect / dist=negbin solution;
 	*model count2s = burn soil hydr / dist=negbin solution;
-	*model count2s = burn soil bcat*soil / dist=negbin solution;
+	model count5s = aspect/ dist=negbin solution;
 	*model count4s =  burn/ dist=negbin solution;
 	*model count2s = burn soil cover2m elev bcat*cover2m bcat*elev soil*cover3m soil*elev cover2m*elev/ dist=negbin solution;
-	*lsmeans  burn soil hydr aspect  / ilink cl;
+	contrast 'flat v N' aspect 1 -1 0 0 0 ;
+	contrast 'flat v E' aspect 1 0 -1 0 0 ;
+	contrast 'flat v S' aspect 1 0 0 -1 0 ;
+	contrast 'flat v W' aspect 1 0 0 0 -1 ;
+	contrast 'N v E' aspect 0 1 -1 0 0 ;
+	contrast 'N v S' aspect 0 1 0 -1 0 ;
+	contrast 'N v W' aspect 0 1 0 0 -1 ;
+	contrast 'E v S' aspect 0 0 1 -1 0 ;
+	contrast 'E v W' aspect 0 0 1 0 -1 ;
+	contrast 'S v W' aspect 0 0 0 1 -1;
+	lsmeans  aspect / ilink cl;
 	*output out=glmout resid=ehat;
 run;
 
