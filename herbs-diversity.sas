@@ -237,15 +237,17 @@ data year4gramdiv; set grams3; if yearnum = 4; run;
 data year5forbdiv; set forbs3; if yearnum = 5; run; 
 data year5gramdiv; set grams3; if yearnum = 5; run; 
 
+*proc print data=year5gramdiv; title 'year5gramdiv'; run;
+
 /*
 proc export data=year5forbdiv
-   outfile='D:\Werk\Research\My papers\Herbs\year5forbdiv.csv'
+   outfile='D:\Werk\Research\My papers\Herbs\year1forbdiv.csv'
    dbms=csv
    replace;
 run;
 
 proc export data=year5gramdiv
-   outfile='D:\Werk\Research\My papers\Herbs\year5gramdiv.csv'
+   outfile='D:\Werk\Research\My papers\Herbs\year1gramdiv.csv'
    dbms=csv
    replace;
 run;

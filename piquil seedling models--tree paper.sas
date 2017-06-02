@@ -77,6 +77,19 @@ proc freq data=seedtree; tables mpitapretr; run;
 
 ***********************;
 
+****6-1-17: re-running seedling models to include all variables;
+**vars:
+burnsev, aspect, hydr, soil
+canopy cover (same year and prev. year)
+prev seedlings
+prev/same trees;
+proc glimmix data=seedtree; 
+	class burnsev aspect hydr soil ;
+	model pita15tr =  soil / distribution=negbin link=log solution  DDFM=bw;
+    *lsmeans burnsev / ilink cl;
+	output out=glmout resid=ehat;
+run;
+
 ******seedling = tree models;
 proc glimmix data=seedtree; title 'seed v tree';
 	class soil ;

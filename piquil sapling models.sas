@@ -14,8 +14,9 @@ proc plot data=seedtree; plot quma15p*quma14p quma14p*quma13p quma13p*quma12p; r
 
 proc glimmix data=seedtree ; title 'pole models';
   class burnsev soil aspect;
-  model pita13p = burnsev pita12p/ distribution=negbin link=log solution DDFM=bw;
-  *lsmeans  soil aspect/ ilink cl;
+  *model mqumaprep = mqumapretr / distribution=negbin link=log solution DDFM=bw;
+  model mqustprep =   mqustpretr soil / distribution=negbin link=log solution DDFM=bw;
+  *lsmeans  burnsev / ilink cl;
   output out=glmout2 resid=ehat;
 run;
 

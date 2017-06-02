@@ -1,16 +1,16 @@
 
 proc glimmix data=seedtree; title 'overstory';
     class burnsev soil aspect;
-    model pita12tr =  burnsev soil mpitapretr/ distribution=negbin link=log solution  DDFM=bw;
-    lsmeans burnsev soil  / ilink cl;
-    /*
+    model pita13tr = burnsev soil pita12tr/ distribution=negbin link=log solution  DDFM=bw;
+
+    *model pita14tr =   burnsev soil pita13tr/ distribution=negbin link=log solution  DDFM=bw;
+    lsmeans  burnsev  / ilink cl;
     contrast 'scorch v low' burnsev 1 -1 0 0;
     contrast 'scorch v mod' burnsev 1 0 -1 0;
     contrast 'scorch v hi' burnsev 1 0 0 -1;
     contrast 'low v mod' burnsev 0 1 -1 0;
     contrast 'low v hi' burnsev 0 1 0 -1;
     contrast 'mod v hi' burnsev 0 0 1 -1;
-*/
     output out=glmout resid=ehat;
 run;
 
@@ -60,6 +60,7 @@ dbms=csv replace;
 getnames=yes;
 run;
 *proc print data=seedtree ; title 'seedtree'; run;
+*proc contents data=seedtree; run;
 
 /*
 proc export data=seedtree
@@ -96,21 +97,36 @@ proc freq data=seedtree; tables mpitapretr; run;
 */
 
 ***********************;
+proc glimmix data=seedtree; title 'overstory';
+    class burnsev soil aspect;
+    model pita12tr =  burnsev soil mpitapretr/ distribution=negbin link=log solution  DDFM=bw;
+    lsmeans burnsev soil  / ilink cl;
+    /*
+    contrast 'scorch v low' burnsev 1 -1 0 0;
+    contrast 'scorch v mod' burnsev 1 0 -1 0;
+    contrast 'scorch v hi' burnsev 1 0 0 -1;
+    contrast 'low v mod' burnsev 0 1 -1 0;
+    contrast 'low v hi' burnsev 0 1 0 -1;
+    contrast 'mod v hi' burnsev 0 0 1 -1;
+*/
+    output out=glmout resid=ehat;
+run;
 
 *********5-23-17: re-running some models with all variables in one instead of treating them separately;
+
 *vars:
-burnsev, soil, aspect
-prev trees;
+burnsev, soil, aspect, elev, slope
+prev trees (same class);
 proc glimmix data=seedtree; title 'overstory';
-	class bcat soil aspect;
-	model mquma3pretr =   soil / distribution=negbin link=log solution  DDFM=bw;
-	*lsmeans  bcat  / ilink cl;/*
+	class burnsev soil aspect;
+	model qum315tr =   qum314tr  / distribution=negbin link=log solution  DDFM=bw;
+	/*lsmeans  burnsev  / ilink cl;
 	contrast 'scorch v low' burnsev 1 -1 0 0;
 	contrast 'scorch v mod' burnsev 1 0 -1 0;
 	contrast 'scorch v hi' burnsev 1 0 0 -1;
 	contrast 'low v mod' burnsev 0 1 -1 0;
 	contrast 'low v hi' burnsev 0 1 0 -1;
-	contrast 'mod v hi' burnsev 0 0 1 -1; */
+	contrast 'mod v hi' burnsev 0 0 1 -1;  */
 	output out=glmout resid=ehat;	
 run; 
 
