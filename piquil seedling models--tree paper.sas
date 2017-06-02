@@ -85,10 +85,22 @@ prev seedlings
 prev/same trees;
 proc glimmix data=seedtree; 
 	class burnsev aspect hydr soil ;
-	model pita15tr =  soil / distribution=negbin link=log solution  DDFM=bw;
-    *lsmeans burnsev / ilink cl;
+	model qust15sd = qust14sd   / distribution=negbin link=log solution  DDFM=bw;
+	*lsmeans soil / ilink cl;
 	output out=glmout resid=ehat;
 run;
+
+	/*lsmeans aspect / ilink cl;
+	contrast 'flat v N' aspect 1 -1 0 0 0 ;
+	contrast 'flat v E' aspect 1 0 -1 0 0 ;
+	contrast 'flat v S' aspect 1 0 0 -1 0 ;
+	contrast 'flat v W' aspect 1 0 0 0 -1 ;
+	contrast 'N v E' aspect 0 1 -1 0 0 ;
+	contrast 'N v S' aspect 0 1 0 -1 0 ;
+	contrast 'N v W' aspect 0 1 0 0 -1 ;
+	contrast 'E v S' aspect 0 0 1 -1 0 ;
+	contrast 'E v W' aspect 0 0 1 0 -1 ;
+	contrast 'S v W' aspect 0 0 0 1 -1;*/
 
 ******seedling = tree models;
 proc glimmix data=seedtree; title 'seed v tree';
