@@ -1,13 +1,3 @@
-
-proc sort data=fundiv2; by yearnum; run;
-proc glimmix data=fundiv2; by yearnum; title 'hprime';
-    class burn;
-    model forbdiv= burn cov/ solution ;
-    *random plotnum / subject=burn type=vc;
-    lsmeans burn ;
-    output out=glmout resid=ehat;
-run;
-
 **************import;
 
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
@@ -15,6 +5,32 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 * if processes get too slow, run this to free up memory;
 * proc datasets library=work kill noprint; run; 
 
+*6-5-17;
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\fundiv2.csv"
+out=fundiv2 dbms=csv replace; getnames=yes; run;  * N = 230;
+*proc print data=fundiv2; title 'fundiv2'; run;
+*proc contents data=fundiv2; run;
+*proc freq data=fundiv2; *tables fungroup*burn; run;
+*vars:
+class: soil, aspect, burn, hydr, plotnum, yearnum
+nums:  cov, elev, slope, forbdiv, gramdiv;
+
+proc plot data=fundiv2; plot forbdiv*yearnum forbdiv*burn ; title 'div by yr'; run;
+
+proc sort data=fundiv2; by yearnum; run;
+proc glimmix data=fundiv2; by yearnum; title 'hprime';
+    class burn soil aspect hydr;
+    model forbdiv= burn soil / solution ;
+    *model gramdiv= burn cov/ solution ;
+    *lsmeans burn ;
+    output out=glmout resid=ehat;
+run;
+
+
+
+
+
+***older:
 **************import herb data;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herb6.csv"
 out=herb6 dbms=csv replace; getnames=yes; run;  * N = 4620;
