@@ -106,6 +106,31 @@ data herb9; set herb8;
 run;
 *proc print data=herb9 (firstobs=1 obs=10); title 'herb9'; run;
 
+*6-6-17--calculating species richness per plot-year;
+proc sort data=herb9; by plotnum yearnum fungroup burn soil elev slope aspect hydr cov;
+proc means data=herb9 mean noprint; by plotnum yearnum fungroup burn soil elev slope aspect hydr cov;
+	var _FREQ_;
+	output out=richnessbyplot mean=richness;
+run;
+proc print data=richnessbyplot; title 'richnessbyplot'; run;
+
+*6-6-17--calculating species richness per burn;
+data post; set herb9; if yearnum > 1; 
+proc sort data=post; by  fungroup burn;
+proc means data=post mean noprint; by  fungroup burn;
+	var _FREQ_;
+	output out=richnessbyyr mean=richness;
+run;
+proc print data=richnessbyyr; title 'richnessbyyr'; run;
+
+*6-6-17--calculating species richness per year;
+proc sort data=herb9; by yearnum fungroup;
+proc means data=herb9 mean noprint; by yearnum fungroup ;
+	var _FREQ_;
+	output out=richnessbyyr mean=richness;
+run;
+proc print data=richnessbyyr; title 'richnessbyyr'; run;
+
 *calcluting h';
 proc means data=herb9 sum noprint; by plotnum yearnum fungroup; var relabundxlogrelabund;
 	output out=herb10 sum=hprimeneg;
@@ -124,6 +149,15 @@ data herbdiv; merge herb10 herb9 herb6; by plotnum yearnum fungroup;
 	drop hprimeneg _TYPE_ counter mcount mcov logrelabund relabundxlogrelabund;
 run;
 *proc print data=herbdiv (firstobs=1 obs=10); title 'herbdiv'; run;
+
+*6-6-17 means by year and burn;
+data postdiv; set herbdiv; if yearnum > 1; 
+proc sort data=herbdiv; by yearnum fungroup ;
+proc means data=herbdiv mean noprint; by yearnum fungroup ;
+	var hprime;
+	output out=hprimebyyr mean=mhprime;
+run;
+proc print data=hprimebyyr; title 'hprimebyyr'; run;
 
 /*
 proc export data=herbdiv
