@@ -85,8 +85,8 @@ prev seedlings
 prev/same trees;
 proc glimmix data=seedtree; 
 	class burnsev aspect hydr soil ;
-	model qust15sd = qust14sd   / distribution=negbin link=log solution  DDFM=bw;
-	*lsmeans soil / ilink cl;
+	model mqumapretr =  soil  / distribution=negbin link=log solution  DDFM=bw;
+	lsmeans soil / ilink cl;
 	output out=glmout resid=ehat;
 run;
 *6-2-17: spearman correlations between variables;

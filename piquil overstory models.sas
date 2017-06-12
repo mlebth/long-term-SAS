@@ -62,6 +62,41 @@ run;
 *proc print data=seedtree ; title 'seedtree'; run;
 *proc contents data=seedtree; run;
 
+*6-7-17--calculating pre-fire tree density v. post-fire seedling density (of PITA);
+proc means data=seedtree noprint mean; 
+	var mpitapretr; 
+	output out=pretrdens mean=totpitapretrdens;
+run;
+proc print data=pretrdens; title 'pretrdens'; run;
+*pre-fire tree density: 180.67/ha;
+
+proc means data=seedtree noprint mean; 
+	var pita12sd pita13sd pita14sd pita15sd; 
+	output out=pitapostsddens mean=pita12sdens pita13sddens pita14sddens pita15sddens;
+run;
+proc print data=pitapostsddens; title 'pitapostsddens'; run;
+*post-fire seedling density (all years, all burn classes): 1812.47/ha
+
+*post seedlings, by burn severity;
+proc sort data=seedtree; by burnsev;
+proc means data=seedtree noprint mean; by burnsev; 
+	var pita12sd pita13sd pita14sd pita15sd; 
+	output out=pitapostsddens mean=pita12sdens pita13sddens pita14sddens pita15sddens;
+run;
+proc print data=pitapostsddens; title 'pitapostsddens'; run;
+*post-fire seedling density (2012): 527.67
+2013: 295.16
+2014: 246.39
+2015: 6,180.67
+post-fire total (all years) seedling density: 1812.47/ha
+
+Totals by burnsev in 2015:
+burnsev 1: 11057.62/ha
+burnsev 2: 21647.73
+burnsev 3: 905.45
+burnsev 4: 199.83
+***end 6-7-17;
+
 /*
 proc export data=seedtree
    outfile='D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\seedtree.csv'

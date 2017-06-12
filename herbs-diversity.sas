@@ -112,7 +112,7 @@ proc means data=herb9 mean noprint; by plotnum yearnum fungroup burn soil elev s
 	var _FREQ_;
 	output out=richnessbyplot mean=richness;
 run;
-proc print data=richnessbyplot; title 'richnessbyplot'; run;
+*proc print data=richnessbyplot; title 'richnessbyplot'; run;
 
 *6-6-17--calculating species richness per burn;
 data post; set herb9; if yearnum > 1; 
@@ -121,7 +121,7 @@ proc means data=post mean noprint; by  fungroup burn;
 	var _FREQ_;
 	output out=richnessbyyr mean=richness;
 run;
-proc print data=richnessbyyr; title 'richnessbyyr'; run;
+*proc print data=richnessbyyr; title 'richnessbyyr'; run;
 
 *6-6-17--calculating species richness per year;
 proc sort data=herb9; by yearnum fungroup;
@@ -129,9 +129,10 @@ proc means data=herb9 mean noprint; by yearnum fungroup ;
 	var _FREQ_;
 	output out=richnessbyyr mean=richness;
 run;
-proc print data=richnessbyyr; title 'richnessbyyr'; run;
+*proc print data=richnessbyyr; title 'richnessbyyr'; run;
 
 *calcluting h';
+proc sort data=herb9; by plotnum yearnum fungroup;
 proc means data=herb9 sum noprint; by plotnum yearnum fungroup; var relabundxlogrelabund;
 	output out=herb10 sum=hprimeneg;
 run;
@@ -157,7 +158,7 @@ proc means data=herbdiv mean noprint; by yearnum fungroup ;
 	var hprime;
 	output out=hprimebyyr mean=mhprime;
 run;
-proc print data=hprimebyyr; title 'hprimebyyr'; run;
+*proc print data=hprimebyyr; title 'hprimebyyr'; run;
 
 /*
 proc export data=herbdiv
@@ -275,13 +276,13 @@ data year5gramdiv; set grams3; if yearnum = 5; run;
 
 /*
 proc export data=year5forbdiv
-   outfile='D:\Werk\Research\My papers\Herbs\year1forbdiv.csv'
+   outfile='D:\Werk\Research\My papers\Herbs\ordidivs-burn\year5forbdiv.csv'
    dbms=csv
    replace;
 run;
 
 proc export data=year5gramdiv
-   outfile='D:\Werk\Research\My papers\Herbs\year1gramdiv.csv'
+   outfile='D:\Werk\Research\My papers\Herbs\ordidivs-burn\year5gramdiv.csv'
    dbms=csv
    replace;
 run;

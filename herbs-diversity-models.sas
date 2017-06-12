@@ -17,10 +17,17 @@ nums:  cov, elev, slope, forbdiv, gramdiv;
 
 proc plot data=fundiv2; plot forbdiv*yearnum forbdiv*burn ; title 'div by yr'; run;
 
+proc sort data=fundiv2; by burn;
+proc means data=fundiv2 mean noprint; by burn;
+	var forbdiv gramdiv;
+	output out=divbyyr mean=mforbdiv mgramdiv;
+run;
+proc print data=divbyyr; title 'divbyburn'; run;
+
 proc sort data=fundiv2; by yearnum; run;
 proc glimmix data=fundiv2; by yearnum; title 'hprime';
     class burn soil aspect hydr;
-    model forbdiv= burn soil / solution ;
+    model forbdiv = burn soil elev cov hydr / solution ;
     *model gramdiv= burn cov/ solution ;
     *lsmeans burn ;
     output out=glmout resid=ehat;
