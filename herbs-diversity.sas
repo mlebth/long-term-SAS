@@ -12,6 +12,22 @@ out=herb6 dbms=csv replace; getnames=yes; run;  * N = 4620;
 *proc freq data=herb6; *tables fungroup*burn; run;
 *3008 forb obs, 1611 gram obs, 1 plot with no plants;
 
+*6-21-17--getting mean stem counts;
+proc sort data=herb6; by plot yearnum burn soil elev slope aspect hydr fungroup;
+proc means data=herb6 mean noprint; by plot yearnum burn soil elev slope aspect hydr fungroup;
+	var count cov;
+	output out=herbmeancounts mean=mcount mcover;
+run;
+proc print data=herbmeancounts; title 'herbmeancounts'; run;
+
+/*
+proc export data=herbmeancounts
+   outfile='D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbmeancounts.csv'
+   dbms=csv
+   replace;
+run;
+*/
+
 *Variables:
 	plot: FMH plot ID
 	plotnum: renumbered 1-55

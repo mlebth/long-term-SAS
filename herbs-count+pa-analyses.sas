@@ -31,7 +31,7 @@ quadhistory also includes: count1-count5, pa1-pa5, cover1-cover5 (1 col/var/yr i
 herbbyquad also includes:  count, cover, pa, yearnum, _FREQ_, _TYPE_;
 
 *import herb data--rank 6-10;
-proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-2ndrun.csv"
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-1strun.csv"
 out=run2 dbms=csv replace; getnames=yes; run;  * N = 2750;
 *proc print data=run2 (firstobs=1 obs=20); title 'run2'; run;
 *proc contents data=run2; run;
@@ -63,7 +63,7 @@ data plotid3; set plotid2; plotnum = _n_; keep plot plotnum;
 * proc print data=plotid3; title 'plothist';
 run; * n = 54, max = 55;
 *proc print data=plotid3 (firstobs=1 obs=3); title 'plotid3'; run;
-proc sort data=plotid3; by plot; proc sort data=plothistfinal; by plot; run;
+proc sort data=plotid3; by plot; proc sort data=plothist; by plot; run;
 data plothistfinal; merge plotid3 plothist; by plot; keep plot plotnum burn; run;
 *proc print data=plothistfinal (firstobs=1 obs=3); title 'plothistfinal'; run;
 
@@ -92,7 +92,7 @@ proc glimmix data=quadhistory method=laplace;
 	*pa5 NS: bcat*soil, slope, aspect;
 	*pa5 sig: bcat soil cover5 hydr elev;
 	class bcat soil ; by spnum; 
- 	model pa5 = bcat soil cover5 elev / dist=binomial  solution;
+ 	model pa5 = bcat soil cov5 elev / dist=binomial  solution;
 	*model pa5 = bcat soil slope / dist=binomial solution;
 	*model pa5 = bcat soil aspect / dist=binomial solution;
 	*model pa5 = bcat soil hydr / dist=binomial solution;
@@ -136,15 +136,15 @@ if spnum=. then delete;
 *all these notes are for 1st run;
 proc sort data=quadhistory3; by spnum;
 proc glimmix data=quadhistory3; by spnum;
-	class  burn soil hydr aspect;
+	class  bcat soil hydr aspect;
 	*model count1s =   cover1m / dist=negbin solution;
 *with all: sp1: soil, elev, sp2: soil but poor fit, sp3: none, sp4 and 5: na;
 *with soil and elev: sp1: less good. sp2: better. sp3-5: better, nothing sig.;
-	*model count2s =  burn soil hydr aspect slope elev cover / dist=negbin solution;
+	model count2s =  bcat       / dist=negbin link=log solution;
 	*model count3s =  burn soil  / dist=negbin solution;
 	*model count4s =  burn soil  / dist=negbin solution;
-	model count4s =  burn soil cover4m burn*soil / dist=negbin solution;
-	lsmeans  burn soil burn*soil / ilink cl;
+	*model count4s =  burn soil cover4m burn*soil / dist=negbin solution;
+	*lsmeans  burn soil burn*soil / ilink cl;
 	*output out=glmout resid=ehat;
 run;
 
