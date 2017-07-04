@@ -165,16 +165,16 @@ data herbdiv; merge herb10 herb9 herb6; by plotnum yearnum fungroup;
 	evenness=hprime/hmax;
 	drop hprimeneg _TYPE_ counter mcount mcov logrelabund relabundxlogrelabund;
 run;
-*proc print data=herbdiv (firstobs=1 obs=10); title 'herbdiv'; run;
+*proc print data=herbdiv ; title 'herbdiv'; run;
 
 *6-6-17 means by year and burn;
 data postdiv; set herbdiv; if yearnum > 1; 
 proc sort data=herbdiv; by yearnum fungroup ;
-proc means data=herbdiv mean noprint; by yearnum fungroup ;
-	var hprime;
-	output out=hprimebyyr mean=mhprime;
+proc means data=herbdiv mean min max noprint; by yearnum fungroup ;
+	var _FREQ_;
+	output out=richnessbyyr mean=richness min=minrichness max=maxrichness;
 run;
-*proc print data=hprimebyyr; title 'hprimebyyr'; run;
+*proc print data=richnessbyyr; title 'richnessbyyr'; run;
 
 /*
 proc export data=herbdiv
@@ -214,6 +214,21 @@ proc transpose data=ordifungroup2
 run;
 data fundiv2; set fundiv; drop _NAME_; rename col1=forbdiv; rename col2=gramdiv; run;
 *proc print data=fundiv2 (firstobs=1 obs=10) noobs; title 'Diversity for each functional group'; run;
+
+data postfundiv; set fundiv2; if yearnum > 1; 
+proc sort data=postfundiv; by burn  ;
+proc means data=postfundiv mean noprint; by burn  ;
+	var forbdiv gramdiv;
+	output out=hprimebyburn mean= mforbdiv mgramdiv;
+run;
+*proc print data=hprimebyburn; title 'hprimebyburn'; run;
+
+proc sort data=fundiv2; by yearnum  ;
+proc means data=fundiv2 mean noprint; by yearnum  ;
+	var forbdiv gramdiv;
+	output out=hprimebyyr mean= mforbdiv mgramdiv;
+run;
+*proc print data=hprimebyyr; title 'hprimebyyr'; run;
 
 /*
 proc export data=fundiv2

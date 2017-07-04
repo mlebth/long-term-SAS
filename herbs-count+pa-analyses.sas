@@ -2,9 +2,34 @@ proc print data=quadhistory3 (firstobs=1 obs=20); title 'quadhistory3'; run; *n=
 
 *import herb data--rank 1-5;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-2ndrun.csv"
-out=run2 dbms=csv replace; getnames=yes; run;  * N = 2700;
-*proc print data=run2 ; title 'run2'; run;
+out=run2 dbms=csv replace; getnames=yes; run;  * N = 2750;
+*proc print data=run2 (firstobs=1 obs=20); title 'run2'; run;
 *proc contents data=run2; run;
+
+*7-2-17---getting num/year for each sp;
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-1strun.csv"
+out=run1 dbms=csv replace; getnames=yes; run;  * N = 2750;
+*proc print data=run1 (firstobs=1 obs=20); title 'run1'; run;
+*proc contents data=run1; run;
+
+data justledu; set run3;
+	if sspp NE 'LEDUx' then delete;
+run; 
+proc print data=justledu (firstobs=1 obs=20); title 'justledu'; run;
+
+proc sort data=run12; by plotnum sspp;
+proc sort data=justledu; by  plotnum sspp;
+data top6; merge run12 justledu; by plotnum sspp;
+run;
+proc print data=top6 (firstobs=1 obs=100); title 'top6'; run;
+
+proc sort data=top6; by sspp;
+proc means data=top6 mean noprint; by sspp;
+	var count1 count2 count3 count4 count5;
+	output out=nums mean=mcount1 mcount2 mcount3 mcount4 mcount5;
+run;
+proc print data=nums; title 'nums'; run;
+
 
 proc glimmix data=quadhistory3; by spnum;
     class burn ;

@@ -5,6 +5,38 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 * if processes get too slow, run this to free up memory;
 * proc datasets library=work kill noprint; run; 
 
+*7-2-17 for species list for paper;
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herb6.csv"
+out=herb6 dbms=csv replace; getnames=yes; run;  * N = 4620;
+*proc print data=herb6 (firstobs=1 obs=10); title 'herb6'; run;
+*proc contents data=herb6; run;
+
+proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\speciesreport.csv"
+out=ffispecies dbms=csv replace; getnames=yes; run;  * N = 2726;
+*proc print data=ffispecies (firstobs=1 obs=10); title 'ffispecies'; run;
+*proc contents data=ffispecies; run;
+
+proc sort data=herb6; by sspp;
+proc sort data=ffispecies; by sspp; run;
+data species; merge herb6 ffispecies; by sspp; run;
+proc print data=species (firstobs=1 obs=100); title 'species'; run;
+
+proc sort data=species; by sspp fungroup Scientific_Name Common_Name Family; run;
+proc means data=species n noprint; by sspp fungroup Scientific_Name Common_Name Family;
+	output out=spnames n=n;
+run;
+data sp; set spnames; if fungroup=. then delete; run;
+proc print data=sp; title 'sp'; run;
+
+*count per fungroup;
+proc sort data=herb6; by fungroup yearnum;
+proc means data=herb6 mean noprint; by fungroup yearnum;
+	var count;
+	output out=numfun mean=mcountbyfungroup;
+run;
+proc print data=numfun; title 'numfun'; run;
+
+
 *6-5-17;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\fundiv2.csv"
 out=fundiv2 dbms=csv replace; getnames=yes; run;  * N = 230;
@@ -17,23 +49,27 @@ nums:  cov, elev, slope, forbdiv, gramdiv;
 
 proc plot data=fundiv2; plot forbdiv*yearnum forbdiv*burn ; title 'div by yr'; run;
 
+*Spearman correlation coefficients;
+proc corr data=fundiv2 spearman; 
+   var  cov;
+   with burn;
+run;
+
+*div by burn;
 proc sort data=fundiv2; by burn;
 proc means data=fundiv2 mean noprint; by burn;
 	var forbdiv gramdiv;
-	output out=divbyyr mean=mforbdiv mgramdiv;
+	output out=divbyburn mean=mforbdiv mgramdiv;
 run;
-proc print data=divbyyr; title 'divbyburn'; run;
+proc print data=divbyburn; title 'divbyburn'; run;
 
-proc sort data=fundiv2; by yearnum; run;
-proc glimmix data=fundiv2; by yearnum; title 'hprime';
-    class burn soil aspect hydr;
-    model forbdiv = burn soil elev cov hydr / solution ;
-    *model gramdiv= burn cov/ solution ;
-    *lsmeans burn ;
-    output out=glmout resid=ehat;
+*div per fungroup;
+proc sort data=fundiv2; by yearnum;
+proc means data=fundiv2 mean noprint; by yearnum;
+	var forbdiv gramdiv;
+	output out=divbyyr mean= mforbdiv mgramdiv;
 run;
-
-
+proc print data=divbyyr; title 'divbyyr'; run;
 
 
 
@@ -245,6 +281,14 @@ proc glimmix data=fundiv2; by yearnum; title 'hprime';
 	lsmeans burn ;
 	output out=glmout resid=ehat;
 run;
+
+*div per fungroup;
+proc sort data=fundiv2; by yearnum;
+proc means data=fundiv2 mean noprint; by yearnum;
+	var forbdiv gramdiv;
+	output out=divbyyr mean= mforbdiv mgramdiv;
+run;
+proc print data=divbyyr; title 'divbyyr'; run;
 
 **************import relative abundance data by species;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\herbdivbysp4.csv"
