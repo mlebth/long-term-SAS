@@ -16,7 +16,12 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 proc import datafile="D:\Werk\Research\My papers\Invasives\inv.csv"
 out=inv dbms=csv replace; getnames=yes; run;  * N = 355;
 *proc contents data=inv; title 'inv'; run;
-*proc print data=inv; title 'inv'; run;
+*proc print data=inv (firstobs=1 obs=10); title 'inv'; run;
+
+*spearman correlations;
+proc corr data=inv spearman; 
+var invcov stems;
+run;
 
 ***6-6-17;
 *import invasive data;
@@ -162,7 +167,7 @@ predictor vars: burnnum, soilnum, cancovp, natcov, natpa;
 proc glimmix data=inv ;
 	class burnnum soilnum natpa;
 	*model invpa = natpa / dist=binomial link=logit solution;
-	model invcov = stems burnnum natcov/ dist=negbin link=log solution;
+	model invcov = burnnum natcov/ dist=negbin link=log solution;
 	*model stems = soilnum cancovp  natpa/ dist=negbin link=logit solution;
 	lsmeans  burnnum  / ilink cl;
 	

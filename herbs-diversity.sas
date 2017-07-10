@@ -12,6 +12,32 @@ out=herb6 dbms=csv replace; getnames=yes; run;  * N = 4620;
 *proc freq data=herb6; *tables fungroup*burn; run;
 *3008 forb obs, 1611 gram obs, 1 plot with no plants;
 
+*7-3-17;
+data pre; set herb6; if yearnum=1;
+data post; set herb6; if yearnum>1;
+proc sort data=pre; by sspp;
+proc means data=pre mean noprint; by sspp;
+	var fungroup;
+	output out=spnum var=mgroup;
+run;
+proc print data=spnum; run;
+*pre: 173;
+*post: 250;
+*total: 315;
+
+*7-4-17--checking pa for common single-stem sp;
+data coca; set herb6; if sspp='COCA5' then pa=1; if sspp NE 'COCA5' then pa=0; run;
+proc print data=coca (firstobs=1 obs=100);  title 'coca'; run;
+proc sort data=coca; by year;
+data gaar; set herb6; if sspp='GAARx' then pa=1; if sspp NE 'GAARx' then pa=0; run;
+proc print data=gaar (firstobs=1 obs=100);  title 'gaar'; run;
+proc sort data=gaar; by year;
+proc glimmix data=gaar method=laplace; by year; 
+  class plot burn soil;
+  model pa = burn  / dist=binomial ddfm=bw  solution;
+  random intercept / sub = plot; * random plot;
+run;
+
 *6-21-17--getting mean stem counts;
 proc sort data=herb6; by plot yearnum burn soil elev slope aspect hydr fungroup;
 proc means data=herb6 mean noprint; by plot yearnum burn soil elev slope aspect hydr fungroup;

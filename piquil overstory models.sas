@@ -62,6 +62,18 @@ run;
 *proc print data=seedtree ; title 'seedtree'; run;
 *proc contents data=seedtree; run;
 
+proc sort data=seedtree; by soil;
+proc means data=seedtree mean min max noprint; by soil;
+	var slope elev;
+	output out=blerg mean=mslope melev min=minslope minelev max=maxslope maxelev;
+run;
+proc print data=blerg; title 'blerg'; run;
+	***mean elev and slope at each soil type;
+proc glm data=seedtree;
+	class soil;
+	model soil=elev;
+run;
+
 *6-7-17--calculating pre-fire tree density v. post-fire seedling density (of PITA);
 proc means data=seedtree noprint mean; 
 	var mpitapretr; 
@@ -146,6 +158,21 @@ proc glimmix data=seedtree; title 'overstory';
 */
     output out=glmout resid=ehat;
 run;
+*correlations between all variables;
+proc corr data=seedtree spearman; 
+var mcovpre hydr slope burnsev;
+run;
+*correlations between burn and cover;
+proc corr data=seedtree spearman; 
+var mcovpre cov12 cov13 cov14 cov15 burnsev;
+run;
+
+proc plot data=seedtree; plot mcovpre*burnsev; run;
+proc freq data=seedtree; tables burnsev*mcovpre; run;
+proc sql;
+	select plot mcovpre burnsev
+	from seedtree;
+quit;
 
 *********5-23-17: re-running some models with all variables in one instead of treating them separately;
 
@@ -154,7 +181,7 @@ burnsev, soil, aspect, elev, slope
 prev trees (same class);
 proc glimmix data=seedtree; title 'overstory';
 	class burnsev soil aspect;
-	model qum315tr =   qum314tr  / distribution=negbin link=log solution  DDFM=bw;
+	model quma13sd = soil quma14sd quma15tr / distribution=negbin link=log solution  DDFM=bw;
 	/*lsmeans  burnsev  / ilink cl;
 	contrast 'scorch v low' burnsev 1 -1 0 0;
 	contrast 'scorch v mod' burnsev 1 0 -1 0;

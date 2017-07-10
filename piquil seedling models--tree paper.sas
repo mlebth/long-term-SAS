@@ -1,6 +1,10 @@
 
 OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 
+proc glm data=seedtree;
+	class soil;
+	model elev=soil;
+run;
 /*
 *import mature trees file;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\treemerge3.csv"
@@ -96,11 +100,11 @@ proc freq data=seedtree; tables burnsev*soil; run;
 
 ******seedling = tree models;
 proc glimmix data=seedtree; title 'seed v tree';
-	class soil ;
-	model pita15tr =  soil / distribution=negbin link=log solution  DDFM=bw;
+	class soil burnsev;
+	*model pita15tr =  soil / distribution=negbin link=log solution  DDFM=bw;
 	*model pita14 = mpitapretr / distribution=negbin link=log solution  DDFM=bw;
 	*model pita13 = pita12tr / distribution=negbin link=log solution  DDFM=bw;
-	*model pita12 = pita12tr / distribution=negbin link=log solution  DDFM=bw;
+	model pita12sd = burnsev mpitapretr / distribution=negbin link=log solution  DDFM=bw;
 	*model mpitapre = mpitapretr / distribution=negbin link=log solution  DDFM=bw;
     *lsmeans burnsev / ilink cl;
 	output out=glmout resid=ehat;
@@ -108,13 +112,13 @@ run;
 
 proc glimmix data=seedtree; title 'seed v tree';
 	class burnsev soil;
-	model qust15tr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
+	*model qust15tr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
 	*model quma12tr = burnsev soil / distribution=negbin link=log solution DDFM=bw;
 	*model quma14 = mqumapretr / distribution=negbin link=log solution DDFM=bw;
 	*model quma13 = mqumapretr / distribution=negbin link=log solution DDFM=bw;
-	*model quma12 = mqumapretr / distribution=negbin link=log solution DDFM=bw;
+	model quma13sd = burnsev quma12sd cov12 quma13tr / distribution=negbin link=log solution DDFM=bw;
 	*model mqumapre = mqumapretr / distribution=negbin link=log solution DDFM=bw;
-    lsmeans burnsev soil / ilink cl;
+    *lsmeans burnsev soil / ilink cl;
 	output out=glmout resid=ehat;
 run;
 
@@ -123,8 +127,8 @@ proc glimmix data=seedtree; title 'seed v tree';
 	*model qum315 = mquma3pretr  / distribution=negbin link=log solution DDFM=bw;
 	*model qum314 = mquma3pretr / distribution=negbin link=log solution DDFM=bw;
 	*model qum313 = qum313tr / distribution=negbin link=log solution DDFM=bw;
-	*model qum312 = qum312tr / distribution=negbin link=log solution DDFM=bw;
-	*model mquma3pre = mquma3pretr / distribution=negbin link=log solution DDFM=bw;
+	*model qum312sd = mquma3presd qum313tr / distribution=negbin link=log solution DDFM=bw;
+	model mquma3presd = soil mcovpre / distribution=negbin link=log solution DDFM=bw;
     *lsmeans burnsev / ilink cl;
 	output out=glmout resid=ehat;
 run;

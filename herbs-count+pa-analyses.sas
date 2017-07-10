@@ -3,7 +3,7 @@ proc print data=quadhistory3 (firstobs=1 obs=20); title 'quadhistory3'; run; *n=
 *import herb data--rank 1-5;
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\quadhistory-2ndrun.csv"
 out=run2 dbms=csv replace; getnames=yes; run;  * N = 2750;
-*proc print data=run2 (firstobs=1 obs=20); title 'run2'; run;
+*proc print data=run2 (firstobs=1 obs=200); title 'run2'; run;
 *proc contents data=run2; run;
 
 *7-2-17---getting num/year for each sp;
@@ -156,7 +156,7 @@ data quadhistory3; set quadhistory2; keep count1s count2s count3s count4s count5
 										  cover1m cover2m cover3m cover4m cover5m 
 										  spnum plot burn bcat soil hydr aspect elev slope;
 if spnum=. then delete;
-*proc print data=quadhistory3 ; title 'quadhistory3'; run; *n=270;
+*proc print data=quadhistory3 (firstobs=1 obs=10); title 'quadhistory3'; run; *n=270;
 
 *all these notes are for 1st run;
 proc sort data=quadhistory3; by spnum;
@@ -185,11 +185,11 @@ proc glimmix data=quadhistory3; by spnum;
 	*model count1s =  burn soil slope  / dist=negbin solution;
 	*model count5s =  cover5m / dist=negbin solution;
 	*model count2s = burn soil aspect / dist=negbin solution;
-	*model count2s = burn soil hydr / dist=negbin solution;
-	model count5s = aspect/ dist=negbin solution;
+	model count4s = hydr elev slope / dist=negbin solution;
+	*model count5s = aspect/ dist=negbin solution;
 	*model count4s =  burn/ dist=negbin solution;
 	*model count2s = burn soil cover2m elev bcat*cover2m bcat*elev soil*cover3m soil*elev cover2m*elev/ dist=negbin solution;
-	contrast 'flat v N' aspect 1 -1 0 0 0 ;
+	/*contrast 'flat v N' aspect 1 -1 0 0 0 ;
 	contrast 'flat v E' aspect 1 0 -1 0 0 ;
 	contrast 'flat v S' aspect 1 0 0 -1 0 ;
 	contrast 'flat v W' aspect 1 0 0 0 -1 ;
@@ -199,8 +199,8 @@ proc glimmix data=quadhistory3; by spnum;
 	contrast 'E v S' aspect 0 0 1 -1 0 ;
 	contrast 'E v W' aspect 0 0 1 0 -1 ;
 	contrast 'S v W' aspect 0 0 0 1 -1;
-	lsmeans  aspect / ilink cl;
-	*output out=glmout resid=ehat;
+	lsmeans  aspect / ilink cl;*/
+	output out=glmout resid=ehat;
 run;
 
 *redoing 2nd run using bcat instead of burn;
@@ -217,10 +217,16 @@ run;
 *categorical vars--using proc freq;
 proc freq data=quadhistory3; tables bcat*soil / chisq ;  run;
 
+proc sort data=quadhistory3; by plot burn;
+proc means data=quadhistory3 mean noprint; by plot burn;
+	var cover1m cover2m cover3m cover4m cover5m;
+	output out=corrset mean= cover1m cover2m cover3m cover4m cover5m;
+run;
+proc print data=corrset; title 'corrset'; run;
+
 *continuous vars--Spearman/Pearson correlation coefficients;
-proc corr data=quadhistory3 spearman pearson; 
-   var  cover2m;
-   with burn;
+proc corr data=corrset spearman; 
+var cover1m cover2m cover3m cover4m cover5m burn;
 run;
 
 *continuous*categorical--ANOVA, Kruskal-Wallis;

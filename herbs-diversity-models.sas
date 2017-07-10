@@ -11,6 +11,15 @@ out=herb6 dbms=csv replace; getnames=yes; run;  * N = 4620;
 *proc print data=herb6 (firstobs=1 obs=10); title 'herb6'; run;
 *proc contents data=herb6; run;
 
+proc corr data=herb6 spearman; 
+   var  cov;
+   with burn;
+run;
+proc glm data=herb6;
+	class burn soil;
+	model burn=soil;
+run;
+
 proc import datafile="D:\Werk\Research\FMH Raw Data, SAS, Tables\FFI long-term data\speciesreport.csv"
 out=ffispecies dbms=csv replace; getnames=yes; run;  * N = 2726;
 *proc print data=ffispecies (firstobs=1 obs=10); title 'ffispecies'; run;
@@ -129,8 +138,8 @@ proc freq data=forbs; tables meancount*year; run;
 proc sort data=forbs; by year; run;
 proc glimmix data=forbs; by year; title 'forbs'; 
 class burn soil hydr aspect ;
-	model meancount =  soil hydr aspect elev cov/ dist=negbin solution;
-	lsmeans soil hydr aspect  / ilink cl;
+	model meancount =  burn/ dist=negbin solution;
+	*lsmeans soil hydr aspect  / ilink cl;
 /*
 	contrast 'scorch v low' burn 1 -1 0 0;
 	contrast 'scorch v mod' burn 1 0 -1 0;
