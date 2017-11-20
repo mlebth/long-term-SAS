@@ -16,7 +16,7 @@ OPTIONS FORMCHAR="|----|+|---+=|-/\<>*";
 proc import datafile="D:\Werk\Research\My papers\Invasives\inv.csv"
 out=inv dbms=csv replace; getnames=yes; run;  * N = 355;
 *proc contents data=inv; title 'inv'; run;
-*proc print data=inv (firstobs=1 obs=10); title 'inv'; run;
+*proc print data=inv ; title 'inv'; run;
 
 *spearman correlations;
 proc corr data=inv spearman; 
